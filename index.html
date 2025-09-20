@@ -1,110 +1,136 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-  <meta charset="UTF-8">
-  <title>Next Leaders 6</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <style>
-    :root {
-      --primary-color: #1e90ff;
-      --bg-gradient: linear-gradient(135deg, #e0f7fa, #f0f4f8);
-      --card-bg: #ffffff;
-      --card-hover: #e6f2ff;
-      --text-color: #2c3e50;
-    }
+    <meta charset="UTF-8">
+    <title>Next Leaders 6</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #0056b3; /* より深みのある青に変更 */
+            --bg-gradient: linear-gradient(135deg, #f0f4f8, #e6e9f0); /* 背景のグラデーションを少し落ち着いた色に */
+            --card-bg: #ffffff;
+            --card-hover: #f1f5f9;
+            --text-color: #334155; /* メインのテキストカラー */
+            --header-color: #1e293b;
+        }
 
-    body {
-      margin: 0;
-      font-family: 'Segoe UI', 'Helvetica Neue', sans-serif;
-      background: var(--bg-gradient);
-      color: var(--text-color);
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      padding: 40px 20px;
-    }
+        body {
+            margin: 0;
+            font-family: 'Noto Sans JP', sans-serif; /* 読みやすいフォントに変更 */
+            background: var(--bg-gradient);
+            color: var(--text-color);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 40px 20px;
+            min-height: 100vh;
+            box-sizing: border-box;
+        }
 
-    h1 {
-      font-size: 2.2em;
-      margin-bottom: 30px;
-      color: var(--primary-color);
-      text-align: center;
-      letter-spacing: 1px;
-    }
+        h1 {
+            font-size: 2.5em;
+            margin-bottom: 40px;
+            color: var(--header-color);
+            text-align: center;
+            letter-spacing: 1px;
+            font-weight: 700;
+        }
 
-    ul {
-      list-style: none;
-      padding: 0;
-      width: 100%;
-      max-width: 500px;
-    }
+        ul {
+            list-style: none;
+            padding: 0;
+            width: 100%;
+            max-width: 600px; /* 最大幅を少し広げて読みやすく */
+        }
 
-    li {
-      margin-bottom: 20px;
-    }
+        li {
+            margin-bottom: 16px; /* マージンを少し調整 */
+        }
 
-    /* ▼▼▼ 追加したスタイル ▼▼▼ */
-    .section-header {
-        font-weight: bold;
-        color: #5a6a7a;
-        margin-bottom: 10px;
-        padding: 0 10px;
-        font-size: 0.9em;
-        text-transform: uppercase; /* アルファベットを大文字に */
-        letter-spacing: 0.5px;
-    }
-    /* ▲▲▲ 追加したスタイル ▲▲▲ */
+        .section-header {
+            font-weight: 700;
+            color: #475569;
+            margin-top: 40px; /* セクション間の余白を広げる */
+            margin-bottom: 12px;
+            padding: 0 10px;
+            font-size: 1em;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            border-bottom: 2px solid #cbd5e1;
+            padding-bottom: 8px;
+        }
 
-    a {
-      display: block;
-      padding: 16px 24px;
-      background-color: var(--card-bg);
-      border-radius: 12px;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.08);
-      text-decoration: none;
-      color: var(--primary-color);
-      font-weight: 600;
-      font-size: 1.1em;
-      transition: transform 0.2s ease, background-color 0.3s ease;
-    }
+        /* ▼▼▼ 説明ボックス用のスタイルを追加 ▼▼▼ */
+        .instruction-box {
+            background-color: #eef2ff;
+            border-left: 5px solid #6366f1;
+            padding: 20px;
+            border-radius: 8px;
+            font-size: 0.95em;
+            line-height: 1.7;
+        }
+        .instruction-box h3 {
+            font-size: 1.1em;
+            font-weight: 700;
+            color: #4338ca;
+            margin-top: 0;
+            margin-bottom: 10px;
+        }
+        .instruction-box p {
+            margin: 0 0 10px 0;
+        }
 
-    a:hover {
-      background-color: var(--card-hover);
-      transform: translateY(-2px);
-    }
+        a {
+            display: flex; /* Flexboxを使ってアイコンを配置 */
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px 24px;
+            background-color: var(--card-bg);
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.07);
+            text-decoration: none;
+            color: var(--primary-color);
+            font-weight: 500;
+            font-size: 1.1em;
+            transition: transform 0.2s ease, box-shadow 0.2s ease, background-color 0.3s ease;
+        }
+        
+        /* ▼▼▼ 矢印アイコンを追加 ▼▼▼ */
+        a::after {
+            content: '→';
+            font-weight: 700;
+            color: #94a3b8;
+            transition: color 0.2s ease;
+        }
 
-    footer {
-      margin-top: 40px;
-      font-size: 0.85em;
-      color: #7f8c8d;
-      text-align: center;
-    }
-  </style>
+        a:hover {
+            background-color: var(--card-hover);
+            transform: translateY(-3px);
+            box-shadow: 0 6px 16px rgba(0,0,0,0.1);
+        }
+        a:hover::after {
+            color: var(--primary-color);
+        }
+
+        footer {
+            margin-top: auto; /* フッターをページ下部に配置 */
+            padding-top: 40px;
+            font-size: 0.9em;
+            color: #64748b;
+            text-align: center;
+        }
+    </style>
 </head>
 <body>
-  <h1>Next Leaders 6</h1>
-  <li><a href="チームチャーター.html">チームチャーター</a></li>
+    <h1>Next Leaders 6</h1>
+    
+    <ul>
+        <li><a href="チームチャーター.html">チームチャーター</a></li>
 
-　　<li class="section-header">１．第四次産業革命を牽引するテクノロジー群の中から
-　　<li class="section-header">Day1,2の宿題</li>
-　　<li class="section-header">１．第四次産業革命を牽引するテクノロジー群の中から
-　　いくつかのテクノロジーを選び、研究してください。
-　　※AI、IoT、BD・Algorithm、BC合成生命、VR/AR/MR、iPS細胞、
-　　　ゲノム編集、ロボティクス、3DP、量子C
- 
-2．世の中(地球上)で現在進行形でチャレンジしている新奇性が感じられるベンチャー、
-　  次のユニコーンを目指す面白いベンチャー、大手企業の先進的新規事業を見出し
-　  事例研究してください。(青藍アプローチ)</li>
-    <li><a href="四次元産業.html">四次元産業を知ろう！</a></li>
-    <li><a href="Frontier Ventures 2025.html">新奇性が感じられるベンチャー</a></li>
-    <li><a href="大企業の新規事業開発.html">日本の大企業の新規事業開発</a></li>
-    <li><a href="日本のネクストユニコン.html">日本のネクストユニコーン</a></li>
-    <li class="section-header">インデックス</li>
-    <li><a href="ワークショップ.html">プロダクトアイデアのコツ</a></li>
-    <li><a href="product_evaluation.html">プロダクトアイデア評価シート</a></li>
-    <li class="section-header">山形</li>
-    <li><a href="10.4土 アクティビティ.html">10.4土 アクティビティ</a>
-  </ul>
-  <footer>© 2025 Next Leaders 6</footer>
-</body>
-</html>
+        <li>
+            <div class="instruction-box">
+                <h3>📝 Day1,2 宿題</h3>
+                <p>
+                    <strong>1. テクノロジー研究:</strong><br>
+                    第四次産業革命を牽引するテクノロジー（AI, IoT, 6G, ビッグデータ, ブロックチェーン, 合成生物学, XR, iPS細胞, ゲノム編集, ロボティクス, 3Dプリンティング
