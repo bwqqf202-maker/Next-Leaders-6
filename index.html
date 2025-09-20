@@ -2,119 +2,160 @@
 <html lang="ja">
 <head>
     <meta charset="UTF-8">
-    <title>Next Leaders 6</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
+    <title>チームチャーター | Next Leaders 6</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@400;700;800&display=swap" rel="stylesheet">
     <style>
-        :root {
-            /* 色定義: 白を基調とした、クリーンで洗練された配色 */
-            --background-color: #f5f5f7; /* 明るいオフホワイト */
-            --card-background: #ffffff;
-            --primary-text-color: #1f2937; /* 高コントラストなダークグレー */
-            --accent-color: #0070f3; /* 鮮やかなブルー */
-            --header-color: #111827;
-            --secondary-text-color: #6b7280; /* やや薄めのグレー */
-            --card-hover-background: #f9fafb;
-        }
-
+        /* 基本設定 */
         body {
+            /* ▼▼▼ フォントを'M PLUS Rounded 1c'に変更 ▼▼▼ */
+            font-family: 'M PLUS Rounded 1c', 'Noto Sans JP', sans-serif;
+            /* ▼▼▼ 背景を爽やかなグラデーションに変更 ▼▼▼ */
+            background: linear-gradient(to bottom, #e0f7fa 0%, #ffffff 50%);
+            color: #2c3e50; /* 視認性の高いダークグレー */
             margin: 0;
-            font-family: 'Noto Sans JP', sans-serif;
-            color: var(--primary-text-color);
-            background-color: var(--background-color);
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            padding: 50px 20px;
-            min-height: 100vh;
-            box-sizing: border-box;
+            padding: 20px;
+            line-height: 1.8;
         }
 
-        h1 {
-            font-size: 2.8em;
-            margin-bottom: 40px;
-            color: var(--header-color);
+        /* 全体を中央に配置するコンテナ */
+        .container {
+            max-width: 800px;
+            margin: 20px auto;
+            padding: 20px;
+        }
+
+        /* メインタイトル */
+        header h1 {
+            color: #00796b; /* アクセントカラーのティール */
             text-align: center;
-            letter-spacing: 1px;
-            font-weight: 700;
+            font-size: 2.8em;
+            font-weight: 800; /* 最も太いウェイトで見出しを強調 */
+            margin-bottom: 40px;
         }
 
+        /* 各セクションのカードスタイル */
+        .charter-section {
+            background-color: #ffffff;
+            border-radius: 12px;
+            padding: 25px 30px;
+            margin-bottom: 25px;
+            /* ▼▼▼ 影を柔らかく、線を上部に変更 ▼▼▼ */
+            box-shadow: 0 5px 25px rgba(0, 0, 0, 0.07);
+            border-top: 4px solid #00a99d; /* アクセントカラー */
+        }
+
+        /* セクションのタイトル */
+        .charter-section h2 {
+            font-size: 1.6em;
+            font-weight: 700;
+            color: #004d40; /* 濃いティール */
+            margin-top: 0;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+        }
+        
+        /* タイトルの横のアイコン */
+        .charter-section h2::before {
+            margin-right: 12px;
+            font-size: 1.2em;
+        }
+
+        /* 各項目のアイコンを設定 */
+        #team-name h2::before { content: '📛'; }
+        #mission h2::before { content: '🎯'; }
+        #roles h2::before { content: '👥'; }
+        #conduct h2::before { content: '📜'; }
+        #communication h2::before { content: '💬'; }
+        #success h2::before { content: '✅'; }
+
+        /* リストのスタイル */
         ul {
-            list-style: none;
-            padding: 0;
-            width: 100%;
-            max-width: 650px;
+            padding-left: 25px;
+            list-style-type: none;
         }
 
         li {
-            margin-bottom: 18px;
-        }
-
-        .section-header {
-            color: var(--secondary-text-color);
-            margin-top: 40px;
-            margin-bottom: 15px;
-            padding-bottom: 10px;
-            font-size: 1em;
-            font-weight: 500;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            border-bottom: 1px solid #e5e7eb;
+            margin-bottom: 12px;
+            padding-left: 15px;
+            position: relative;
         }
         
-        a {
-            display: block;
-            padding: 20px 25px;
-            background-color: var(--card-background);
-            border: 1px solid #e5e7eb;
-            border-radius: 12px;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
-            text-decoration: none;
-            color: var(--primary-text-color);
-            font-weight: 500;
-            font-size: 1.1em;
-            transition: transform 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease;
+        /* リストのマーカーをカスタム */
+        li::before {
+            content: '✓';
+            position: absolute;
+            left: -5px;
+            color: #00a99d; /* アクセントカラー */
+            font-weight: 700;
         }
 
-        a:hover {
-            transform: translateY(-3px);
-            background-color: var(--card-hover-background);
-            border-color: #d1d5db;
-            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.08);
-            color: var(--accent-color);
+        /* 行動規範のキーワードを強調 */
+        li strong {
+            color: #004d40;
+            font-weight: 700;
         }
         
-        footer {
-            margin-top: auto;
-            padding-top: 40px;
-            font-size: 0.9em;
-            color: var(--secondary-text-color);
-            text-align: center;
+        p {
+            font-size: 1.05em;
         }
     </style>
 </head>
 <body>
 
-    <h1>Next Leaders 6</h1>
-    
-    <ul>
-        <li><a href="チームチャーター.html">チームチャーター</a></li>
+    <div class="container">
+        <header>
+            <h1>Team Charter</h1>
+        </header>
 
-        <li class="section-header">Day1,2 宿題</li>
-        <li><a href="四次元産業.html">四次元産業を知ろう！</a></li>
-        <li><a href="Frontier Ventures 2025.html">新奇性が感じられるベンチャー</a></li>
-        <li><a href="大企業の新規事業開発.html">日本の大企業の新規事業開発</a></li>
-        <li><a href="日本のネクストユニコン.html">日本のネクストユニコーン</a></li>
+        <section id="team-name" class="charter-section">
+            <h2>チーム名</h2>
+            <p>Next Leaders 6</p>
+        </section>
 
-        <li class="section-header">インデックス</li>
-        <li><a href="ワークショップ.html">プロダクトアイデアのコツ</a></li>
-        <li><a href="product_evaluation.html">プロダクトアイデア評価シート</a></li>
-        
-        <li class="section-header">山形</li>
-        <li><a href="10.4土 アクティビティ.html">10.4土 アクティビティ</a></li>
-    </ul>
+        <section id="mission" class="charter-section">
+            <h2>Mission</h2>
+            <ul>
+                <li>各メンバーの強みを活かし、革新的かつ実行可能な成果を生み出す。</li>
+                <li>意見を尊重し合いながら、協働で成果を最大化する。</li>
+                <li>チーム全員が成長できるプロセスを重視する。</li>
+            </ul>
+        </section>
 
-    <footer>© 2025 Next Leaders 6</footer>
+        <section id="roles" class="charter-section">
+            <h2>役割分担</h2>
+            <p>チーム分析参照</p>
+        </section>
+
+        <section id="conduct" class="charter-section">
+            <h2>行動規範</h2>
+            <ul>
+                <li><strong>Respect：</strong>意見を否定せず、まず受け止める。</li>
+                <li><strong>Balance：</strong>発言が偏らないよう、全員の声を聞く。</li>
+                <li><strong>Clarity：</strong>目標・役割・期限を常に明確にする。</li>
+                <li><strong>Constructive Conflict：</strong>衝突は成長の機会と捉え、建設的に解決する。</li>
+                <li><strong>Accountability：</strong>各自が責任をもって行動し、進捗を共有する。</li>
+            </ul>
+        </section>
+
+        <section id="communication" class="charter-section">
+            <h2>コミュニケーションルール</h2>
+            <p>意見が対立した場合は、「全員の意見を聞いた上で多数決 or コンセンサス」で決定。</p>
+        </section>
+
+        <section id="success" class="charter-section">
+            <h2>成功の定義 (Success Criteria)</h2>
+            <ul>
+                <li>全員が役割を果たし、期限内に目標を達成すること。</li>
+                <li>新しい価値や発想を盛り込み、「他のチームにない強み」を示すこと。</li>
+                <li>チームの雰囲気が良く、次回以降も一緒に活動したいと思える関係性を築くこと。</li>
+            </ul>
+        </section>
+
+    </div>
 
 </body>
 </html>
