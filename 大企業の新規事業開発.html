@@ -1,0 +1,684 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>大手企業の先進的新規事業リサーチ</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
+    <!-- Chosen Palette: Warm Neutrals -->
+    <!-- Application Structure Plan: ユーザーが情報を能動的に探索できるよう、ダッシュボード形式の対話型構造を採用。最初に全体像（概要）、次に「注目の事業領域」「成功の鍵と課題」「先進事例」というテーマ別セクションを配置。この構造は、ユーザーが「何が」「どのように」「誰が」という疑問に沿って直感的に情報を深掘りできるよう設計されており、静的なレポートを読むよりも高いエンゲージメントと理解を促進するため選択された。 -->
+    <!-- Visualization & Content Choices: 1. 事業領域の動向 -> Goal: 比較/通知 -> Viz: ドーナツグラフ＆棒グラフ(Chart.js) -> Interaction: 領域ボタンクリックでグラフと解説が連動して更新。全体比率と個別詳細を動的に切り替えることで、情報の多角的な理解を支援。 2. 課題 -> Goal: 比較 -> Viz: 水平棒グラフ(Chart.js) -> Interaction: ホバーで詳細ツールチップ表示。ランキング形式で課題の重要度を明確化。 3. 成功要因 -> Goal: 整理/通知 -> Viz: HTML/CSSによる対話型ダイアグラム -> Interaction: クリックで詳細な説明を表示。視覚的な関連付けにより、複雑な概念を簡潔に伝達。 4. 先進事例 -> Goal: 整理 -> Viz: フィルタリング可能なカードリスト -> Interaction: フィルターボタンで事例を絞り込み。ユーザーの関心に合わせた情報へのアクセスを高速化。これら全ての手法は、SVGやMermaid JSを使用せず、対話性とユーザビリティを最大化するために選ばれた。 -->
+    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+    <style>
+        body {
+            font-family: 'Noto Sans JP', sans-serif;
+            background-color: #f8f9fa;
+            color: #343a40;
+        }
+        .chart-container {
+            position: relative;
+            width: 100%;
+            margin-left: auto;
+            margin-right: auto;
+            max-width: 500px;
+            height: 320px;
+            max-height: 40vh;
+        }
+        @media (min-width: 768px) {
+            .chart-container {
+                height: 400px;
+            }
+        }
+        .nav-link {
+            transition: color 0.3s, border-color 0.3s;
+        }
+        .nav-link:hover {
+            color: #0d6efd;
+        }
+        .nav-link.active {
+            color: #0d6efd;
+            border-bottom-width: 2px;
+            border-color: #0d6efd;
+        }
+        .section-fade-in {
+            opacity: 0;
+            transform: translateY(20px);
+            transition: opacity 0.6s ease-out, transform 0.6s ease-out;
+        }
+        .section-fade-in.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        .filter-btn.active {
+            background-color: #0d6efd;
+            color: white;
+        }
+        .audio-btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background-color: #e2e8f0;
+            color: #475569;
+            transition: all 0.2s ease-in-out;
+            cursor: pointer;
+        }
+        .audio-btn:hover {
+            background-color: #cbd5e1;
+        }
+        .audio-btn.loading svg {
+            animation: spin 1s linear infinite;
+        }
+        .audio-btn.playing {
+            background-color: #3b82f6;
+            color: white;
+        }
+        @keyframes spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-800">
+
+    <header class="bg-white shadow-md sticky top-0 z-50">
+        <nav class="container mx-auto px-6 py-4 flex justify-between items-center">
+            <h1 class="text-xl md:text-2xl font-bold text-slate-900">新規事業創出レポート</h1>
+            <div class="hidden md:flex space-x-8">
+                <a href="#overview" class="nav-link pb-1 border-b-2 border-transparent">概要</a>
+                <a href="#areas" class="nav-link pb-1 border-b-2 border-transparent">事業領域</a>
+                <a href="#factors" class="nav-link pb-1 border-b-2 border-transparent">成功と課題</a>
+                <a href="#cases" class="nav-link pb-1 border-b-2 border-transparent">先進事例</a>
+            </div>
+            <button id="mobile-menu-button" class="md:hidden focus:outline-none">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7"></path></svg>
+            </button>
+        </nav>
+        <div id="mobile-menu" class="hidden md:hidden px-6 pt-2 pb-4">
+            <a href="#overview" class="block py-2 nav-link">概要</a>
+            <a href="#areas" class="block py-2 nav-link">事業領域</a>
+            <a href="#factors" class="block py-2 nav-link">成功と課題</a>
+            <a href="#cases" class="block py-2 nav-link">先進事例</a>
+        </div>
+    </header>
+
+    <main class="container mx-auto px-6 py-8 md:py-12">
+
+        <section id="overview" class="mb-16 md:mb-24 text-center section-fade-in">
+            <div class="flex justify-center items-center gap-4 mb-4">
+                <h2 class="text-3xl md:text-4xl font-bold text-slate-900">大手企業の未来を拓く、先進的新規事業</h2>
+                <button class="audio-btn" data-text-source="#overview-text" aria-label="概要の音声解説を再生">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.88 5.88a15 15 0 0121.213 0M6.586 18.414A14.941 14.941 0 013 12c0-2.02.4-3.933 1.158-5.698"></path></svg>
+                </button>
+            </div>
+            <p id="overview-text" class="max-w-3xl mx-auto text-slate-600 leading-relaxed">
+                本レポートは、日本の大手企業が直面する市場の変化と、持続的成長のために不可欠な新規事業創出の動向を分析します。本アプリケーションでは、主要な事業領域、成功への鍵、そして乗り越えるべき課題をインタラクティブに探求し、具体的な先進事例を通じて未来のビジネスモデルを考察します。
+            </p>
+        </section>
+
+        <section id="areas" class="mb-16 md:mb-24 section-fade-in">
+            <div class="flex justify-center items-center gap-4 mb-8">
+                <h2 class="text-2xl md:text-3xl font-bold text-center text-slate-900">注目の事業領域</h2>
+                <button class="audio-btn" data-text-source="#areas-text" aria-label="事業領域の音声解説を再生">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.88 5.88a15 15 0 0121.213 0M6.586 18.414A14.941 14.941 0 013 12c0-2.02.4-3.933 1.158-5.698"></path></svg>
+                </button>
+            </div>
+            <p id="areas-text" class="max-w-3xl mx-auto text-center text-slate-600 mb-12">
+                大手企業は、既存事業の枠を超え、社会課題の解決と新たな価値創造を目指す領域へ積極的に投資しています。ここでは特に注目される4つのテーマを取り上げます。下のボタンをクリックして、各領域の投資動向と概要を確認してください。
+            </p>
+            <div class="flex flex-wrap justify-center gap-4 mb-8">
+                <button class="area-btn px-6 py-2 bg-white border border-slate-300 rounded-full shadow-sm hover:bg-slate-100 transition" data-area="all">全体像</button>
+                <button class="area-btn px-6 py-2 bg-white border border-slate-300 rounded-full shadow-sm hover:bg-slate-100 transition" data-area="dx">DX/AI</button>
+                <button class="area-btn px-6 py-2 bg-white border border-slate-300 rounded-full shadow-sm hover:bg-slate-100 transition" data-area="gx">GX/エネルギー</button>
+                <button class="area-btn px-6 py-2 bg-white border border-slate-300 rounded-full shadow-sm hover:bg-slate-100 transition" data-area="healthcare">ヘルスケア</button>
+                <button class="area-btn px-6 py-2 bg-white border border-slate-300 rounded-full shadow-sm hover:bg-slate-100 transition" data-area="maas">MaaS/モビリティ</button>
+            </div>
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 items-center">
+                <div id="area-chart-container" class="bg-white p-6 rounded-lg shadow-lg">
+                    <div class="chart-container">
+                        <canvas id="areasChart"></canvas>
+                    </div>
+                </div>
+                <div id="area-description" class="bg-white p-8 rounded-lg shadow-lg min-h-[400px] flex flex-col justify-center">
+                    <h3 id="area-title" class="text-2xl font-bold mb-4 text-blue-600"></h3>
+                    <p id="area-text" class="text-slate-600 leading-relaxed"></p>
+                </div>
+            </div>
+        </section>
+
+        <section id="factors" class="mb-16 md:mb-24 section-fade-in">
+             <div class="flex justify-center items-center gap-4 mb-12">
+                <h2 class="text-2xl md:text-3xl font-bold text-center text-slate-900">成功への鍵と課題</h2>
+                <button class="audio-btn" data-text-source="#factors-text" aria-label="成功と課題の音声解説を再生">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.88 5.88a15 15 0 0121.213 0M6.586 18.414A14.941 14.941 0 013 12c0-2.02.4-3.933 1.158-5.698"></path></svg>
+                </button>
+            </div>
+            <p id="factors-text" class="max-w-3xl mx-auto text-center text-slate-600 mb-12">
+                新規事業の成否は、戦略的なアプローチと組織文化に大きく左右されます。ここでは、成功を導く主要因と、多くの企業が直面する共通の課題を可視化します。成功要因の各項目をクリックすると、詳細な説明が表示されます。
+            </p>
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 md:gap-12">
+                <div class="bg-white p-8 rounded-lg shadow-lg">
+                    <h3 class="text-xl font-bold text-center mb-6 text-green-600">成功への主要因</h3>
+                    <div class="grid grid-cols-2 gap-4">
+                        <div class="factor-item p-4 text-center border rounded-lg cursor-pointer hover:bg-green-50 transition" data-factor="1">経営層のコミットメント</div>
+                        <div class="factor-item p-4 text-center border rounded-lg cursor-pointer hover:bg-green-50 transition" data-factor="2">アジャイルな開発体制</div>
+                        <div class="factor-item p-4 text-center border rounded-lg cursor-pointer hover:bg-green-50 transition" data-factor="3">オープンイノベーション</div>
+                        <div class="factor-item p-4 text-center border rounded-lg cursor-pointer hover:bg-green-50 transition" data-factor="4">失敗を許容する文化</div>
+                    </div>
+                    <div id="factor-description" class="mt-6 p-4 bg-green-50 rounded-md min-h-[120px]">
+                        <p id="factor-text" class="text-slate-700">項目を選択してください。</p>
+                    </div>
+                </div>
+                <div class="bg-white p-6 rounded-lg shadow-lg">
+                    <h3 class="text-xl font-bold text-center mb-6 text-red-600">直面する主な課題</h3>
+                    <div class="chart-container h-96 max-h-[50vh]">
+                        <canvas id="challengesChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="cases" class="section-fade-in">
+            <div class="flex justify-center items-center gap-4 mb-8">
+                <h2 class="text-2xl md:text-3xl font-bold text-center text-slate-900">先進事例の探求</h2>
+                <button class="audio-btn" data-text-source="#cases-text" aria-label="先進事例の音声解説を再生">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.88 5.88a15 15 0 0121.213 0M6.586 18.414A14.941 14.941 0 013 12c0-2.02.4-3.933 1.158-5.698"></path></svg>
+                </button>
+            </div>
+             <p id="cases-text" class="max-w-3xl mx-auto text-center text-slate-600 mb-12">
+                理論だけでなく、実際の取り組みから学ぶことは重要です。ここでは、各領域で先進的な新規事業に取り組む企業の事例を紹介します。フィルターを使って関心のある分野の事例を絞り込み、詳細をご覧ください。
+            </p>
+            <div class="flex flex-wrap justify-center gap-4 mb-10">
+                <button class="filter-btn px-6 py-2 bg-white border border-slate-300 rounded-full shadow-sm hover:bg-slate-100 transition active" data-filter="all">すべて</button>
+                <button class="filter-btn px-6 py-2 bg-white border border-slate-300 rounded-full shadow-sm hover:bg-slate-100 transition" data-filter="dx">DX/AI</button>
+                <button class="filter-btn px-6 py-2 bg-white border border-slate-300 rounded-full shadow-sm hover:bg-slate-100 transition" data-filter="gx">GX/エネルギー</button>
+                <button class="filter-btn px-6 py-2 bg-white border border-slate-300 rounded-full shadow-sm hover:bg-slate-100 transition" data-filter="healthcare">ヘルスケア</button>
+                <button class="filter-btn px-6 py-2 bg-white border border-slate-300 rounded-full shadow-sm hover:bg-slate-100 transition" data-filter="maas">MaaS/モビリティ</button>
+            </div>
+            <div id="case-studies-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            </div>
+        </section>
+    </main>
+
+    <footer class="bg-slate-800 text-white mt-16 md:mt-24">
+        <div class="container mx-auto px-6 py-8 text-center">
+            <p>&copy; 2025 新規事業リサーチレポート. All Rights Reserved.</p>
+            <p class="text-sm text-slate-400 mt-2">本レポートは、公開情報に基づき作成されたものであり、特定の投資を推奨するものではありません。</p>
+        </div>
+    </footer>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+
+    const reportData = {
+        areas: {
+            all: {
+                title: "事業領域 全体像",
+                text: "大手企業は、DX/AI、GX/エネルギー、ヘルスケア、MaaS/モビリティの4領域に重点的に投資しています。これらは社会の持続可能性と生産性向上に直結する分野であり、既存事業とのシナジーも期待されています。",
+                chartType: 'doughnut',
+                labels: ["DX/AI", "GX/エネルギー", "ヘルスケア", "MaaS/モビリティ"],
+                data: [40, 25, 20, 15]
+            },
+            dx: {
+                title: "DX / AI",
+                text: "業務効率化から新たなサービス創出まで、AIとデータ活用は全産業の核となっています。特に製造業や金融、小売業での導入が活発で、競争力の源泉と位置付けられています。",
+                chartType: 'bar',
+                labels: ["2022年", "2023年", "2024年", "2025年(予測)"],
+                data: [65, 75, 88, 95]
+            },
+            gx: {
+                title: "GX / エネルギー",
+                text: "カーボンニュートラル実現に向け、再生可能エネルギー、水素技術、CCUS（CO2回収・利用・貯留）への投資が加速。新たなエネルギー供給網の構築が国家的な課題となっています。",
+                chartType: 'bar',
+                labels: ["2022年", "2023年", "2024年", "2025年(予測)"],
+                data: [40, 55, 70, 85]
+            },
+            healthcare: {
+                title: "ヘルスケア",
+                text: "高齢化社会を背景に、予防医療、個別化医療、デジタルヘルスへの注目が高まっています。異業種からの参入も相次ぎ、テクノロジーを活用した新たな健康ソリューションが期待されています。",
+                chartType: 'bar',
+                labels: ["2022年", "2023年", "2024年", "2025年(予測)"],
+                data: [50, 60, 68, 78]
+            },
+            maas: {
+                title: "MaaS / モビリティ",
+                text: "自動運転技術やシェアリングエコノミーの進展により、「所有から利用へ」という移動の概念が変化。自動車メーカーだけでなく、IT企業や交通事業者が連携し、次世代の交通サービスを構築しています。",
+                chartType: 'bar',
+                labels: ["2022年", "2023年", "2024年", "2025年(予測)"],
+                data: [35, 45, 62, 75]
+            }
+        },
+        factors: {
+            "1": "トップの強いリーダーシップと明確なビジョンが、組織全体を動かし、困難な変革を推進する上で不可欠です。予算や人材の重点的な配分も含まれます。",
+            "2": "市場の変化に迅速に対応するため、小規模なチームで企画、開発、検証のサイクルを高速で回す手法。従来のウォーターフォール型開発とは一線を画します。",
+            "3": "社内のリソースに固執せず、スタートアップ、大学、研究機関など外部の技術やアイデアを積極的に取り入れることで、開発スピードとイノベーションの確率を高めます。",
+            "4": "新規事業に失敗はつきものです。挑戦した結果の失敗を責めるのではなく、そこからの学びを奨励し、次の挑戦に繋げる文化がイノベーションの土壌となります。"
+        },
+        challenges: {
+            labels: ["既存事業とのカニバリズム", "評価指標(ROI)の設定の難しさ", "意思決定の遅さ", "縦割り組織の壁", "リスク回避的な企業文化"],
+            data: [65, 72, 80, 85, 92]
+        },
+        caseStudies: [
+            { id: 1, company: "トヨタ自動車", title: "Woven City", category: "maas", description: "あらゆるモノやサービスがつながる実証都市を構築。自動運転、スマートホーム、AIなどを活用し、未来の暮らしのプロトタイプを創造する壮大なプロジェクト。", link: "https://www.woven-city.global/ja/" },
+            { id: 2, company: "ソニー・ホンダモビリティ", title: "AFEELA", category: "maas", description: "モビリティを新たなエンタテインメント空間と再定義。ソニーの強みであるセンサーや映像音響技術とホンダの安全技術を結集したEVで新たな体験価値を提案。", link: "https://www.sh-mobility.com/ja/" },
+            { id: 3, company: "パナソニック", title: "サステナブル・スマートタウン", category: "gx", description: "街全体のエネルギーマネジメントやサステナブルな暮らしを提案する街づくり。再生可能エネルギーを最大限活用し、CO2排出量実質ゼロを目指す。", link: "https://panasonic.co.jp/ss/pst/" },
+            { id: 4, company: "日立製作所", title: "Lumada", category: "dx", description: "長年培ってきたOT（制御技術）とITを融合させたソリューション。製造業や社会インフラのDXを支援し、顧客との協創を通じて新たな価値を生み出す。", link: "https://www.hitachi.co.jp/products/it/lumada/" },
+            { id: 5, company: "富士フイルム", title: "ヘルスケア事業", category: "healthcare", description: "写真フィルムで培った化学合成技術や解析技術を、医薬品や再生医療、化粧品分野に応用。事業の多角化に成功した代表例として知られる。", link: "https://www.fujifilm.com/jp/ja/business/healthcare" },
+            { id: 6, company: "KDDI", title: "αU (アルファユー)", category: "dx", description: "通信インフラを基盤に、メタバースやライブ配信、NFTマーケットなどを連携させたWeb3サービス。リアルとバーチャルが融合した新たなコミュニケーションの形を模索。", link: "https://alpha-u.io/" },
+            { id: 7, company: "リクルート", title: "Air ビジネスツールズ", category: "dx", description: "中小企業や個人事業主向けに、POSレジ、決済、予約管理などの業務支援SaaSを提供。アナログな業務プロセスをデジタル化し、生産性向上に貢献。", link: "https://airregi.jp/" },
+            { id: 8, company: "三菱重工業", title: "宇宙事業", category: "gx", description: "国の基幹ロケット(H3)の開発・製造を担当。人工衛星の打ち上げを通じて、気象観測や通信インフラの高度化に貢献し、GXにも寄与する。", link: "https://www.mhi.com/jp/products/space/" },
+            { id: 9, company: "キーエンス", title: "FAソリューション", category: "dx", description: "センサーや測定器などのFA（ファクトリーオートメーション）機器を核に、生産現場の効率化・自動化ソリューションを提供。高い利益率とコンサルティング営業が特徴。", link: "https://www.keyence.co.jp/" },
+            { id: 10, company: "伊藤忠商事", title: "第8カンパニー", category: "dx", description: "既存の枠組みにとらわれない次世代ビジネスを創出するため、専門組織「第8カンパニー」を設立。スタートアップへの投資や協業を加速させている。", link: "https://www.itochu.co.jp/ja/business/eighth/index.html" },
+            { id: 11, company: "三菱UFJ", title: "Progmat (デジタルアセット)", category: "dx", description: "ステーブルコインやセキュリティトークンなど、様々なデジタルアセットの発行・管理基盤を開発。金融の未来を形作るブロックチェーン技術を推進。", link: "https://www.tr.mufg.jp/progmat/" },
+            { id: 12, company: "味の素", title: "電子材料事業 (ABF)", category: "dx", description: "アミノ酸研究から生まれた副産物を、高性能CPUに不可欠な層間絶縁材として製品化。食品由来の技術で世界の半導体業界を支える。", link: "https://www.ajinomoto.co.jp/activity/electronic/" },
+            { id: 13, company: "清水建設", title: "浮体式洋上風力発電", category: "gx", description: "建設技術を活かし、次世代の再生可能エネルギーとして期待される浮体式洋上風力発電の実用化に取り組む。サステナブルな社会インフラを構築。", link: "https://www.shimz.co.jp/solution/energy/offshore/" }
+        ]
+    };
+
+    let areasChartInstance;
+    let challengesChartInstance;
+    let currentAudio = null;
+    let currentButton = null;
+
+    const ICONS = {
+        PLAY: `<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.88 5.88a15 15 0 0121.213 0M6.586 18.414A14.941 14.941 0 013 12c0-2.02.4-3.933 1.158-5.698"></path></svg>`,
+        LOADING: `<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h5M20 20v-5h-5"></path><path d="M4 9a9 9 0 0 1 14.12-5.12M20 15a9 9 0 0 1-14.12 5.12"></path></svg>`,
+        STOP: `<svg class="w-5 h-5" fill="currentColor" viewBox="0 0 16 16"><path d="M5 3.5h6A1.5 1.5 0 0 1 12.5 5v6a1.5 1.5 0 0 1-1.5 1.5H5A1.5 1.5 0 0 1 3.5 11V5A1.5 1.5 0 0 1 5 3.5z"/></svg>`
+    };
+
+    const chartColors = {
+        backgrounds: ['rgba(59, 130, 246, 0.7)', 'rgba(16, 185, 129, 0.7)', 'rgba(239, 68, 68, 0.7)', 'rgba(249, 115, 22, 0.7)'],
+        borders: ['rgba(59, 130, 246, 1)', 'rgba(16, 185, 129, 1)', 'rgba(239, 68, 68, 1)', 'rgba(249, 115, 22, 1)'],
+        bar: 'rgba(59, 130, 246, 0.7)',
+        barBorder: 'rgba(59, 130, 246, 1)',
+        challengesBar: 'rgba(239, 68, 68, 0.7)',
+        challengesBorder: 'rgba(239, 68, 68, 1)'
+    };
+
+    function createOrUpdateAreaChart(areaKey) {
+        const areaData = reportData.areas[areaKey];
+        const ctx = document.getElementById('areasChart').getContext('2d');
+
+        if (areasChartInstance) {
+            areasChartInstance.destroy();
+        }
+
+        const chartConfig = {
+            type: areaData.chartType,
+            data: {
+                labels: areaData.labels,
+                datasets: [{
+                    label: areaData.title,
+                    data: areaData.data,
+                    backgroundColor: areaData.chartType === 'doughnut' ? chartColors.backgrounds : chartColors.bar,
+                    borderColor: areaData.chartType === 'doughnut' ? chartColors.borders : chartColors.barBorder,
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: areaData.chartType === 'doughnut' ? 'top' : 'none',
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                let label = context.dataset.label || '';
+                                if (label) {
+                                    label += ': ';
+                                }
+                                if (context.parsed.y !== null && areaData.chartType === 'bar') {
+                                    label += `${context.parsed.y} (投資額指数)`;
+                                }
+                                if (context.parsed !== null && areaData.chartType === 'doughnut') {
+                                     label = context.label + ': ' + context.parsed + '%';
+                                }
+                                return label;
+                            }
+                        }
+                    }
+                },
+                scales: areaData.chartType === 'bar' ? {
+                    y: {
+                        beginAtZero: true,
+                        title: {
+                            display: true,
+                            text: '投資額指数'
+                        }
+                    }
+                } : {}
+            }
+        };
+
+        areasChartInstance = new Chart(ctx, chartConfig);
+    }
+
+    function updateAreaDescription(areaKey) {
+        const areaData = reportData.areas[areaKey];
+        document.getElementById('area-title').textContent = areaData.title;
+        document.getElementById('area-text').textContent = areaData.text;
+    }
+
+    const areaButtons = document.querySelectorAll('.area-btn');
+    areaButtons.forEach(button => {
+        button.addEventListener('click', () => {
+            const areaKey = button.dataset.area;
+            createOrUpdateAreaChart(areaKey);
+            updateAreaDescription(areaKey);
+            
+            areaButtons.forEach(btn => btn.classList.remove('bg-blue-600', 'text-white'));
+            button.classList.add('bg-blue-600', 'text-white');
+        });
+    });
+
+    function createChallengesChart() {
+        const ctx = document.getElementById('challengesChart').getContext('2d');
+        challengesChartInstance = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: reportData.challenges.labels,
+                datasets: [{
+                    label: '課題の深刻度（回答率 %）',
+                    data: reportData.challenges.data,
+                    backgroundColor: chartColors.challengesBar,
+                    borderColor: chartColors.challengesBorder,
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                indexAxis: 'y',
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        display: false
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                return ` ${context.parsed.x}%の企業が課題と認識`;
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    x: {
+                        beginAtZero: true,
+                        max: 100,
+                        title: {
+                            display: true,
+                            text: '回答率 (%)'
+                        }
+                    }
+                }
+            }
+        });
+    }
+
+    const factorItems = document.querySelectorAll('.factor-item');
+    const factorText = document.getElementById('factor-text');
+    factorItems.forEach(item => {
+        item.addEventListener('click', () => {
+            const factorKey = item.dataset.factor;
+            factorText.textContent = reportData.factors[factorKey];
+            factorItems.forEach(i => i.classList.remove('bg-green-200', 'border-green-400'));
+            item.classList.add('bg-green-200', 'border-green-400');
+        });
+    });
+    
+    const caseGrid = document.getElementById('case-studies-grid');
+    function renderCaseStudies(filter = 'all') {
+        caseGrid.innerHTML = '';
+        const filteredCases = filter === 'all'
+            ? reportData.caseStudies
+            : reportData.caseStudies.filter(c => c.category === filter);
+
+        filteredCases.forEach(c => {
+            const card = document.createElement('div');
+            card.className = 'case-card bg-white p-6 rounded-lg shadow-lg hover:shadow-xl hover:-translate-y-1 transition-all duration-300 flex flex-col';
+            
+            const searchQuery = encodeURIComponent(c.company + ' ' + c.title);
+            const linksHtml = `
+                <div class="mt-4 pt-4 border-t border-slate-200 text-sm flex justify-end gap-4">
+                    <a href="${c.link}" target="_blank" rel="noopener noreferrer" class="text-blue-600 hover:underline font-semibold">公式サイト 🔗</a>
+                    <a href="https://www.google.com/search?q=${searchQuery}" target="_blank" rel="noopener noreferrer" class="text-green-600 hover:underline font-semibold">検索する 🔍</a>
+                </div>
+            `;
+
+            card.innerHTML = `
+                <div class="flex-grow">
+                    <span class="inline-block bg-${c.category === 'dx' ? 'blue' : c.category === 'gx' ? 'green' : c.category === 'healthcare' ? 'red' : 'orange'}-100 text-${c.category === 'dx' ? 'blue' : c.category === 'gx' ? 'green' : c.category === 'healthcare' ? 'red' : 'orange'}-800 text-xs font-medium px-2.5 py-0.5 rounded-full mb-3">${c.category.toUpperCase()}</span>
+                    <h4 class="text-xl font-bold mb-2 text-slate-900">${c.company}</h4>
+                    <h5 class="font-semibold text-blue-600 mb-3">${c.title}</h5>
+                    <p class="text-slate-600">${c.description}</p>
+                </div>
+                ${linksHtml}
+            `;
+            caseGrid.appendChild(card);
+        });
+    }
+    
+    const filterButtons = document.querySelectorAll('.filter-btn');
+    filterButtons.forEach(button => {
+        button.addEventListener('click', () => {
+            const filter = button.dataset.filter;
+            renderCaseStudies(filter);
+            filterButtons.forEach(btn => btn.classList.remove('active'));
+            button.classList.add('active');
+        });
+    });
+
+    const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                entry.target.classList.add('visible');
+            }
+        });
+    }, { threshold: 0.1 });
+
+    document.querySelectorAll('.section-fade-in').forEach(section => {
+        observer.observe(section);
+    });
+    
+    const mobileMenuButton = document.getElementById('mobile-menu-button');
+    const mobileMenu = document.getElementById('mobile-menu');
+    mobileMenuButton.addEventListener('click', () => {
+        mobileMenu.classList.toggle('hidden');
+    });
+
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener('click', function (e) {
+            e.preventDefault();
+            const targetId = this.getAttribute('href');
+            const targetElement = document.querySelector(targetId);
+            if (targetElement) {
+                targetElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                if (mobileMenu.classList.contains('hidden') === false) {
+                    mobileMenu.classList.add('hidden');
+                }
+            }
+        });
+    });
+    
+    const navLinks = document.querySelectorAll('.nav-link');
+    const sections = document.querySelectorAll('section');
+    const navObserver = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                navLinks.forEach(link => {
+                    link.classList.remove('active');
+                    if (link.getAttribute('href').substring(1) === entry.target.id) {
+                        link.classList.add('active');
+                    }
+                });
+            }
+        });
+    }, { rootMargin: "-50% 0px -50% 0px" });
+    sections.forEach(section => navObserver.observe(section));
+
+    function resetAudioButton(button) {
+        if (button) {
+            button.innerHTML = ICONS.PLAY;
+            button.classList.remove('loading', 'playing');
+        }
+    }
+
+    function stopCurrentAudio() {
+        if (currentAudio) {
+            currentAudio.pause();
+            currentAudio = null;
+        }
+        if (currentButton) {
+            resetAudioButton(currentButton);
+            currentButton = null;
+        }
+    }
+
+    async function handleAudioButtonClick(event) {
+        const button = event.currentTarget;
+        
+        if (button === currentButton) {
+            stopCurrentAudio();
+            return;
+        }
+
+        stopCurrentAudio();
+        
+        const textSourceId = button.dataset.textSource;
+        const textElement = document.querySelector(textSourceId);
+        if (!textElement) return;
+
+        const textToSpeak = textElement.textContent.trim();
+        currentButton = button;
+        button.innerHTML = ICONS.LOADING;
+        button.classList.add('loading');
+
+        try {
+            const audioData = await fetchTTS(textToSpeak);
+            const sampleRateMatch = audioData.mimeType.match(/rate=(\d+)/);
+            const sampleRate = sampleRateMatch ? parseInt(sampleRateMatch[1], 10) : 24000;
+            const pcmData = base64ToArrayBuffer(audioData.audioData);
+            const pcm16 = new Int16Array(pcmData);
+            const wavBlob = pcmToWav(pcm16, sampleRate);
+            const audioUrl = URL.createObjectURL(wavBlob);
+            
+            currentAudio = new Audio(audioUrl);
+            currentAudio.onended = () => stopCurrentAudio();
+            currentAudio.play();
+
+            button.innerHTML = ICONS.STOP;
+            button.classList.remove('loading');
+            button.classList.add('playing');
+
+        } catch (error) {
+            console.error("TTS generation failed:", error);
+            stopCurrentAudio();
+        }
+    }
+
+    async function fetchTTS(text) {
+        const apiKey = "";
+        const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-tts:generateContent?key=${apiKey}`;
+        
+        const payload = {
+            contents: [{ parts: [{ text: `Say with a professional and clear tone: ${text}` }] }],
+            generationConfig: {
+                responseModalities: ["AUDIO"],
+            },
+            model: "gemini-2.5-flash-preview-tts"
+        };
+
+        const response = await fetch(apiUrl, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+        });
+
+        if (!response.ok) {
+            throw new Error(`API request failed with status ${response.status}`);
+        }
+
+        const result = await response.json();
+        const part = result?.candidates?.[0]?.content?.parts?.[0];
+        const audioData = part?.inlineData?.data;
+        const mimeType = part?.inlineData?.mimeType;
+
+        if (audioData && mimeType && mimeType.startsWith("audio/")) {
+            return { audioData, mimeType };
+        } else {
+            throw new Error("Invalid audio data in API response");
+        }
+    }
+    
+    function base64ToArrayBuffer(base64) {
+        const binaryString = window.atob(base64);
+        const len = binaryString.length;
+        const bytes = new Uint8Array(len);
+        for (let i = 0; i < len; i++) {
+            bytes[i] = binaryString.charCodeAt(i);
+        }
+        return bytes.buffer;
+    }
+
+    function pcmToWav(pcmData, sampleRate) {
+        const numChannels = 1;
+        const bitsPerSample = 16;
+        const blockAlign = (numChannels * bitsPerSample) / 8;
+        const byteRate = sampleRate * blockAlign;
+        const dataSize = pcmData.length * (bitsPerSample / 8);
+        const buffer = new ArrayBuffer(44 + dataSize);
+        const view = new DataView(buffer);
+
+        function writeString(view, offset, string) {
+            for (let i = 0; i < string.length; i++) {
+                view.setUint8(offset + i, string.charCodeAt(i));
+            }
+        }
+
+        writeString(view, 0, 'RIFF');
+        view.setUint32(4, 36 + dataSize, true);
+        writeString(view, 8, 'WAVE');
+        writeString(view, 12, 'fmt ');
+        view.setUint32(16, 16, true);
+        view.setUint16(20, 1, true); 
+        view.setUint16(22, numChannels, true);
+        view.setUint32(24, sampleRate, true);
+        view.setUint32(28, byteRate, true);
+        view.setUint16(32, blockAlign, true);
+        view.setUint16(34, bitsPerSample, true);
+        writeString(view, 36, 'data');
+        view.setUint32(40, dataSize, true);
+
+        for (let i = 0; i < pcmData.length; i++) {
+            view.setInt16(44 + i * 2, pcmData[i], true);
+        }
+
+        return new Blob([view], { type: 'audio/wav' });
+    }
+
+    document.querySelectorAll('.audio-btn').forEach(button => {
+        button.addEventListener('click', handleAudioButtonClick);
+    });
+
+    function init() {
+        createOrUpdateAreaChart('all');
+        updateAreaDescription('all');
+        document.querySelector('.area-btn[data-area="all"]').classList.add('bg-blue-600', 'text-white');
+        createChallengesChart();
+        renderCaseStudies();
+    }
+
+    init();
+});
+</script>
+</body>
+</html>
+

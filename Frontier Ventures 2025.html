@@ -1,0 +1,596 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>フロンティア・ベンチャー2025：インタラクティブ分析</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
+    <!-- Chosen Palette: Warm Neutral Harmony -->
+    <!-- Application Structure Plan: レポートの線形的な構成を再設計し、トップダウンで探索可能なダッシュボード構造を採用。まず、主要3テーマを提示して全体像を把握させ、次に全ベンチャーを一覧・比較できるインタラクティブな「ベンチャー・エクスプローラー」を配置。その後、各技術セクター（量子、物理世界、持続可能性、宇宙）ごとの詳細分析セクションへと深掘りできるようにした。この「概要→一覧比較→詳細探索」という流れは、ユーザーが自身の興味に応じて情報を取捨選択しやすく、複雑な情報を直感的に理解するために最適化されている。 -->
+    <!-- Visualization & Content Choices: 
+        - ベンチャー一覧: Report Info -> 全ベンチャーの概要 -> Goal -> 整理・比較 -> Viz/Method -> インタラクティブなHTMLテーブル+モーダル -> Interaction -> セクターによるフィルタリング、クリックで詳細表示 -> Justification -> 静的な表よりも探索性が高く、情報の階層化が可能。
+        - 調達額比較: Report Info -> 各社の調達額データ -> Goal -> 比較 -> Viz/Method -> 水平棒グラフ (Chart.js) -> Interaction -> ホバーで正確な金額を表示 -> Justification -> 資本集約度を視覚的に素早く比較できる。
+        - 量子技術比較: Report Info -> 量子3社の技術比較表 -> Goal -> 比較 -> Viz/Method -> タブ切り替え式のカードUI -> Interaction -> ボタンクリックで表示企業を切り替え -> Justification -> 横長の表よりもモバイルでの閲覧性に優れ、直接比較がしやすい。
+        - 主要コンセプト (戦略的二極化など): Report Info -> レポート内の分析的洞察 -> Goal -> 通知・強調 -> Viz/Method -> スタイルを区別した「インサイト」カード -> Interaction -> なし -> Justification -> 重要な質的分析を本文から際立たせ、ユーザーの注意を引くため。-->
+    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+    <style>
+        body {
+            font-family: 'Noto Sans JP', sans-serif;
+            background-color: #f8fafc; /* slate-50 */
+            color: #1e293b; /* slate-800 */
+        }
+        .chart-container {
+            position: relative;
+            width: 100%;
+            max-width: 800px;
+            margin-left: auto;
+            margin-right: auto;
+            height: 400px;
+            max-height: 500px;
+        }
+        @media (min-width: 768px) {
+            .chart-container {
+                height: 500px;
+            }
+        }
+        .nav-link {
+            transition: color 0.3s, border-color 0.3s;
+        }
+        .nav-link.active, .nav-link:hover {
+            color: #4338ca; /* indigo-700 */
+            border-bottom-color: #4338ca; /* indigo-700 */
+        }
+        .modal-backdrop {
+            transition: opacity 0.3s ease;
+        }
+        .modal-content {
+            transition: transform 0.3s ease;
+        }
+    </style>
+</head>
+<body class="antialiased">
+
+    <!-- Header -->
+    <header class="bg-white sticky top-0 z-30 shadow-md">
+        <nav class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between h-16">
+                <div class="flex-shrink-0">
+                    <h1 class="text-xl font-bold text-slate-900">Frontier Ventures 2025</h1>
+                </div>
+                <div class="hidden md:block">
+                    <div class="ml-10 flex items-baseline space-x-4">
+                        <a href="#themes" class="nav-link px-3 py-2 text-sm font-medium text-slate-600 border-b-2 border-transparent">主要テーマ</a>
+                        <a href="#explorer" class="nav-link px-3 py-2 text-sm font-medium text-slate-600 border-b-2 border-transparent">ベンチャー探索</a>
+                        <a href="#sectors" class="nav-link px-3 py-2 text-sm font-medium text-slate-600 border-b-2 border-transparent">セクター分析</a>
+                        <a href="#outlook" class="nav-link px-3 py-2 text-sm font-medium text-slate-600 border-b-2 border-transparent">戦略的展望</a>
+                    </div>
+                </div>
+            </div>
+        </nav>
+    </header>
+    
+    <main>
+        <!-- Hero Section -->
+        <div class="bg-white">
+            <div class="max-w-7xl mx-auto py-16 px-4 text-center sm:py-24 sm:px-6 lg:px-8">
+                <h2 class="text-base font-semibold text-indigo-600 tracking-wide uppercase">フロンティア・ベンチャー2025</h2>
+                <p class="mt-2 text-4xl font-extrabold text-slate-900 tracking-tight sm:text-5xl">新規性の高い課題に取り組むグローバル・イノベーターの分析</p>
+                <p class="mt-5 max-w-3xl mx-auto text-xl text-slate-500">
+                    本レポートは、科学技術の根源的な課題に挑む新世代のベンチャー群を分析し、未来を定義する主要企業とその革新性をインタラクティブに解説します。
+                </p>
+            </div>
+        </div>
+
+        <!-- Key Themes Section -->
+        <section id="themes" class="py-16 bg-slate-50">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="text-center">
+                    <h3 class="text-3xl font-bold text-slate-900">分析から見る3つの主要トレンド</h3>
+                    <p class="mt-4 max-w-2xl mx-auto text-lg text-slate-600">ディープテック分野を横断する、未来のイノベーションを形作る3つの大きな潮流を解説します。</p>
+                </div>
+                <div class="mt-12 grid gap-8 md:grid-cols-3">
+                    <div class="bg-white p-8 rounded-lg shadow-lg">
+                        <div class="flex items-center justify-center h-12 w-12 rounded-md bg-indigo-500 text-white mx-auto">
+                            <span class="text-2xl font-bold">AI</span>
+                        </div>
+                        <h4 class="mt-6 text-xl font-bold text-slate-900 text-center">普遍的加速器としてのAI</h4>
+                        <p class="mt-4 text-slate-600">AIは単一の技術分野ではなく、生物学から材料科学、量子物理学に至るまで、あらゆる研究開発のサイクルを劇的に加速させる基盤技術として機能しています。</p>
+                    </div>
+                    <div class="bg-white p-8 rounded-lg shadow-lg">
+                         <div class="flex items-center justify-center h-12 w-12 rounded-md bg-indigo-500 text-white mx-auto">
+                             <span class="text-2xl">⚛️</span>
+                        </div>
+                        <h4 class="mt-6 text-xl font-bold text-slate-900 text-center">「ビットからアトムへ」の回帰</h4>
+                        <p class="mt-4 text-slate-600">人材と資本は、純粋なデジタル領域から、生物、材料、エネルギー、宇宙といった物理世界の根源的な問題解決へと大きくシフトしています。</p>
+                    </div>
+                    <div class="bg-white p-8 rounded-lg shadow-lg">
+                         <div class="flex items-center justify-center h-12 w-12 rounded-md bg-indigo-500 text-white mx-auto">
+                            <span class="text-2xl">🧱</span>
+                        </div>
+                        <h4 class="mt-6 text-xl font-bold text-slate-900 text-center">フルスタックの優位性</h4>
+                        <p class="mt-4 text-slate-600">複雑なハードウェアとソフトウェアを垂直統合する企業は、模倣困難な競争優位性を築き、持続的な価値創造を可能にしています。</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Venture Explorer Section -->
+        <section id="explorer" class="py-16">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="text-center">
+                    <h3 class="text-3xl font-bold text-slate-900">ベンチャー・エクスプローラー</h3>
+                    <p class="mt-4 max-w-2xl mx-auto text-lg text-slate-600">レポートで取り上げる主要なフロンティア・ベンチャーを一覧で紹介します。セクターで絞り込むか、企業名をクリックして詳細をご覧ください。</p>
+                </div>
+
+                <div class="mt-8 flex flex-wrap justify-center gap-2">
+                     <button data-filter="all" class="filter-btn bg-indigo-600 text-white px-4 py-2 rounded-md">すべて</button>
+                     <button data-filter="Japan" class="filter-btn bg-white text-slate-700 px-4 py-2 rounded-md border border-slate-300">日本</button>
+                     <button data-filter="量子コンピューティング" class="filter-btn bg-white text-slate-700 px-4 py-2 rounded-md border border-slate-300">量子</button>
+                     <button data-filter="AI / 物理世界" class="filter-btn bg-white text-slate-700 px-4 py-2 rounded-md border border-slate-300">AI/物理世界</button>
+                     <button data-filter="持続可能性" class="filter-btn bg-white text-slate-700 px-4 py-2 rounded-md border border-slate-300">持続可能性</button>
+                     <button data-filter="宇宙産業" class="filter-btn bg-white text-slate-700 px-4 py-2 rounded-md border border-slate-300">宇宙</button>
+                </div>
+                
+                <div class="mt-8 bg-white shadow-xl rounded-lg overflow-hidden">
+                    <div class="overflow-x-auto">
+                        <table class="min-w-full divide-y divide-slate-200">
+                            <thead class="bg-slate-50">
+                                <tr>
+                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">企業名</th>
+                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">分野</th>
+                                    <th scope="col" class="hidden md:table-cell px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">本拠地</th>
+                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">判明している総調達額</th>
+                                </tr>
+                            </thead>
+                            <tbody id="venture-table-body" class="bg-white divide-y divide-slate-200">
+                                <!-- JSで動的に生成 -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div class="mt-16 text-center">
+                    <h4 class="text-2xl font-bold text-slate-800">判明している資金調達額の比較 (百万ドル)</h4>
+                    <p class="mt-2 max-w-2xl mx-auto text-md text-slate-600">各ベンチャーが確保した資本の規模を視覚的に比較します。（非公開の企業は除外）</p>
+                </div>
+                <div class="mt-8 bg-white p-6 rounded-lg shadow-lg">
+                    <div class="chart-container" style="height: 600px; max-height: 700px;">
+                        <canvas id="fundingChart"></canvas>
+                    </div>
+                </div>
+
+                <div class="mt-12 p-6 bg-indigo-50 rounded-lg border border-indigo-200">
+                    <h5 class="text-lg font-bold text-slate-800">インサイト：世界と日本のディープテックの現在地</h5>
+                    <p class="mt-2 text-slate-600">日本のベンチャーは、新素材（TBM）や宇宙（ispace）など、特定の「ものづくり」領域で世界レベルの革新性を示しています。これは、日本の製造業の歴史的強みを反映したものです。しかし、チャートが示すように、PsiQuantumのような海外のトップランナーと比較すると、資金調達の規模には依然として大きな差があります。特に量子やAIのような巨額の先行投資を必要とする分野では、この資本力の差が今後の開発競争において重要な課題となるでしょう。日本の強みを活かしつつ、より大きなリスクマネーを呼び込むエコシステムの構築が、今後の成長の鍵を握ります。</p>
+                </div>
+
+            </div>
+        </section>
+
+        <!-- Sector Analysis Section -->
+        <section id="sectors" class="py-16 bg-slate-50">
+             <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="text-center">
+                    <h3 class="text-3xl font-bold text-slate-900">セクター別 詳細分析</h3>
+                    <p class="mt-4 max-w-2xl mx-auto text-lg text-slate-600">各技術分野における競争環境、主要プレイヤー、そして戦略的な洞察を深掘りします。</p>
+                </div>
+
+                <div class="mt-12 space-y-12">
+                    <!-- Quantum Sector -->
+                    <div class="bg-white p-8 rounded-lg shadow-lg">
+                        <h4 class="text-2xl font-bold text-indigo-700 mb-4">I. 量子革命：次世代計算パラダイムの設計</h4>
+                        <p class="text-slate-600">商用価値のあるフォールトトレラント量子コンピュータの開発競争は、壮大なシステムエンジニアリングの挑戦です。ここでは、異なる技術アプローチで覇権を争う3社を比較分析します。</p>
+                        <div class="mt-6 flex flex-wrap justify-center gap-2">
+                             <button data-quantum="psi" class="quantum-btn bg-indigo-600 text-white px-4 py-2 rounded-md">PsiQuantum</button>
+                             <button data-quantum="quantinuum" class="quantum-btn bg-white text-slate-700 px-4 py-2 rounded-md border border-slate-300">Quantinuum</button>
+                             <button data-quantum="pasqal" class="quantum-btn bg-white text-slate-700 px-4 py-2 rounded-md border border-slate-300">Pasqal</button>
+                        </div>
+                        <div id="quantum-details" class="mt-6 transition-opacity duration-300">
+                            <!-- JSで動的に生成 -->
+                        </div>
+                        <div class="mt-8 p-6 bg-indigo-50 rounded-lg border border-indigo-200">
+                            <h5 class="text-lg font-bold text-slate-800">インサイト：量子セクターにおける戦略的二極化</h5>
+                            <p class="mt-2 text-slate-600">業界は、究極目標に全集中する「純粋主義者 (PsiQuantum)」と、各段階で価値創出を目指す「現実主義者 (Quantinuum, Pasqal)」へと二極化しています。未来は単一の勝者が決めるのではなく、異なるプラットフォームが段階的に価値を提供していく形で現れるでしょう。</p>
+                        </div>
+                    </div>
+
+                    <!-- AI / Physical World Sector -->
+                    <div class="bg-white p-8 rounded-lg shadow-lg">
+                        <h4 class="text-2xl font-bold text-sky-700 mb-4">II. AI x 物理世界：現実世界との融合</h4>
+                        <p class="text-slate-600">AIはもはやデジタル空間に留まりません。生物学、ロボティクス、エンタープライズ業務といった物理世界の複雑な課題を解決するための核心技術へと進化しています。ここでは、異なる応用領域でフロンティアを切り開く3社を紹介します。</p>
+                        <div class="mt-6 flex flex-wrap justify-center gap-2">
+                             <button data-ai="asimov" class="ai-btn bg-sky-600 text-white px-4 py-2 rounded-md">Asimov</button>
+                             <button data-ai="worldlabs" class="ai-btn bg-white text-slate-700 px-4 py-2 rounded-md border border-slate-300">World Labs</button>
+                             <button data-ai="rillet" class="ai-btn bg-white text-slate-700 px-4 py-2 rounded-md border border-slate-300">Rillet</button>
+                        </div>
+                        <div id="ai-details" class="mt-6 transition-opacity duration-300">
+                            <!-- JSで動的に生成 -->
+                        </div>
+                        <div class="mt-8 p-6 bg-sky-50 rounded-lg border border-sky-200">
+                            <h5 class="text-lg font-bold text-slate-800">インサイト：物理世界へのAIの浸透</h5>
+                            <p class="mt-2 text-slate-600">AIの応用先は、生物の細胞（Asimov）から3D空間（World Labs）、企業の財務（Rillet）まで多岐にわたります。これは、AIがシミュレーションや予測だけでなく、現実世界のプロセスを直接設計・自動化する強力なツールになったことを示しています。このトレンドは、あらゆる産業の生産性を根底から覆す可能性を秘めています。</p>
+                        </div>
+                    </div>
+
+                    <!-- Sustainability Sector -->
+                    <div class="bg-white p-8 rounded-lg shadow-lg">
+                        <h4 class="text-2xl font-bold text-green-700 mb-4">III. 持続可能性：地球規模の課題への挑戦</h4>
+                        <p class="text-slate-600">気候変動や資源枯渇といった課題に対応するため、テクノロジーを駆使した新しい解決策が生まれています。ここでは、エネルギー、素材、農業の各分野で革新的なアプローチをとるベンチャーを紹介します。</p>
+                        <div class="mt-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                            <div class="p-4 bg-slate-50 rounded-lg text-center">
+                                <h5 class="font-bold text-slate-800">LionVolt & TBM</h5>
+                                <p class="text-sm text-slate-600 mt-1"><strong>新素材・新エネルギー</strong><br>全固体電池や石灰石由来の新素材など、物質レベルのイノベーションで環境負荷を低減。</p>
+                            </div>
+                            <div class="p-4 bg-slate-50 rounded-lg text-center">
+                                <h5 class="font-bold text-slate-800">Haliogen Power</h5>
+                                <p class="text-sm text-slate-600 mt-1"><strong>エネルギー貯蔵</strong><br>再生可能エネルギーの普及に不可欠な、低コストで長時間の電力貯蔵技術を開発。</p>
+                            </div>
+                            <div class="p-4 bg-slate-50 rounded-lg text-center">
+                                <h5 class="font-bold text-slate-800">Magical Mushroom Co.</h5>
+                                <p class="text-sm text-slate-600 mt-1"><strong>サーキュラーエコノミー</strong><br>菌糸体を利用し、プラスチックに代わる生分解性の包装材を生産。</p>
+                            </div>
+                            <div class="p-4 bg-slate-50 rounded-lg text-center">
+                                <h5 class="font-bold text-slate-800">Wild Bioscience</h5>
+                                <p class="text-sm text-slate-600 mt-1"><strong>未来の農業</strong><br>AIと遺伝子編集を組み合わせ、気候変動に強い作物を開発。</p>
+                            </div>
+                        </div>
+                        <div class="mt-8 p-6 bg-green-50 rounded-lg border border-green-200">
+                            <h5 class="text-lg font-bold text-slate-800">インサイト：サステナビリティからリジェネレーションへ</h5>
+                            <p class="mt-2 text-slate-600">持続可能性技術は、単に環境への悪影響を減らす（サステナビリティ）だけでなく、積極的に生態系を再生・修復する（リジェネレーション）方向へと進化しています。Magical Mushroomのカーボンネガティブな素材やWild Bioscienceの強靭な作物はその好例です。</p>
+                        </div>
+                    </div>
+
+                    <!-- Space Sector -->
+                    <div class="bg-white p-8 rounded-lg shadow-lg">
+                        <h4 class="text-2xl font-bold mb-4" style="color: #334155;">IV. 宇宙産業：地球経済圏の拡大</h4>
+                        <p class="text-slate-600">宇宙はもはや国家主導の探査の場ではなく、民間企業が経済活動を行う新たなフロンティアです。ここでは、宇宙利用の異なるアプローチで市場をリードする日米の2社を比較します。</p>
+                        <div class="mt-8 grid grid-cols-1 md:grid-cols-2 gap-8">
+                            <div class="p-6 border border-slate-200 rounded-lg">
+                                <h5 class="text-xl font-bold text-slate-800">Varda Space Industries (米)</h5>
+                                <p class="mt-2 text-slate-600"><strong>ビジネスモデル: 軌道上製造</strong><br>微小重力環境を利用して地上では製造困難な高品質の医薬品などを製造し、地球に持ち帰る「宇宙工場」モデル。自社で再突入カプセルまで開発する垂直統合型。</p>
+                            </div>
+                            <div class="p-6 border border-slate-200 rounded-lg">
+                                <h5 class="text-xl font-bold text-slate-800">ispace (日)</h5>
+                                <p class="mt-2 text-slate-600"><strong>ビジネスモデル: 月輸送サービス</strong><br>政府機関や民間企業のペイロード（探査機や物資）を月まで運ぶ「宇宙の運送業者」。月面での資源開発を見据えたプラットフォーム構築を目指す。</p>
+                            </div>
+                        </div>
+                        <div class="mt-8 p-6 bg-slate-100 rounded-lg border border-slate-200">
+                            <h5 class="text-lg font-bold text-slate-800">インサイト：「宇宙で何をするか」の競争</h5>
+                            <p class="mt-2 text-slate-600">ロケットの打ち上げコストが劇的に低下した今、競争の主戦場は「いかに宇宙に行くか」から「宇宙で何をして価値を創造するか」に移っています。製造業（Varda）と物流（ispace）という異なるアプローチは、宇宙経済の多様な可能性を示唆しています。</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Strategic Outlook Section -->
+        <section id="outlook" class="py-16">
+            <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+                <h3 class="text-3xl font-bold text-slate-900">戦略的展望と未来への投資</h3>
+                <p class="mt-4 text-lg text-slate-600">
+                    本レポートで分析したベンチャーは、深い科学技術、垂直統合、そしてAIの活用という共通のDNAを持っています。投資家、企業、政策立案者は、この新しいパラダイムに適応し、長期的な視点でディープテックのエコシステムを育成することが求められます。
+                </p>
+                <div class="mt-8 flex justify-center">
+                    <a href="#" class="text-base font-medium text-indigo-600 hover:text-indigo-500">レポートの全文をダウンロード (PDF) <span aria-hidden="true">&rarr;</span></a>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Modal -->
+    <div id="venture-modal" class="fixed inset-0 z-40 overflow-y-auto hidden">
+        <div class="modal-backdrop fixed inset-0 bg-black bg-opacity-50"></div>
+        <div class="flex items-center justify-center min-h-screen p-4">
+            <div class="modal-content bg-white rounded-lg shadow-xl w-full max-w-2xl transform scale-95">
+                <div class="p-6">
+                    <div class="flex justify-between items-start">
+                        <div>
+                            <h3 id="modal-title" class="text-2xl font-bold text-slate-900"></h3>
+                            <p id="modal-sector" class="text-sm font-medium text-indigo-600"></p>
+                        </div>
+                        <button id="modal-close-btn" class="text-slate-400 hover:text-slate-600">&times;</button>
+                    </div>
+                    <div class="mt-4 prose max-w-none text-slate-600" id="modal-content-body">
+                        <!-- JSで動的に生成 -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const ventureData = [
+                { id: 'psiquantum', country: 'Global', name: 'PsiQuantum', field: '量子コンピューティング', innovation: 'フォトニック（光子）ベースの大規模フォールトトレラント量子コンピュータ', hq: 'アメリカ/オーストラリア', funding: '$10億ドル超', funding_usd_m: 1000, description: '業界で最も野心的な目標を掲げ、最初から100万量子ビット級のフォールトトレラント量子コンピュータを構築することを目指す。既存の半導体製造施設を活用する戦略が特徴。', link: 'https://psiquantum.com/' },
+                { id: 'quantinuum', country: 'Global', name: 'Quantinuum', field: '量子コンピューティング', innovation: 'トラップイオン方式に基づくフルスタック（ハードウェア＋ソフトウェア）量子ソリューション', hq: 'アメリカ/イギリス', funding: '非公開', funding_usd_m: null, description: 'HoneywellとCambridge Quantumが統合して誕生。業界最高水準の忠実度を誇るトラップイオン方式を採用し、ハードとソフトの両面からエコシステムを構築。', link: 'https://www.quantinuum.com/' },
+                { id: 'pasqal', country: 'Global', name: 'Pasqal', field: '量子コンピューティング', innovation: '中性原子方式に基づくアナログ・デジタル両用量子プロセッサ', hq: 'フランス', funding: '$1億4,050万ドル', funding_usd_m: 140.5, description: '「光ピンセット」で中性原子を操作。アナログモードとデジタルモードの両方で動作可能で、短期的な実用化を目指す。', link: 'https://www.pasqal.com/' },
+                { id: 'asimov', country: 'Global', name: 'Asimov', field: 'AI / 物理世界', sector_group: 'AI / 物理世界', innovation: '生細胞プログラミングのためのコンピュータ支援設計（CAD）プラットフォーム', hq: 'アメリカ（ボストン）', funding: '$2億500万ドル', funding_usd_m: 205, description: '生物学を経験的な科学から予測可能なエンジニアリング分野へと変革することを目指す。哺乳類細胞の合成生物学、計算ツール、機械学習を統合。', link: 'https://www.asimov.com/' },
+                { id: 'worldlabs', country: 'Global', name: 'World Labs', field: 'AI / 物理世界', sector_group: 'AI / 物理世界', innovation: '単一画像からインタラクティブな3D世界を生成する大規模世界モデル（LWM）', hq: 'アメリカ', funding: '約$2億3,000万ドル', funding_usd_m: 230, description: '「空間知能」の創造を目指し、インタラクティブな3D環境全体を生成できるAIモデルを開発。ImageNetの生みの親であるフェイフェイ・リが創設チームに名を連ねる。', link: 'https://www.worldlabs.ai/' },
+                { id: 'rillet', country: 'Global', name: 'Rillet', field: 'AI / 物理世界', sector_group: 'AI / 物理世界', innovation: 'AIネイティブな次世代ERP（統合基幹業務システム）', hq: 'アメリカ', funding: '1年間で$1億ドル超', funding_usd_m: 100, description: 'レガシーなエンタープライズ会計ソフトウェアを、ゼロから設計されたAIネイティブシステムで置き換える。月次決算を数週から数日に短縮するなどの実績を持つ。', link: 'https://www.rillet.com/' },
+                { id: 'lionvolt', country: 'Global', name: 'LionVolt', field: '持続可能性', sector_group: '持続可能性', innovation: '3Dアーキテクチャを採用した全固体電池', hq: 'オランダ', funding: '€1,500万ユーロ', funding_usd_m: 16, description: '特許取得済みの3D固体ピラー構造により、充電速度、安全性、エネルギー密度を劇的に向上させた全固体電池を開発。', link: 'https://lionvolt.com/' },
+                { id: 'haliogen', country: 'Global', name: 'Haliogen Power', field: '持続可能性', sector_group: '持続可能性', innovation: 'メンブレンレス（無膜）レドックスフロー電池による長時間エネルギー貯蔵', hq: 'イギリス', funding: '非公開', funding_usd_m: null, description: '従来のフロー電池のコストと故障の主要因であった膜を排除することで、製造コストを削減し、長寿命化を目指す。', link: 'https://www.haliogen.com/' },
+                { id: 'magicalmushroom', country: 'Global', name: 'Magical Mushroom Company', field: '持続可能性', sector_group: '持続可能性', innovation: '菌糸体（マイセリウム）を利用した生分解性保護包装材', hq: 'イギリス', funding: '非公開', funding_usd_m: null, description: 'キノコの根の部分である菌糸体を利用し、発泡スチロールに代わるカーボンネティブで家庭で堆肥化可能な包装材を工業規模で生産。', link: 'https://magicalmushroom.com/' },
+                { id: 'wildbioscience', country: 'Global', name: 'Wild Bioscience', field: '持続可能性', sector_group: '持続可能性', innovation: '野生植物の進化を応用したAIによる気候変動耐性作物の開発', hq: 'イギリス', funding: '£1,200万ポンド', funding_usd_m: 15, description: '「進化的AI」プラットフォームを活用し、野生植物の遺伝子を解析。遺伝子編集技術を用いて主要作物の気候変動耐性を向上させる。', link: 'https://www.wildbioscience.com/' },
+                { id: 'varda', country: 'Global', name: 'Varda Space Industries', field: '宇宙産業', sector_group: '宇宙産業', innovation: '軌道上での医薬品製造と地球への帰還を可能にする再突入カプセル', hq: 'アメリカ', funding: '$1億4,100万ドル超', funding_usd_m: 141, description: '世界初の商業的な無重力工業団地の建設を目指す。医薬品の軌道上製造と、自社開発の再突入カプセルによる地球への帰還を成功させている。', link: 'https://www.varda.com/' },
+                { id: 'pfn', name: 'Preferred Networks', country: 'Japan', field: 'AI / 物理世界', sector_group: 'AI / 物理世界', innovation: '深層学習を中心としたAI技術、特に製造業やバイオヘルスケアへの応用', hq: '日本（東京）', funding: '約$1億5,000万ドル', funding_usd_m: 150, description: '「現実世界を計算可能にする」をミッションに、製造業の自動化や創薬支援など、物理世界の問題解決に深層学習を応用するトップランナー。', link: 'https://www.preferred.jp/' },
+                { id: 'ispace', name: 'ispace', country: 'Japan', field: '宇宙産業', sector_group: '宇宙産業', innovation: '月面輸送（ランダー）および月面探査（ローバー）サービス', hq: '日本（東京）', funding: '約$2億3,500万ドル', funding_usd_m: 235, description: '民間企業として世界初の月面着陸ミッションに挑戦。月資源開発の実現を目指し、高頻度の月輸送サービス構築を進める。', link: 'https://ispace-inc.com/' },
+                { id: 'tbm', name: 'TBM', country: 'Japan', field: '持続可能性', sector_group: '持続可能性', innovation: '石灰石を主原料とする新素材「LIMEX」の開発・製造', hq: '日本（東京）', funding: '約$1億ドル超', funding_usd_m: 100, description: '水や木材パルプをほぼ使用せず、紙やプラスチックの代替となる新素材を開発。資源枯渇や環境問題への貢献を目指すユニコーン企業。', link: 'https://tb-m.com/' },
+                { id: 'qunasys', name: 'QunaSys', country: 'Japan', field: '量子コンピューティング', sector_group: '量子コンピューティング', innovation: '量子コンピュータ向けの化学計算ソフトウェアおよびアルゴリズム開発', hq: '日本（東京）', funding: '約$1,000万ドル', funding_usd_m: 10, description: '量子コンピュータの性能を最大限に引き出すためのソフトウェア開発に特化。材料開発や創薬分野での応用を目指し、大手企業との共同研究を多数推進。', link: 'https://qunasys.com/' }
+            ];
+
+            const quantumComparisonData = {
+                psi: {
+                    title: 'PsiQuantumの比較',
+                    items: {
+                        '中核技術': '光子（フォトン）を量子ビットとして利用し、シリコンフォトニクス技術で集積',
+                        'スケーラビリティ': '既存の半導体製造プロセスを活用でき、大規模化に有利',
+                        '量子ビット忠実度': '高い忠実度を目指すが、光子の損失が課題',
+                        '長所': '半導体製造技術の活用による圧倒的なスケーラビリティ',
+                        '短所': '光子の損失制御とエラー訂正が技術的難関'
+                    }
+                },
+                quantinuum: {
+                    title: 'Quantinuumの比較',
+                    items: {
+                        '中核技術': '電荷を帯びたイオンを電磁場で捕捉し、レーザーで操作',
+                        'スケーラビリティ': 'QCCDアーキテクチャにより着実に拡張可能だが、フォトニックより複雑',
+                        '量子ビット忠実度': '業界最高水準の忠実度を誇り、エラー率が極めて低い',
+                        '長所': '最高の忠実度と接続性による高品質な計算',
+                        '短所': 'システムの複雑さと冷却要件'
+                    }
+                },
+                pasqal: {
+                    title: 'Pasqalの比較',
+                    items: {
+                        '中核技術': '光ピンセットで中性の原子を捕捉し、レーザーで操作',
+                        'スケーラビリティ': '数百から数千原子への拡張が比較的容易',
+                        '量子ビット忠実度': '比較的高い忠実度と長いコヒーレンス時間を持つ',
+                        '長所': '室温動作と柔軟な原子配置による運用の容易さ',
+                        '短所': 'デジタルモードでのゲート忠実度の向上が課題'
+                    }
+                }
+            };
+            
+            const aiComparisonData = {
+                asimov: {
+                    title: 'Asimov: 生物学のエンジニアリング',
+                    items: {
+                        'ターゲット領域': '合成生物学、遺伝子治療',
+                        'コア技術': '哺乳類細胞向けのコンピュータ支援設計（CAD）、遺伝子回路',
+                        'ビジネスモデル': '製薬・バイオ企業向けの研究開発プラットフォーム提供',
+                        '強み': '複雑な生物学的プロセスを予測・設計する計算能力'
+                    }
+                },
+                worldlabs: {
+                    title: 'World Labs: 3D世界の自動生成',
+                    items: {
+                        'ターゲット領域': 'ゲーム、シミュレーション、ロボティクス',
+                        'コア技術': '大規模世界モデル（LWM）、空間知能AI',
+                        'ビジネスモデル': '3Dコンテンツ生成プラットフォーム、ロボット訓練用シミュレータ',
+                        '強み': '静止画からインタラクティブな3D環境を構築する生成能力'
+                    }
+                },
+                rillet: {
+                    title: 'Rillet: 企業経営のAI化',
+                    items: {
+                        'ターゲット領域': 'エンタープライズ会計、財務',
+                        'コア技術': 'AIネイティブな次世代ERP、大規模言語モデル（LLM）の業務応用',
+                        'ビジネスモデル': 'SaaS形式での次世代会計ソフトウェア提供',
+                        '強み': 'レガシーシステムが抱える手作業や非効率をAIで自動化'
+                    }
+                }
+            };
+
+            // --- Venture Table and Filter ---
+            const tableBody = document.getElementById('venture-table-body');
+            const filterBtns = document.querySelectorAll('.filter-btn');
+            
+            function renderTable(filter = 'all') {
+                tableBody.innerHTML = '';
+                const filteredData = filter === 'all' 
+                    ? ventureData 
+                    : ventureData.filter(v => v.field === filter || v.sector_group === filter || v.country === filter);
+
+                filteredData.forEach(venture => {
+                    const row = document.createElement('tr');
+                    row.className = 'hover:bg-slate-50 cursor-pointer';
+                    row.dataset.id = venture.id;
+                    row.innerHTML = `
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <div class="text-sm font-medium text-slate-900">${venture.name}</div>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${getSectorBg(venture.field, venture.sector_group)}">
+                                ${venture.field}
+                            </span>
+                        </td>
+                        <td class="hidden md:table-cell px-6 py-4 whitespace-nowrap text-sm text-slate-500">${venture.hq}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-slate-500">${venture.funding}</td>
+                    `;
+                    row.addEventListener('click', () => openModal(venture.id));
+                    tableBody.appendChild(row);
+                });
+            }
+            
+            function getSectorBg(field, group) {
+                const sector = field === '量子コンピューティング' ? '量子コンピューティング' : group;
+                switch(sector) {
+                    case '量子コンピューティング': return 'bg-purple-100 text-purple-800';
+                    case 'AI / 物理世界': return 'bg-sky-100 text-sky-800';
+                    case '持続可能性': return 'bg-green-100 text-green-800';
+                    case '宇宙産業': return 'bg-slate-200 text-slate-800';
+                    default: return 'bg-gray-100 text-gray-800';
+                }
+            }
+
+            filterBtns.forEach(btn => {
+                btn.addEventListener('click', () => {
+                    filterBtns.forEach(b => {
+                        b.classList.remove('bg-indigo-600', 'text-white');
+                        b.classList.add('bg-white', 'text-slate-700');
+                    });
+                    btn.classList.add('bg-indigo-600', 'text-white');
+                    btn.classList.remove('bg-white', 'text-slate-700');
+                    renderTable(btn.dataset.filter);
+                });
+            });
+
+            // --- Modal ---
+            const modal = document.getElementById('venture-modal');
+            const modalBackdrop = modal.querySelector('.modal-backdrop');
+            const modalContent = modal.querySelector('.modal-content');
+            const modalCloseBtn = document.getElementById('modal-close-btn');
+
+            function openModal(ventureId) {
+                const venture = ventureData.find(v => v.id === ventureId);
+                if (!venture) return;
+
+                document.getElementById('modal-title').textContent = venture.name;
+                document.getElementById('modal-sector').textContent = venture.field;
+                const contentBody = document.getElementById('modal-content-body');
+                contentBody.innerHTML = `
+                    <p><strong>中核となるイノベーション:</strong> ${venture.innovation}</p>
+                    <p class="mt-2">${venture.description}</p>
+                    <p class="mt-4"><strong>本拠地:</strong> ${venture.hq}</p>
+                    <p><strong>総調達額:</strong> ${venture.funding}</p>
+                    ${venture.link ? `<p class="mt-4"><a href="${venture.link}" target="_blank" rel="noopener noreferrer" class="text-indigo-600 hover:text-indigo-800 font-semibold">公式サイト &rarr;</a></p>` : ''}
+                `;
+                
+                modal.classList.remove('hidden');
+                document.body.style.overflow = 'hidden';
+                setTimeout(() => {
+                    modalBackdrop.style.opacity = '1';
+                    modalContent.style.transform = 'scale(1)';
+                }, 10);
+            }
+
+            function closeModal() {
+                modalBackdrop.style.opacity = '0';
+                modalContent.style.transform = 'scale(0.95)';
+                setTimeout(() => {
+                    modal.classList.add('hidden');
+                    document.body.style.overflow = '';
+                }, 300);
+            }
+
+            modalCloseBtn.addEventListener('click', closeModal);
+            modalBackdrop.addEventListener('click', closeModal);
+
+            // --- Funding Chart ---
+            const fundingCtx = document.getElementById('fundingChart').getContext('2d');
+            const fundedVentures = ventureData.filter(v => v.funding_usd_m !== null).sort((a, b) => b.funding_usd_m - a.funding_usd_m);
+            new Chart(fundingCtx, {
+                type: 'bar',
+                data: {
+                    labels: fundedVentures.map(v => v.name),
+                    datasets: [{
+                        label: '調達額 (百万ドル)',
+                        data: fundedVentures.map(v => v.funding_usd_m),
+                        backgroundColor: fundedVentures.map(v => v.country === 'Japan' ? 'rgba(236, 72, 153, 0.8)' : 'rgba(79, 70, 229, 0.8)'),
+                        borderColor: fundedVentures.map(v => v.country === 'Japan' ? 'rgba(236, 72, 153, 1)' : 'rgba(79, 70, 229, 1)'),
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    indexAxis: 'y',
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            callbacks: {
+                                label: (context) => `${context.raw.toLocaleString()} 百万ドル`
+                            }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            beginAtZero: true,
+                            title: {
+                                display: true,
+                                text: '調達額 (百万ドル)'
+                            }
+                        }
+                    }
+                }
+            });
+
+            // --- Quantum Section ---
+            const quantumBtns = document.querySelectorAll('.quantum-btn');
+            const quantumDetailsContainer = document.getElementById('quantum-details');
+
+            function renderQuantumDetails(type) {
+                const data = quantumComparisonData[type];
+                let content = `<h5 class="text-xl font-bold text-slate-800">${data.title}</h5><div class="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4">`;
+                for (const [key, value] of Object.entries(data.items)) {
+                    content += `
+                        <div class="p-4 bg-slate-50 rounded-md">
+                            <p class="font-semibold text-slate-700">${key}</p>
+                            <p class="text-slate-600">${value}</p>
+                        </div>
+                    `;
+                }
+                content += `</div>`;
+                quantumDetailsContainer.innerHTML = content;
+            }
+
+            quantumBtns.forEach(btn => {
+                btn.addEventListener('click', () => {
+                    quantumBtns.forEach(b => {
+                        b.classList.remove('bg-indigo-600', 'text-white');
+                        b.classList.add('bg-white', 'text-slate-700');
+                    });
+                    btn.classList.add('bg-indigo-600', 'text-white');
+                    btn.classList.remove('bg-white', 'text-slate-700');
+                    renderQuantumDetails(btn.dataset.quantum);
+                });
+            });
+
+            // --- AI Section ---
+            const aiBtns = document.querySelectorAll('.ai-btn');
+            const aiDetailsContainer = document.getElementById('ai-details');
+
+            function renderAiDetails(type) {
+                const data = aiComparisonData[type];
+                let content = `<h5 class="text-xl font-bold text-slate-800">${data.title}</h5><div class="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4">`;
+                for (const [key, value] of Object.entries(data.items)) {
+                    content += `
+                        <div class="p-4 bg-slate-50 rounded-md">
+                            <p class="font-semibold text-slate-700">${key}</p>
+                            <p class="text-slate-600">${value}</p>
+                        </div>
+                    `;
+                }
+                content += `</div>`;
+                aiDetailsContainer.innerHTML = content;
+            }
+
+            aiBtns.forEach(btn => {
+                btn.addEventListener('click', () => {
+                    aiBtns.forEach(b => {
+                        b.classList.remove('bg-sky-600', 'text-white');
+                        b.classList.add('bg-white', 'text-slate-700');
+                    });
+                    btn.classList.add('bg-sky-600', 'text-white');
+                    btn.classList.remove('bg-white', 'text-slate-700');
+                    renderAiDetails(btn.dataset.ai);
+                });
+            });
+
+            // Initial renders
+            renderTable();
+            renderQuantumDetails('psi');
+            renderAiDetails('asimov');
+        });
+    </script>
+
+</body>
+</html>
+
+
+
