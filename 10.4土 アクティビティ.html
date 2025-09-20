@@ -5,80 +5,169 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>チームE結束大作戦</title>
     <style>
-        /* 基本設定 */
         body {
             font-family: 'Helvetica Neue', Arial, 'Hiragino Kaku Gothic ProN', 'Hiragino Sans', Meiryo, sans-serif;
             margin: 0;
             padding: 20px;
-            background-color: #FFF9E8; /* 全体の背景色 */
-            color: #333;
+            background-color: #fdfaf0; /* 少しクリーム色がかった背景 */
+            color: #3a3a3a;
         }
         .container {
-            max-width: 1200px;
+            max-width: 900px;
             margin: 0 auto;
         }
-
-        /* ヘッダー */
         header {
             text-align: center;
-            margin-bottom: 30px;
+            margin-bottom: 40px;
         }
         h1 {
             color: #2E8B57; /* 緑色 */
             font-size: 2.5em;
             margin: 0;
+            font-weight: bold;
         }
         h2 {
             font-size: 1.5em;
             margin-top: 10px;
+            color: #555;
         }
-
-        /* アクティビティのセクション */
         .activities {
             display: flex;
             justify-content: center;
-            flex-wrap: wrap; /* 画面が狭い時に折り返す */
-            gap: 20px; /* カード間の隙間 */
+            flex-wrap: wrap;
+            gap: 25px;
+            margin-bottom: 50px;
         }
         .card {
             background-color: white;
-            border: 2px solid #FFA500; /* オレンジ色の枠線 */
-            border-radius: 10px;
+            border: 2px solid #FFA500;
+            border-radius: 12px;
             padding: 20px;
-            width: 300px;
-            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            width: 250px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.08);
             text-align: center;
-            margin-bottom: 20px;
         }
-        /* ▼▼▼ エラー箇所を修正 ▼▼▼ */
         .card h3 {
-            color: #FFA500; /* オレンジ色 */
-            font-size: 1.2em; /* 単位(em)と閉じ括弧(})を追加 */
+            color: #FFA500;
+            font-size: 1.3em;
+            margin-top: 0;
+        }
+        .card p.catchphrase {
+            font-weight: bold;
+            color: #333;
+            font-size: 1.1em;
+        }
+        .card p.details {
+            font-size: 0.9em;
+            color: #666;
+        }
+
+        /* スケジュールテーブルのスタイル */
+        .schedule {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.08);
+        }
+        .schedule th, .schedule td {
+            border: 1px solid #ddd;
+            padding: 12px;
+            text-align: left;
+        }
+        .schedule th {
+            background-color: #2E8B57;
+            color: white;
+            font-weight: bold;
+        }
+        .schedule tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+        .schedule tr:hover {
+            background-color: #f1f1f1;
         }
     </style>
 </head>
-
 <body>
     <div class="container">
         <header>
-            <h1>チームE結束大作戦</h1>
-            <h2>10月4日のアクティビティ案</h2>
+            <h1>山・竹・飯でつながる！</h1>
+            <h2>〜チームE結束大作戦〜</h2>
         </header>
         
         <div class="activities">
             <div class="card">
-                <h3>BBQ大会 🍖</h3>
-                <p>自然の中で美味しいお肉を囲み、リラックスしながら交流を深めます。</p>
+                <h3>Act1: 金峯山登山 ⛰️</h3>
+                <p class="catchphrase">つらいときも励まし合い</p>
+                <p class="details">準備: リュック, 飲み物, タオル, 帽子, 雨具など</p>
             </div>
             <div class="card">
-                <h3>チーム対抗スポーツ大会 🏃</h3>
-                <p>運動を通じてチームワークを高め、一体感を醸成します。</p>
+                <h3>Act2: 竹林整備(竹刈) 🎋</h3>
+                <p class="catchphrase">チーム力を高めよう</p>
+                <p class="details">10:30-12:30<br>道具準備は不要です</p>
             </div>
             <div class="card">
-                <h3>脱出ゲーム 🧠</h3>
-                <p>協力して謎を解き明かすことで、問題解決能力と協調性を養います。</p>
+                <h3>Act3: 流しそうめん&BBQ 🍖</h3>
+                <p class="catchphrase">結束力の集大成</p>
+                <p class="details">13:00-15:00<br>そうめん, 肉, 野菜, 芋煮！</p>
             </div>
         </div>
+
+        <h2 style="text-align: center;">当日のスケジュール</h2>
+        <table class="schedule">
+            <thead>
+                <tr>
+                    <th>時間</th>
+                    <th>内容</th>
+                    <th>準備物</th>
+                    <th>備考</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>7:00</td>
+                    <td>鶴岡駅集合、移動</td>
+                    <td>移動手段</td>
+                    <td>バス or 真田送迎</td>
+                </tr>
+                <tr>
+                    <td>7:30</td>
+                    <td>Act1 登山開始 (小雨決行)</td>
+                    <td>リュックサック, 飲み物, タオル, 帽子, 着替え(適宜), 雨具</td>
+                    <td>料金: 無料<br>※雨の場合のバックアッププラン検討</td>
+                </tr>
+                <tr>
+                    <td>9:00</td>
+                    <td>軽食、下山開始</td>
+                    <td>軽食</td>
+                    <td></td>
+                </tr>
+                <tr>
+                    <td>10:30-12:30</td>
+                    <td>Act2 竹刈</td>
+                    <td>現時点で特になし</td>
+                    <td>道具準備不要<br>料金: 無料？</td>
+                </tr>
+                <tr>
+                    <td>13:00-15:00</td>
+                    <td>Act3 BBQ</td>
+                    <td>そうめん, 肉, 野菜, 芋煮セット</td>
+                    <td>調理器具等は真田準備します<br>10/3(金)に買い出し＋芋煮セットも予約</td>
+                </tr>
+                <tr>
+                    <td>15:00-16:00</td>
+                    <td>片付け、温泉</td>
+                    <td></td>
+                    <td>料金: 300円</td>
+                </tr>
+                <tr>
+                    <td>16:30</td>
+                    <td>解散、移動</td>
+                    <td>移動手段</td>
+                    <td>バス or 真田送迎</td>
+                </tr>
+            </tbody>
+        </table>
+
     </div>
 </body>
 </html>
