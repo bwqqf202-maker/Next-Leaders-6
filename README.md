@@ -198,6 +198,10 @@
                 </div>
             </section>
         </main>
+        
+        <footer class="mt-8 text-center text-sm text-slate-500">
+             <a href="index.html" class="text-blue-600 hover:underline">← メインページに戻る</a>
+        </footer>
     </div>
 
     <script>
