@@ -1,0 +1,399 @@
+<!DOCTYPE html>
+<html lang="ja" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>統合ビジネス＆テクノロジーレポート 2025</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Noto Sans JP', sans-serif;
+        }
+        .main-nav-link.active {
+            color: #2563eb;
+            font-weight: 700;
+        }
+        .tech-nav-link.active {
+            background-color: #eff6ff;
+            color: #1e40af;
+            font-weight: 600;
+        }
+        .section-fade-in {
+            opacity: 0;
+            transform: translateY(20px);
+            transition: opacity 0.5s ease-out, transform 0.5s ease-out;
+        }
+        .section-fade-in.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        .filter-btn.active {
+            background-color: #3b82f6;
+            color: white;
+            border-color: #3b82f6;
+        }
+        .modal-backdrop {
+            transition: opacity 0.3s ease-in-out;
+        }
+        .modal-content {
+            transition: transform 0.3s ease-in-out, opacity 0.3s ease-in-out;
+            max-height: 90vh;
+        }
+        .tech-content {
+            animation: fadeIn 0.5s ease-in-out;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-800">
+
+    <header class="bg-white/80 backdrop-blur-md shadow-sm sticky top-0 z-40">
+        <div class="container mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between h-16">
+                <h1 class="text-lg sm:text-xl font-bold text-slate-900">統合レポート 2025</h1>
+                <nav class="hidden md:flex items-center space-x-8">
+                    <a href="#framework" class="main-nav-link text-slate-600 hover:text-blue-600 transition-colors">フレームワーク</a>
+                    <a href="#companies" class="main-nav-link text-slate-600 hover:text-blue-600 transition-colors">注目企業</a>
+                    <a href="#corporations" class="main-nav-link text-slate-600 hover:text-blue-600 transition-colors">大企業の動向</a>
+                    <a href="#technologies" class="main-nav-link text-slate-600 hover:text-blue-600 transition-colors">基盤テクノロジー</a>
+                </nav>
+                <button id="mobile-menu-button" class="md:hidden text-slate-600 focus:outline-none">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7"></path></svg>
+                </button>
+            </div>
+        </div>
+        <div id="mobile-menu" class="hidden md:hidden border-t border-slate-200">
+            <nav class="flex flex-col p-4 space-y-2">
+                <a href="#framework" class="main-nav-link block px-4 py-2 rounded-md text-slate-600 hover:bg-slate-100">フレームワーク</a>
+                <a href="#companies" class="main-nav-link block px-4 py-2 rounded-md text-slate-600 hover:bg-slate-100">注目企業</a>
+                <a href="#corporations" class="main-nav-link block px-4 py-2 rounded-md text-slate-600 hover:bg-slate-100">大企業の動향</a>
+                <a href="#technologies" class="main-nav-link block px-4 py-2 rounded-md text-slate-600 hover:bg-slate-100">基盤テクノロジー</a>
+            </nav>
+        </div>
+    </header>
+
+    <main class="container mx-auto px-4 sm:px-6 lg:px-8 py-8 md:py-12">
+
+        <section id="framework" class="space-y-12 md:space-y-16 py-8 md:py-12 section-fade-in">
+            <header class="text-center mb-12">
+                <h2 class="text-3xl md:text-4xl font-bold text-slate-900">新規事業フレームワーク</h2>
+                <p class="mt-4 text-lg text-slate-600 max-w-3xl mx-auto">「ひらめき」を「顧客価値」に変えるための、チームの実践ガイド</p>
+            </header>
+
+            <div class="bg-white p-6 md:p-8 rounded-xl shadow-lg border border-slate-200/80">
+                <h3 class="text-2xl font-bold mb-6 text-sky-700">はじめに：なぜ、チームの「ひらめき」が価値に繋がらないのか？</h3>
+                <div class="space-y-4 text-slate-700 leading-relaxed">
+                    <p>プロダクトアイデア出しは、本来ワクワクするものです。しかし、多くのチームが「あればいいな」というプロダクトアウトの思考や、特定のメンバーの意見に偏る視野の狭さから、顧客に届かないアイデアにリソースを浪費してしまうという現実に直面します。</p>
+                    <p>このガイドの目的は、そうした初期段階の「罠」を回避し、<strong class="font-bold text-sky-600">チームの情熱と技術を、真の顧客価値に繋げるための実践的なフレームワーク</strong>を共有することです。</p>
+                </div>
+            </div>
+
+            <div>
+                <h3 class="text-2xl font-bold mb-8 text-center text-slate-800">初期段階で陥りがちな「3つの罠」</h3>
+                <div class="grid md:grid-cols-3 gap-8">
+                    <div class="bg-white p-6 rounded-xl border border-red-200 shadow-md">
+                        <h4 class="text-xl font-bold text-center mb-3 text-red-700">プロダクトアウトの罠</h4>
+                        <p class="text-slate-600">「この技術で何が作れるか？」という<strong class="text-red-600">作り手目線</strong>からスタートしてしまう。顧客不在の「自己満足な製品」が生まれ、誰にも望まれない結果に。</p>
+                    </div>
+                    <div class="bg-white p-6 rounded-xl border border-red-200 shadow-md">
+                        <h4 class="text-xl font-bold text-center mb-3 text-red-700">視野狭窄の罠</h4>
+                        <p class="text-slate-600">客観的な評価基準がなく、「面白そう」「声の大きい人の意見」で議論が進む。本当にポテンシャルのある<strong class="text-red-600">原石のようなアイデア</strong>が見過ごされる。</p>
+                    </div>
+                    <div class="bg-white p-6 rounded-xl border border-red-200 shadow-md">
+                        <h4 class="text-xl font-bold text-center mb-3 text-red-700">早期具体化の罠</h4>
+                        <p class="text-slate-600">「どう作るか？」をすぐに考え、技術仕様や開発計画の話に飛んでしまう。最も重要な<strong class="text-red-600">「顧客は本当にお金を払うのか？」</strong>という問いを検証しないまま、開発に着手する。</p>
+                    </div>
+                </div>
+            </div>
+
+            <div>
+                <h3 class="text-2xl font-bold mb-8 text-center text-slate-800">基本思想：「発散」と「収束」を意識的に使い分ける</h3>
+                <div class="grid md:grid-cols-2 gap-8 text-center">
+                    <div class="bg-white p-8 rounded-xl border border-blue-200 shadow-md">
+                        <h4 class="text-xl font-bold mb-3 text-blue-700">発散 (Divergence)</h4>
+                        <p class="text-slate-600">質より量を重視し、批判をせず、自由な発想でアイデアの選択肢を最大化するフェーズ。</p>
+                        <p class="mt-4 font-bold text-blue-600">ツール: プロダクトアイデアシート</p>
+                    </div>
+                    <div class="bg-white p-8 rounded-xl border border-green-200 shadow-md">
+                        <h4 class="text-xl font-bold mb-3 text-green-700">収束 (Convergence)</h4>
+                        <p class="text-slate-600">共通の「物差し」を使い、客観的な基準でアイデアを評価し、次に進むべきものを見極めるフェーズ。</p>
+                        <p class="mt-4 font-bold text-green-600">ツール: 採点表</p>
+                    </div>
+                </div>
+                <div class="mt-8 bg-yellow-100 border-l-4 border-yellow-500 p-6 rounded-r-lg">
+                    <p class="text-yellow-800"><strong class="font-bold">重要:</strong> この2つを同時に行うと、大胆な発想（発散）が、冷静なツッコミ（収束）によって潰されてしまいます。私たちは、この2つの思考を意図的に分離します。</p>
+                </div>
+            </div>
+
+            <div>
+                <h3 class="text-2xl font-bold mb-8 text-center text-slate-800">実践ワークショップ：「価値駆動型」4ステップ</h3>
+                <div class="space-y-8">
+                    <div class="p-6 bg-white rounded-xl shadow-md border border-slate-200"><strong class="text-blue-600">1.【発散①】課題定義:</strong> 製品の話はせず、「誰の、どんな課題を解決するか？」だけを議論します。</div>
+                    <div class="p-6 bg-white rounded-xl shadow-md border border-slate-200"><strong class="text-blue-600">2.【発散②】アイデア創出:</strong> `プロダクトアイデアシート`を使い、課題解決策の質より量を出すことに集中します。</div>
+                    <div class="p-6 bg-white rounded-xl shadow-md border border-green-200"><strong class="text-green-600">3.【収束①】多角的評価:</strong> `採点表`を使い、全アイデアを同じ物差しで冷静に点数化し、客観的に比較します。</div>
+                    <div class="p-6 bg-white rounded-xl shadow-md border border-green-200"><strong class="text-green-600">4.【収束②】仮説の深化:</strong> 上位アイデアについて`リーンキャンバス`を描き、最も危険な仮説と、それを検証する次のアクションを定義します。</div>
+                </div>
+            </div>
+        </section>
+
+        <section id="companies" class="space-y-12 md:space-y-16 py-8 md:py-12 section-fade-in">
+            <header class="text-center mb-12">
+                <h2 class="text-3xl md:text-4xl font-bold text-slate-900">注目企業エクスプローラー</h2>
+                <p class="mt-4 text-lg text-slate-600 max-w-3xl mx-auto">未来を創造する国内外の先進的ベンチャー企業を探る。</p>
+            </header>
+            
+            <div>
+                <h3 class="text-xl font-bold text-center mb-6 text-slate-800">カテゴリ / 業界で絞り込む</h3>
+                <div id="company-filters" class="flex flex-wrap justify-center gap-2 md:gap-3">
+                    </div>
+            </div>
+
+            <div id="company-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 md:gap-8">
+                </div>
+        </section>
+
+        <section id="corporations" class="space-y-12 md:space-y-16 py-8 md:py-12 section-fade-in">
+            <header class="text-center mb-12">
+                <h2 class="text-3xl md:text-4xl font-bold text-slate-900">大企業の新規事業動向</h2>
+                <p class="mt-4 text-lg text-slate-600 max-w-3xl mx-auto">日本の大手企業における新規事業創出のトレンド、成功要因、課題を分析します。</p>
+            </header>
+            
+            <div class="space-y-12">
+                <div>
+                    <h3 class="text-2xl font-bold text-center mb-8 text-slate-800">注目の事業領域</h3>
+                    <div class="flex flex-wrap justify-center gap-4 mb-8">
+                         <button class="area-btn px-6 py-2 bg-white border border-slate-300 rounded-full shadow-sm hover:bg-slate-100 transition" data-area="all">全体像</button>
+                         <button class="area-btn px-6 py-2 bg-white border border-slate-300 rounded-full shadow-sm hover:bg-slate-100 transition" data-area="dx">DX/AI</button>
+                         <button class="area-btn px-6 py-2 bg-white border border-slate-300 rounded-full shadow-sm hover:bg-slate-100 transition" data-area="gx">GX/エネルギー</button>
+                         <button class="area-btn px-6 py-2 bg-white border border-slate-300 rounded-full shadow-sm hover:bg-slate-100 transition" data-area="healthcare">ヘルスケア</button>
+                         <button class="area-btn px-6 py-2 bg-white border border-slate-300 rounded-full shadow-sm hover:bg-slate-100 transition" data-area="maas">MaaS/モビリティ</button>
+                    </div>
+                     <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 items-center">
+                        <div class="bg-white p-4 md:p-6 rounded-lg shadow-lg order-2 lg:order-1">
+                            <h4 id="area-title" class="text-xl font-bold mb-3 text-blue-700"></h4>
+                            <p id="area-text" class="text-slate-600 leading-relaxed"></p>
+                        </div>
+                        <div id="area-chart-container" class="bg-white p-4 md:p-6 rounded-lg shadow-lg order-1 lg:order-2">
+                            <div class="relative mx-auto w-full h-64 sm:h-80"><canvas id="areasChart"></canvas></div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 md:gap-12">
+                    <div class="bg-white p-6 md:p-8 rounded-lg shadow-lg">
+                        <h3 class="text-xl font-bold text-center mb-6 text-green-700">成功への主要因</h3>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <div class="factor-item p-4 text-center border rounded-lg cursor-pointer hover:bg-green-50 transition" data-factor="1">経営層のコミットメント</div>
+                            <div class="factor-item p-4 text-center border rounded-lg cursor-pointer hover:bg-green-50 transition" data-factor="2">アジャイルな開発体制</div>
+                            <div class="factor-item p-4 text-center border rounded-lg cursor-pointer hover:bg-green-50 transition" data-factor="3">オープンイノベーション</div>
+                            <div class="factor-item p-4 text-center border rounded-lg cursor-pointer hover:bg-green-50 transition" data-factor="4">失敗を許容する文化</div>
+                        </div>
+                        <div id="factor-description" class="mt-6 p-4 bg-green-50 rounded-md min-h-[100px]">
+                            <p id="factor-text" class="text-slate-700">項目を選択してください。</p>
+                        </div>
+                    </div>
+                    <div class="bg-white p-6 md:p-8 rounded-lg shadow-lg">
+                        <h3 class="text-xl font-bold text-center mb-6 text-red-700">直面する主な課題</h3>
+                        <div class="relative w-full h-80"><canvas id="challengesChart"></canvas></div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="technologies" class="space-y-12 md:space-y-16 py-8 md:py-12 section-fade-in">
+            <header class="text-center mb-12">
+                <h2 class="text-3xl md:text-4xl font-bold text-slate-900">基盤テクノロジーガイド</h2>
+                <p class="mt-4 text-lg text-slate-600 max-w-3xl mx-auto">第四次産業革命を支える主要技術をインタラクティブに解説します。</p>
+            </header>
+            
+            <div class="flex flex-col md:flex-row gap-8">
+                <nav class="w-full md:w-1/4 lg:w-1/5">
+                    <ul id="tech-nav-menu" class="flex flex-row md:flex-col overflow-x-auto md:overflow-x-visible pb-2 md:pb-0 space-x-2 md:space-x-0 md:space-y-1">
+                       </ul>
+                </nav>
+                <div id="tech-content-container" class="flex-1 min-w-0">
+                   </div>
+            </div>
+        </section>
+
+    </main>
+    
+    <div id="company-modal" class="modal-backdrop fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center p-4 z-50 opacity-0 pointer-events-none">
+        <div class="modal-content opacity-0 transform scale-95 bg-white rounded-2xl shadow-2xl w-full max-w-4xl relative overflow-y-auto">
+            <button id="modal-close-btn" class="absolute top-4 right-4 text-gray-500 hover:text-gray-800 transition-colors z-10">
+                <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+            </button>
+            <div id="modal-body" class="p-6 sm:p-8 lg:p-12"></div>
+        </div>
+    </div>
+
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    // --- Data Definitions ---
+
+    const companyData = [
+        { id: 'spiber', name: 'Spiber', category: 'unicorn_jp', industry: 'DeepTech / R&D', tagline: '構造タンパク質素材で、地球規模の課題解決に挑む。', description: '微生物の発酵プロセスを活用し、人工的に構造タンパク質素材「Brewed Protein™」を開発・生産。アパレルから自動車まで、幅広い産業で石油由来素材の代替を目指す、世界が注目するバイオベンチャー。', usp: '地球環境に負荷をかけずに、多様な特性を持つサステナブルな新素材を量産できる独自の技術プラットフォーム。', website: 'https://www.spiber.inc' },
+        { id: 'pfn', name: 'Preferred Networks', category: 'unicorn_jp', industry: 'AI', tagline: '現実世界を計算する。深層学習技術で産業の革新をリード。', description: '深層学習（ディープラーニング）を中心としたAI開発の国内トップランナー。製造業や医療、ロボティクスなど、複雑な現実世界の課題を解決するための研究開発と事業化を推進している。', usp: 'トップレベルの研究者集団による圧倒的な技術力と、それを産業応用へと繋げるためのソフトウェア・ハードウェア開発能力。', website: 'https://www.preferred.jp/' },
+        { id: 'ispace_jp', name: 'ispace (Japan)', category: 'unicorn_jp', industry: 'SpaceTech', tagline: '宇宙の資源を、人類の未来へ。月面開発のパイオニア。', description: '月への着陸船（ランダー）と探査車（ローバー）を開発し、高頻度かつ低コストの月面輸送サービスを展開。月面の水資源探査などを通じて、宇宙インフラの構築を目指す。', usp: '民間企業として世界初の月面着陸ミッションに挑戦するなど、高い技術力と事業推進力を併せ持つ。', website: 'https://ispace-inc.com/' },
+        { id: 'smarthr', name: 'SmartHR', category: 'unicorn_jp', industry: 'HR-Tech', tagline: '労務手続きと人事管理を、もっとシンプルに、スマートに。', description: '入社手続きや年末調整などの労務手続きをペーパーレス化し、人事データを一元管理するクラウド型ソフトウェア。企業の生産性向上と従業員の働きやすさ向上に貢献する。', usp: '複雑な労務手続きを誰でも簡単に使えるようにした、卓越したUI/UX。SaaSとして驚異的な成長率を誇る。', website: 'https://smarthr.jp/' },
+        { id: 'andpad', name: 'ANDPAD', category: 'unicorn_jp', industry: 'SaaS', tagline: '建設業界のDXを加速するNo.1プラットフォーム。', description: '現場の効率化から経営改善までを一元管理できる、建設・建築業界に特化したクラウド型建設プロジェクト管理サービス。写真管理、工程表、図面共有などの機能で、業界の働き方改革を支援する。', usp: '施工管理から受発注まで、建設現場のあらゆる業務をカバーする網羅性と、ITに不慣れな人でも直感的に使える操作性。', website: 'https://andpad.co.jp/' },
+        { id: 'ubie', name: 'Ubie', category: 'unicorn_jp', industry: 'HealthTech', tagline: 'テクノロジーで、人々を適切な医療に案内する。', description: '生活者向けの症状検索エンジン「ユビー」と、医療機関向けの「ユビーAI問診」を開発・提供。AIを活用して、患者と医療のマッチングを最適化し、医療現場の業務効率化を図る。', usp: '医師の知見とAI技術を組み合わせた独自のアルゴリズムにより、高い精度で関連する病名や適切な受診先を提示できる。', website: 'https://ubie.life/' },
+        { id: 'psiquantum', name: 'PsiQuantum', category: 'frontier_global', industry: 'Quantum Computing', tagline: 'フォトニックベースで世界初の実用的な量子コンピュータを構築。', description: '業界で最も野心的な目標を掲げ、最初から100万量子ビット級のフォールトトレラント量子コンピュータを構築することを目指す。既存の半導体製造施設を活用する戦略が特徴。', usp: '半導体製造技術の活用による圧倒的なスケーラビリティと、エラー訂正に有利なフォトニック方式。', hq: 'アメリカ/オーストラリア' },
+        { id: 'quantinuum', name: 'Quantinuum', category: 'frontier_global', industry: 'Quantum Computing', tagline: '世界最高性能のトラップイオン型量子コンピュータとソフトウェアを提供。', description: 'HoneywellとCambridge Quantumが統合して誕生。業界最高水準の忠実度を誇るトラップイオン方式を採用し、ハードとソフトの両面からエコシステムを構築。', usp: '最高の忠実度と接続性による高品質な計算能力と、フルスタックでのソリューション提供力。', hq: 'アメリカ/イギリス' },
+        { id: 'asimov', name: 'Asimov', category: 'frontier_global', industry: 'AI / Physical World', tagline: '生物学をプログラミングする。合成生物学のためのCADプラットフォーム。', description: '生物学を経験的な科学から予測可能なエンジニアリング分野へと変革することを目指す。哺乳類細胞の合成生物学、計算ツール、機械学習を統合。', usp: '複雑な生物学的プロセスを予測・設計するAI駆動の計算能力と、遺伝子回路設計技術。', hq: 'アメリカ' },
+        { id: 'varda', name: 'Varda Space Industries', category: 'frontier_global', industry: 'SpaceTech', tagline: '宇宙工場。微小重力を利用した軌道上での製造・開発。', description: '世界初の商業的な無重力工業団地の建設を目指す。医薬品の軌道上製造と、自社開発の再突入カプセルによる地球への帰還を成功させている。', usp: '軌道上での製造から地球への帰還までを垂直統合で行う、ユニークなビジネスモデル。', hq: 'アメリカ' },
+        { id: 'tbm', name: 'TBM', category: 'frontier_global', industry: 'Sustainability', tagline: '石灰石を主原料とする新素材「LIMEX」で持続可能な社会を構築。', description: '水や木材パルプをほぼ使用せず、紙やプラスチックの代替となる新素材を開発。資源枯渇や環境問題への貢献を目指すユニコーン企業。', usp: '資源として豊富な石灰石を活用し、環境負荷の低い素材を製造する独自技術。', hq: '日本' },
+    ];
+
+    const corporationData = {
+        areas: {
+            all: { title: "事業領域 全体像", text: "大手企業は、DX/AI、GX/エネルギー、ヘルスケア、MaaS/モビリティの4領域に重点的に投資しています。これらは社会の持続可能性と生産性向上に直結する分野であり、既存事業とのシナジーも期待されています。", chartType: 'doughnut', labels: ["DX/AI", "GX/エネルギー", "ヘルスケア", "MaaS/モビリティ"], data: [40, 25, 20, 15] },
+            dx: { title: "DX / AI", text: "業務効率化から新たなサービス創出まで、AIとデータ活用は全産業の核となっています。特に製造業や金融、小売業での導入が活発で、競争力の源泉と位置付けられています。", chartType: 'bar', labels: ["2022年", "2023年", "2024年", "2025年(予測)"], data: [65, 75, 88, 95] },
+            gx: { title: "GX / エネルギー", text: "カーボンニュートラル実現に向け、再生可能エネルギー、水素技術、CCUS（CO2回収・利用・貯留）への投資が加速。新たなエネルギー供給網の構築が国家的な課題となっています。", chartType: 'bar', labels: ["2022年", "2023年", "2024年", "2025年(予測)"], data: [40, 55, 70, 85] },
+            healthcare: { title: "ヘルスケア", text: "高齢化社会を背景に、予防医療、個別化医療、デジタルヘルスへの注目が高まっています。異業種からの参入も相次ぎ、テクノロジーを活用した新たな健康ソリューションが期待されています。", chartType: 'bar', labels: ["2022年", "2023年", "2024年", "2025年(予測)"], data: [50, 60, 68, 78] },
+            maas: { title: "MaaS / モビリティ", text: "自動運転技術やシェアリングエコノミーの進展により、「所有から利用へ」という移動の概念が変化。自動車メーカーだけでなく、IT企業や交通事業者が連携し、次世代の交通サービスを構築しています。", chartType: 'bar', labels: ["2022年", "2023年", "2024年", "2025年(予測)"], data: [35, 45, 62, 75] }
+        },
+        factors: {
+            "1": "トップの強いリーダーシップと明確なビジョンが、組織全体を動かし、困難な変革を推進する上で不可欠です。予算や人材の重点的な配分も含まれます。",
+            "2": "市場の変化に迅速に対応するため、小規模なチームで企画、開発、検証のサイクルを高速で回す手法。従来のウォーターフォール型開発とは一線を画します。",
+            "3": "社内のリソースに固執せず、スタートアップ、大学、研究機関など外部の技術やアイデアを積極的に取り入れることで、開発スピードとイノベーションの確率を高めます。",
+            "4": "新規事業に失敗はつきものです。挑戦した結果の失敗を責めるのではなく、そこからの学びを奨励し、次の挑戦に繋げる文化がイノベーションの土壌となります。"
+        },
+        challenges: {
+            labels: ["既存事業とのカニバリズム", "評価指標(ROI)の設定の難しさ", "意思決定の遅さ", "縦割り組織の壁", "リスク回避的な企業文化"],
+            data: [65, 72, 80, 85, 92]
+        }
+    };
+    
+    const techData = [
+        { id: 'intro', emoji: '🏠', title: 'はじめに', content: `<p class="text-lg text-gray-600 mb-6">このガイドは、「第四次産業革命」を支える最先端のテクノロジーを、誰にでも分かりやすく解説するインタラクティブな資料です。第四次産業革命とは、デジタル、物理、生物の世界が融合し、私たちの生活や社会のあり方を根本から変える大きな技術革新の波を指します。</p><div class="bg-sky-100 border-l-4 border-sky-500 text-sky-800 p-4 rounded-r-lg"><p>左側のメニュー（スマートフォンの場合は上のメニュー）から興味のあるテクノロジー名を選択してください。それぞれの技術が「どのようなものか」という簡単な説明と、「私たちの生活でどのように使われているか」という具体例、さらに「未来の可能性」や「考えるべき課題」についても知ることができます。</p></div>` },
+        { id: 'ai', emoji: '🧠', title: 'AI (人工知能)', content: `<div><h3 class="text-xl font-semibold mb-2 text-sky-700">これって何？</h3><p class="text-lg">コンピューターが人間のように学習し、考え、判断する技術のことです。まるでコンピューターに「脳」を持たせるようなものです。</p></div><div><h3 class="text-xl font-semibold mt-6 mb-2 text-sky-700">✅ 具体的な事例</h3><ul class="list-disc list-inside space-y-2 text-lg"><li><strong>生成AI：</strong> 「ChatGPT」や「Google Gemini」のように質問に答えたり、文章や画像を作成したりします。</li><li><strong>AIによる画像診断支援：</strong> 富士フイルムの「REiLI」のように、医師が見つけにくい初期のがんなどを、AIがレントゲンやCT画像から発見するのを助けます。</li></ul></div>` },
+        { id: 'iot', emoji: '🌐', title: 'IoT', content: `<div><h3 class="text-xl font-semibold mb-2 text-sky-700">これって何？</h3><p class="text-lg">身の回りのあらゆる「モノ」がインターネットにつながり、互いに情報をやり取りする仕組みです。</p></div><div><h3 class="text-xl font-semibold mt-6 mb-2 text-sky-700">✅ 具体的な事例</h3><ul class="list-disc list-inside space-y-2 text-lg"><li><strong>スマート工場：</strong> ファナックの「FIELD system」は、工作機械やロボットを繋ぎ、生産状況の見える化や故障予知を実現します。</li><li><strong>ウェアラブルデバイス：</strong> 「Apple Watch」などが心拍数や転倒を検知し、異常があれば自動で緊急通報する機能があります。</li></ul></div>` },
+        { id: '6g', emoji: '🛰️', title: '6G', content: `<div><h3 class="text-xl font-semibold mb-2 text-sky-700">これって何？</h3><p class="text-lg">5Gの次世代の通信基盤で、空、海、宇宙まで通信エリアを広げ、社会のあらゆる活動を支える神経網となります。</p></div><div><h3 class="text-xl font-semibold mt-6 mb-2 text-sky-700">🚀 未来の可能性は？</h3><p class="text-lg">現実世界と仮想世界が完全に融合し、どこにいても遠隔地のロボットを自分の体のように操作したり、世界中の人々とリアルタイムで共同作業したりする「Society 5.0」が本格的に実現します。</p></div>` },
+        { id: 'blockchain', emoji: '🔗', title: 'ブロックチェーン', content: `<div><h3 class="text-xl font-semibold mb-2 text-sky-700">これって何？</h3><p class="text-lg">情報を「ブロック」と呼ばれる箱に入れ、それを鎖（チェーン）のようにつないで、参加者全員で監視・共有する技術です。一度記録した情報の改ざんが極めて難しいのが特徴です。</p></div><div><h3 class="text-xl font-semibold mt-6 mb-2 text-sky-700">✅ 具体的な事例</h3><ul class="list-disc list-inside space-y-2 text-lg"><li><strong>トレーサビリティ：</strong> IBM Food Trustは、ブロックチェーン技術を活用し、食品の生産から消費までの履歴を追跡可能にし、食の安全性を高めています。</li></ul></div>`},
+        { id: 'xr', emoji: '👓', title: 'VR / AR / MR', content: `<div><h3 class="text-xl font-semibold mb-2 text-sky-700">これって何？</h3><ul class="list-disc list-inside space-y-2 text-lg"><li><strong>VR (仮想現実):</strong> 専用ゴーグルを装着し、完全に作られたデジタルの世界に没入する技術です。</li><li><strong>AR (拡張現実):</strong> 現実の世界に、スマホなどを通してデジタル情報を重ねて表示する技術です。</li><li><strong>MR (複合現実):</strong> 現実世界とデジタルの世界を融合させ、CGの物体をまるでそこにあるかのように見せる技術です。</li></ul></div><div><h3 class="text-xl font-semibold mt-6 mb-2 text-sky-700">✅ 具体的な事例</h3><ul class="list-disc list-inside space-y-2 text-lg"><li><strong>ARナビゲーション：</strong> スマートフォンの「Googleマップ」で、実際の風景の上に矢印やお店の情報が表示されます。</li><li><strong>MRによる遠隔作業支援：</strong> マイクロソフトの「HoloLens 2」などを使い、現場作業員の映像を遠隔地の専門家が共有し、現実空間に指示を表示して作業をサポートします。</li></ul></div>`},
+        { id: 'robotics', emoji: '🤖', title: 'ロボティクス', content: `<div><h3 class="text-xl font-semibold mb-2 text-sky-700">これって何？</h3><p class="text-lg">人間の代わりや、人間をサポートするために働くロボットを開発・応用する技術分野です。</p></div><div><h3 class="text-xl font-semibold mt-6 mb-2 text-sky-700">✅ 具体的な事例</h3><ul class="list-disc list-inside space-y-2 text-lg"><li><strong>配膳・運搬ロボット：</strong> ソフトバンクロボティクスの「Servi」などが、ファミリーレストランやホテルで料理を客席まで運んでいます。</li><li><strong>パワーアシストスーツ：</strong> CYBERDYNE社の「HAL」は、体の動きをサポートし、介護現場での負担軽減やリハビリに使われています。</li></ul></div>`},
+        { id: 'quantum', emoji: '🖥️', title: '量子コンピューティング', content: `<div><h3 class="text-xl font-semibold mb-2 text-sky-700">これって何？</h3><p class="text-lg">これまでのコンピューターとは全く違う原理（量子力学）で動く、超高性能なコンピューターです。スーパーコンピューターでも何百年もかかるような複雑な計算を、ごく短時間で解けると期待されています。</p></div><div><h3 class="text-xl font-semibold mt-6 mb-2 text-sky-700">🤔 考えるべきことは？</h3><p class="text-lg">実用化されると、現在のインターネットを支えている暗号技術が簡単に解読されてしまう「2030年問題」が懸念されています。社会の安全を保つために、量子コンピューターでも解読できない新しい暗号技術への移行が急務です。</p></div>`}
+    ];
+
+    // --- Chart & Interaction Variables ---
+    let areasChartInstance;
+    let challengesChartInstance;
+
+    // --- Helper Functions ---
+    const getIndustryColor = (industry) => {
+        const colors = {
+            'DeepTech / R&D': { bg: 'bg-indigo-100', text: 'text-indigo-800' },
+            'AI': { bg: 'bg-pink-100', text: 'text-pink-800' },
+            'AI / Physical World': { bg: 'bg-pink-100', text: 'text-pink-800' },
+            'SpaceTech': { bg: 'bg-slate-200', text: 'text-slate-800' },
+            'SaaS': { bg: 'bg-green-100', text: 'text-green-800' },
+            'FinTech': { bg: 'bg-sky-100', text: 'text-sky-800' },
+            'HealthTech': { bg: 'bg-red-100', text: 'text-red-800' },
+            'HR-Tech': { bg: 'bg-teal-100', text: 'text-teal-800' },
+            'Quantum Computing': { bg: 'bg-purple-100', text: 'text-purple-800' },
+            'Sustainability': { bg: 'bg-lime-100', text: 'text-lime-800' }
+        };
+        return colors[industry] || { bg: 'bg-gray-100', text: 'text-gray-800' };
+    };
+
+    // --- Main Navigation Logic ---
+    const mobileMenuButton = document.getElementById('mobile-menu-button');
+    const mobileMenu = document.getElementById('mobile-menu');
+    mobileMenuButton.addEventListener('click', () => mobileMenu.classList.toggle('hidden'));
+
+    document.querySelectorAll('.main-nav-link, #mobile-menu a').forEach(anchor => {
+        anchor.addEventListener('click', function(e) {
+            e.preventDefault();
+            const targetId = this.getAttribute('href');
+            const targetElement = document.querySelector(targetId);
+            if (targetElement) {
+                targetElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }
+            if (!mobileMenu.classList.contains('hidden')) {
+                mobileMenu.classList.add('hidden');
+            }
+        });
+    });
+
+    const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            const id = entry.target.getAttribute('id');
+            const navLink = document.querySelector(`.main-nav-link[href="#${id}"]`);
+            if (entry.isIntersecting) {
+                entry.target.classList.add('visible');
+                document.querySelectorAll('.main-nav-link.active').forEach(l => l.classList.remove('active'));
+                if(navLink) navLink.classList.add('active');
+            }
+        });
+    }, { rootMargin: '-40% 0px -60% 0px' });
+
+    document.querySelectorAll('section[id]').forEach(section => observer.observe(section));
+
+
+    // --- Company Explorer Logic ---
+    const companyFiltersContainer = document.getElementById('company-filters');
+    const companyGrid = document.getElementById('company-grid');
+    const modal = document.getElementById('company-modal');
+    const modalBody = document.getElementById('modal-body');
+    const modalCloseBtn = document.getElementById('modal-close-btn');
+
+    function renderCompanyCards(filter = 'all') {
+        companyGrid.innerHTML = '';
+        const filteredData = filter === 'all' 
+            ? companyData 
+            : companyData.filter(c => c.category === filter || c.industry === filter);
+        
+        filteredData.forEach(company => {
+            const { bg, text } = getIndustryColor(company.industry);
+            const card = document.createElement('div');
+            card.className = 'bg-white rounded-xl shadow-lg hover:shadow-xl hover:-translate-y-1 transition-all duration-300 flex flex-col cursor-pointer border border-slate-200/80';
+            card.dataset.id = company.id;
+            card.innerHTML = `
+                <div class="p-6 flex-grow">
+                    <div class="flex justify-between items-start mb-3">
+                         <span class="inline-block ${bg} ${text} text-xs font-semibold px-2.5 py-1 rounded-full">${company.industry}</span>
+                         <span class="text-xs font-bold ${company.category === 'unicorn_jp' ? 'text-red-500' : 'text-blue-500'}">${company.category === 'unicorn_jp' ? '🇯🇵 JAPAN' : '🌍 GLOBAL'}</span>
+                    </div>
+                    <h4 class="text-xl font-bold text-slate-800">${company.name}</h4>
+                    <p class="mt-2 text-slate-600">${company.tagline}</p>
+                </div>
+                <div class="mt-auto p-6 border-t border-slate-100 text-right text-sm font-medium text-blue-600">
+                    詳細を見る &rarr;
+                </div>
+            `;
+            companyGrid.appendChild(card);
+        });
+    }
+
+    function openModal(companyId) {
+        const company = companyData.find(c => c.id === companyId);
+        if (!company) return;
+        const { bg, text } = getIndustryColor(company.industry);
+        modalBody.innerHTML = `
+            <div>
+                <span class="inline-block ${bg} ${text} text-sm font-semibold px-3 py-1 rounded-full">${company.industry}</span>
+                <h2 class="text-3xl md:text-4xl font-bold mt-4 text-slate-800">${company.name}</h2>
+                <p class="mt-2 text-lg text-slate-600">${company.tagline}</p>
+                <div class="mt-8 space-y-4 text-slate-700">
+                    <div class="flex items-start"><strong class="w-28 shrink-0">主要事業</strong><span class="flex-1">${company.description}</span></div>
+                    <div class="flex items-start"><strong class="w-28 shrink-0">競争優位性</strong><span class="flex-1">${company.usp}</span></div>
+                    ${company.hq ? `<div class="flex items-start"><strong class="w-28 shrink-0">本拠地</strong><span>${company.hq}</span></div>` : ''}
+                    ${company.website ? `<div class="flex items-start"><strong class="w-28 shrink-0">Website</strong><a href="${company.website}" target="_blank" rel="noopener noreferrer" class="text-blue-600 hover:underline break-all">${company.website}</a></div>` : ''}
+                </div>
+            </div>`;
+        modal.classList.remove('opacity-0', 'pointer-events-none');
+        modal.querySelector('.modal-content').classList.remove('opacity-0', 'scale-95');
+    }
+
+    function closeModal() {
+        modal.classList.add('opacity-0');
+        modal.querySelector('.modal-content').classList.add('opacity-0', 'scale-95');
