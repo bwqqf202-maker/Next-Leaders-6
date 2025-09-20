@@ -2,117 +2,141 @@
 <html lang="ja">
 <head>
     <meta charset="UTF-8">
-    <title>Next Leaders 6</title>
+    <title>Next Leaders 6 - Welcome</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
     <style>
         :root {
-            /* 色定義: 白を基調とした、クリーンで洗練された配色 */
-            --background-color: #f5f5f7; /* 明るいオフホワイト */
-            --card-background: #ffffff;
-            --primary-text-color: #1f2937; /* 高コントラストなダークグレー */
-            --accent-color: #0070f3; /* 鮮やかなブルー */
-            --header-color: #111827;
-            --secondary-text-color: #6b7280; /* やや薄めのグレー */
-            --card-hover-background: #f9fafb;
+            /* 清々しくスタイリッシュなカラーパレット */
+            --bg-gradient-start: #f0f9ff; /* 空のような薄い青 */
+            --bg-gradient-end: #ffffff;
+            --card-bg: #ffffff;
+            --card-hover-bg: #f8fafc;
+            --text-primary: #1e293b; /* 可読性の高いダークブルーグレー */
+            --text-secondary: #64748b;
+            --accent-color: #3b82f6; /* 爽やかなブルー */
+            --border-color: #e2e8f0;
+            --shadow-color: rgba(0, 0, 0, 0.05);
         }
 
         body {
             margin: 0;
-            font-family: 'Noto Sans JP', sans-serif;
-            color: var(--primary-text-color);
-            background-color: var(--background-color);
+            /* 英字にInter、日本語にNoto Sans JPを適用 */
+            font-family: 'Inter', 'Noto Sans JP', sans-serif;
+            color: var(--text-primary);
+            background-image: linear-gradient(180deg, var(--bg-gradient-start) 0%, var(--bg-gradient-end) 40%);
             display: flex;
             flex-direction: column;
             align-items: center;
-            padding: 50px 20px;
+            padding: 60px 20px;
             min-height: 100vh;
             box-sizing: border-box;
         }
 
-        h1 {
-            font-size: 2.8em;
-            margin-bottom: 40px;
-            color: var(--header-color);
+        .container {
+            width: 100%;
+            max-width: 700px;
+        }
+
+        header {
             text-align: center;
-            letter-spacing: 1px;
+            margin-bottom: 50px;
+        }
+
+        h1 {
+            font-size: clamp(2rem, 5vw, 2.5rem); /* レスポンシブなフォントサイズ */
+            margin: 0 0 10px 0;
+            color: var(--text-primary);
+            letter-spacing: -0.5px;
             font-weight: 700;
+        }
+        
+        header p {
+            font-size: 1.1rem;
+            color: var(--text-secondary);
+            margin: 0;
         }
 
         ul {
             list-style: none;
             padding: 0;
-            width: 100%;
-            max-width: 650px;
         }
 
         li {
-            margin-bottom: 18px;
+            margin-bottom: 16px;
         }
 
         .section-header {
-            color: var(--secondary-text-color);
-            margin-top: 40px;
-            margin-bottom: 15px;
-            padding-bottom: 10px;
-            font-size: 1em;
-            font-weight: 500;
+            color: var(--text-secondary);
+            margin-top: 45px;
+            margin-bottom: 12px;
+            padding-left: 10px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            letter-spacing: 0.5px;
             text-transform: uppercase;
-            letter-spacing: 1px;
-            border-bottom: 1px solid #e5e7eb;
         }
-        
+
         a {
-            display: block;
-            padding: 20px 25px;
-            background-color: var(--card-background);
-            border: 1px solid #e5e7eb;
-            border-radius: 12px;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+            display: flex;
+            align-items: center;
+            padding: 22px 28px;
+            background-color: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 14px;
+            box-shadow: 0 4px 10px var(--shadow-color);
             text-decoration: none;
-            color: var(--primary-text-color);
+            color: var(--text-primary);
             font-weight: 500;
-            font-size: 1.1em;
-            transition: transform 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease;
+            font-size: 1.05em;
+            transition: transform 0.2s cubic-bezier(0.25, 0.46, 0.45, 0.94), 
+                        box-shadow 0.2s cubic-bezier(0.25, 0.46, 0.45, 0.94), 
+                        border-color 0.2s ease;
         }
 
         a:hover {
-            transform: translateY(-3px);
-            background-color: var(--card-hover-background);
-            border-color: #d1d5db;
-            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.08);
-            color: var(--accent-color);
+            transform: translateY(-4px);
+            border-color: var(--accent-color);
+            background-color: var(--card-hover-bg);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.07);
         }
         
         footer {
             margin-top: auto;
-            padding-top: 40px;
+            padding-top: 50px;
             font-size: 0.9em;
-            color: var(--secondary-text-color);
+            color: var(--text-secondary);
             text-align: center;
         }
     </style>
 </head>
 <body>
 
-    <h1>Next Leaders 6</h1>
-    
-    <ul>
-        <li><a href="チームチャーター.html">チームチャーター</a></li>
+    <div class="container">
+        <header>
+            <h1>Next Leaders 6</h1>
+            <p>Team Resources & Documents</p>
+        </header>
 
-        <li class="section-header">Day1,2 宿題</li>
-        <li><a href="四次元産業.html">四次元産業を知ろう！</a></li>
-        <li><a href="Frontier Ventures 2025.html">新奇性が感じられるベンチャー</a></li>
-        <li><a href="大企業の新規事業開発.html">日本の大企業の新規事業開発</a></li>
-        <li><a href="日本のネクストユニコン.html">日本のネクストユニコーン</a></li>
+        <ul>
+            <li><a href="チームチャーター.html">チームチャーター</a></li>
 
-        <li class="section-header">プロダクト</li>
-        <li><a href="ワークショップ.html">プロダクトアイデアのコツ</a></li>
-        <li><a href="product_evaluation.html">プロダクトアイデア評価シート</a></li>
-        
-        <li class="section-header">山形</li>
-        <li><a href="10.4土 アクティビティ.html">10.4土 アクティビティ</a></li>
-    </ul>
+            <li class="section-header">Day1,2 宿題</li>
+            <li><a href="四次元産業.html">四次元産業を知ろう！</a></li>
+            <li><a href="Frontier Ventures 2025.html">新奇性が感じられるベンチャー</a></li>
+            <li><a href="大企業の新規事業開発.html">日本の大企業の新規事業開発</a></li>
+            <li><a href="日本のネクストユニコン.html">日本のネクストユニコーン</a></li>
+
+            <li class="section-header">プロダクト</li>
+            <li><a href="ワークショップ.html">プロダクトアイデアのコツ</a></li>
+            <li><a href="product_evaluation.html">プロダクトアイデア評価シート</a></li>
+            
+            <li class="section-header">山形</li>
+            <li><a href="10.4土 アクティビティ.html">10.4土 アクティビティ</a></li>
+        </ul>
+    </div>
 
     <footer>© 2025 Next Leaders 6</footer>
 
