@@ -1,4 +1,3 @@
-[プロダクトシート.html](https://github.com/user-attachments/files/22437728/default.html)
 <!DOCTYPE html>
 <html lang="ja">
 <head>
@@ -194,4 +193,31 @@
                         <h4 class="font-bold text-base text-slate-800">技術的実現性</h4>
                         <p class="text-slate-600 mt-2"><strong class="w-12 inline-block">[5点]</strong> 既存技術の応用で実現可能。リスクは低い</p>
                         <p class="text-slate-600 mt-1"><strong class="w-12 inline-block">[3点]</strong> いくつか技術的課題はあるが、1-2年で解決可能</p>
-                        <p class="text-slate-600 mt-1"><strong class="w-12
+                        <p class="text-slate-600 mt-1"><strong class="w-12 inline-block">[1点]</strong> 未知の技術要素が多く、実現にはブレークスルーが必要</p>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const tabs = document.querySelectorAll('.tab-btn');
+            const contents = document.querySelectorAll('.content-box');
+
+            tabs.forEach(tab => {
+                tab.addEventListener('click', () => {
+                    // Deactivate all tabs and contents
+                    tabs.forEach(t => t.classList.remove('active'));
+                    contents.forEach(c => c.classList.remove('active'));
+
+                    // Activate clicked tab and corresponding content
+                    tab.classList.add('active');
+                    document.getElementById(tab.dataset.tab).classList.add('active');
+                });
+            });
+        });
+    </script>
+
+</body>
+</html>
