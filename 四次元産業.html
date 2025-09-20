@@ -11,6 +11,7 @@
             font-family: 'Noto Sans JP', 'Inter', sans-serif;
             background-color: #f8f9fa;
         }
+        /* メニュー表示時に背景のスクロールを無効化 */
         body.overflow-hidden {
             overflow: hidden;
         }
@@ -41,7 +42,6 @@
 <body class="text-gray-800">
 
     <div class="flex flex-col md:flex-row h-screen">
-
         <header class="md:hidden flex justify-between items-center p-4 bg-white shadow-md sticky top-0 z-30">
             <h1 class="text-xl font-bold text-gray-700">テクノロジーガイド</h1>
             <button id="mobile-menu-button" class="text-gray-600 focus:outline-none">
@@ -53,51 +53,63 @@
             <div class="flex-shrink-0">
                 <h2 class="text-2xl font-bold text-gray-800 mb-6 border-b pb-4">技術を探る</h2>
                 <ul class="space-y-2" id="nav-menu">
-                    <li><a href="#" class="nav-item active flex items-center space-x-3 px-3 py-2 rounded-lg hover:bg-gray-100 transition-colors" data-target="intro"><span>🏠</span><span>はじめに</span></a></li>
-                    <li><a href="#" class="nav-item flex items-center space-x-3 px-3 py-2 rounded-lg hover:bg-gray-100 transition-colors" data-target="ai"><span>🧠</span><span>AI (人工知能)</span></a></li>
-                    <li><a href="#" class="nav-item flex items-center space-x-3 px-3 py-2 rounded-lg hover:bg-gray-100 transition-colors" data-target="iot"><span>🌐</span><span>IoT</span></a></li>
-                    <li><a href="#" class="nav-item flex items-center space-x-3 px-3 py-2 rounded-lg hover:bg-gray-100 transition-colors" data-target="6g"><span>🛰️</span><span>6G</span></a></li>
-                    <li><a href="#" class="nav-item flex items-center space-x-3 px-3 py-2 rounded-lg hover:bg-gray-100 transition-colors" data-target="bigdata"><span>📊</span><span>ビッグデータ & アルゴリズム</span></a></li>
-                    <li><a href="#" class="nav-item flex items-center space-x-3 px-3 py-2 rounded-lg hover:bg-gray-100 transition-colors" data-target="blockchain"><span>🔗</span><span>ブロックチェーン</span></a></li>
-                    <li><a href="#" class="nav-item flex items-center space-x-3 px-3 py-2 rounded-lg hover:bg-gray-100 transition-colors" data-target="bio"><span>🧬</span><span>合成生物学</span></a></li>
-                    <li><a href="#" class="nav-item flex items-center space-x-3 px-3 py-2 rounded-lg hover:bg-gray-100 transition-colors" data-target="xr"><span>👓</span><span>VR / AR / MR</span></a></li>
-                    <li><a href="#" class="nav-item flex items-center space-x-3 px-3 py-2 rounded-lg hover:bg-gray-100 transition-colors" data-target="ips"><span>🔬</span><span>iPS細胞</span></a></li>
-                    <li><a href="#" class="nav-item flex items-center space-x-3 px-3 py-2 rounded-lg hover:bg-gray-100 transition-colors" data-target="genome"><span>✂️</span><span>ゲノム編集</span></a></li>
-                    <li><a href="#" class="nav-item flex items-center space-x-3 px-3 py-2 rounded-lg hover:bg-gray-100 transition-colors" data-target="robotics"><span>🤖</span><span>ロボティクス</span></a></li>
-                    <li><a href="#" class="nav-item flex items-center space-x-3 px-3 py-2 rounded-lg hover:bg-gray-100 transition-colors" data-target="3dp"><span>🖨️</span><span>3Dプリンティング</span></a></li>
-                    <li><a href="#" class="nav-item flex items-center space-x-3 px-3 py-2 rounded-lg hover:bg-gray-100 transition-colors" data-target="quantum"><span>🖥️</span><span>量子コンピューティング</span></a></li>
-                    <li><a href="#" class="nav-item flex items-center space-x-3 px-3 py-2 rounded-lg hover:bg-gray-100 transition-colors" data-target="cybersecurity"><span>🛡️</span><span>サイバーセキュリティ</span></a></li>
-                </ul>
+                    </ul>
             </div>
         </nav>
         
         <main id="main-content-area" class="flex-1 p-6 md:p-8 overflow-y-auto bg-gray-50 main-content">
             <div id="content-container">
-                
-                <section id="intro" class="content-card">
-                    <h1 class="text-4xl font-bold text-gray-800 mb-4">第四次産業革命テクノロジーガイドへようこそ</h1>
-                    <p class="text-lg text-gray-600 mb-6">
-                        このガイドは、「第四次産業革命」を支える最先端のテクノロジーを、誰にでも分かりやすく解説するインタラクティブな資料です。第四次産業革命とは、デジタル、物理、生物の世界が融合し、私たちの生活や社会のあり方を根本から変える大きな技術革新の波を指します。
-                    </p>
-                    <div class="bg-sky-100 border-l-4 border-sky-500 text-sky-800 p-4 rounded-r-lg">
-                        <p class="font-semibold">💡 使い方：</p>
-                        <p>PCでは左側のメニューから、**スマートフォンでは画面左上のメニューボタン [≡] をタップして**、興味のあるテクノロジー名を選択してください。各技術の概要や具体例、未来の可能性などを知ることができます。また、各セクションの🔊アイコンをクリックすると、内容を音声で聞くこともできます。</p>
-                    </div>
-                </section>
-
-                <section id="ai" class="content-card hidden">
-                    </section>
-                <section id="iot" class="content-card hidden">
-                    </section>
                 </div>
         </main>
         
         <div id="overlay" class="fixed inset-0 bg-black bg-opacity-50 z-10 hidden md:hidden"></div>
-
     </div>
 
     <script>
         document.addEventListener('DOMContentLoaded', () => {
+            // --- データ定義 ---
+            const technologyData = [
+                { id: 'intro', icon: '🏠', title: 'はじめに' },
+                { id: 'ai', icon: '🧠', title: 'AI (人工知能)' },
+                { id: 'iot', icon: '🌐', title: 'IoT' },
+                { id: '6g', icon: '🛰️', title: '6G' },
+                { id: 'bigdata', icon: '📊', title: 'ビッグデータ & アルゴリズム' },
+                { id: 'blockchain', icon: '🔗', title: 'ブロックチェーン' },
+                { id: 'bio', icon: '🧬', title: '合成生物学' },
+                { id: 'xr', icon: '👓', title: 'VR / AR / MR' },
+                { id: 'ips', icon: '🔬', title: 'iPS細胞' },
+                { id: 'genome', icon: '✂️', title: 'ゲノム編集' },
+                { id: 'robotics', icon: '🤖', title: 'ロボティクス' },
+                { id: '3dp', icon: '🖨️', title: '3Dプリンティング' },
+                { id: 'quantum', icon: '🖥️', title: '量子コンピューティング' },
+                { id: 'cybersecurity', icon: '🛡️', title: 'サイバーセキュリティ' }
+            ];
+
+            const contentData = {
+                intro: `
+                    <h1 class="text-4xl font-bold text-gray-800 mb-4">第四次産業革命テクノロジーガイドへようこそ</h1>
+                    <p class="text-lg text-gray-600 mb-6">このガイドは、「第四次産業革命」を支える最先端のテクノロジーを、誰にでも分かりやすく解説するインタラクティブな資料です。</p>
+                    <div class="bg-sky-100 border-l-4 border-sky-500 text-sky-800 p-4 rounded-r-lg">
+                        <p class="font-semibold">💡 使い方：</p>
+                        <p>PCでは左側のメニューから、<strong>スマートフォンでは画面左上のメニューボタン [≡] をタップして</strong>、興味のあるテクノロジー名を選択してください。各技術の概要や具体例、未来の可能性などを知ることができます。また、各セクションの🔊アイコンをクリックすると、内容を音声で聞くこともできます。</p>
+                    </div>`,
+                // 他のコンテンツデータもここに追加（ファイルからコピーしてください）
+                ai: document.getElementById('ai')?.innerHTML || 'AIコンテンツがありません',
+                iot: document.getElementById('iot')?.innerHTML || 'IoTコンテンツがありません',
+                '6g': document.getElementById('6g')?.innerHTML || '6Gコンテンツがありません',
+                bigdata: document.getElementById('bigdata')?.innerHTML || 'ビッグデータコンテンツがありません',
+                blockchain: document.getElementById('blockchain')?.innerHTML || 'ブロックチェーンコンテンツがありません',
+                bio: document.getElementById('bio')?.innerHTML || '合成生物学コンテンツがありません',
+                xr: document.getElementById('xr')?.innerHTML || 'XRコンテンツがありません',
+                ips: document.getElementById('ips')?.innerHTML || 'iPS細胞コンテンツがありません',
+                genome: document.getElementById('genome')?.innerHTML || 'ゲノム編集コンテンツがありません',
+                robotics: document.getElementById('robotics')?.innerHTML || 'ロボティクスコンテンツがありません',
+                '3dp': document.getElementById('3dp')?.innerHTML || '3Dプリンティングコンテンツがありません',
+                quantum: document.getElementById('quantum')?.innerHTML || '量子コンピューティングコンテンツがありません',
+                cybersecurity: document.getElementById('cybersecurity')?.innerHTML || 'サイバーセキュリティコンテンツがありません'
+            };
+            
+            // --- DOM要素の取得 ---
             const navMenu = document.getElementById('nav-menu');
             const contentContainer = document.getElementById('content-container');
             const mobileMenuButton = document.getElementById('mobile-menu-button');
@@ -106,6 +118,37 @@
             const body = document.body;
             let currentUtterance = null;
 
+            // --- 初期化処理 ---
+            function initialize() {
+                // ナビゲーションメニューを生成
+                navMenu.innerHTML = technologyData.map(item => `
+                    <li>
+                        <a href="#" class="nav-item flex items-center space-x-3 px-3 py-2 rounded-lg hover:bg-gray-100 transition-colors" data-target="${item.id}">
+                            <span>${item.icon}</span>
+                            <span>${item.title}</span>
+                        </a>
+                    </li>
+                `).join('');
+
+                // コンテンツセクションを生成
+                contentContainer.innerHTML = technologyData.map(item => `
+                    <section id="${item.id}" class="content-card hidden">${contentData[item.id] || ''}</section>
+                `).join('');
+
+                // 最初のタブを表示
+                switchTab('intro');
+                setupEventListeners();
+            }
+
+            // --- イベントリスナー設定 ---
+            function setupEventListeners() {
+                mobileMenuButton.addEventListener('click', toggleMobileMenu);
+                overlay.addEventListener('click', toggleMobileMenu);
+                navMenu.addEventListener('click', handleNavClick);
+                contentContainer.addEventListener('click', handleSpeakButtonClick);
+            }
+
+            // --- 機能関数 ---
             function stopSpeech() {
                 if (speechSynthesis.speaking) {
                     speechSynthesis.cancel();
@@ -116,19 +159,12 @@
 
             function switchTab(targetId) {
                 stopSpeech();
-                // すべてのナビゲーション項目から 'active' クラスを削除
                 navMenu.querySelectorAll('.nav-item').forEach(item => {
-                    item.classList.remove('active');
+                    item.classList.toggle('active', item.dataset.target === targetId);
                 });
-                // クリックされた項目に 'active' クラスを追加
-                navMenu.querySelector(`[data-target="${targetId}"]`).classList.add('active');
-
-                // すべてのコンテンツを非表示に
                 contentContainer.querySelectorAll('.content-card').forEach(section => {
-                    section.classList.add('hidden');
+                    section.classList.toggle('hidden', section.id !== targetId);
                 });
-                // 対象のコンテンツのみ表示
-                contentContainer.querySelector(`#${targetId}`).classList.remove('hidden');
             }
 
             function toggleMobileMenu() {
@@ -137,23 +173,68 @@
                 body.classList.toggle('overflow-hidden');
             }
 
-            mobileMenuButton.addEventListener('click', toggleMobileMenu);
-            overlay.addEventListener('click', toggleMobileMenu);
-
-            navMenu.addEventListener('click', (event) => {
+            function handleNavClick(event) {
                 event.preventDefault();
                 const anchor = event.target.closest('a.nav-item');
                 if (anchor) {
                     const targetId = anchor.dataset.target;
                     switchTab(targetId);
-                    if (window.innerWidth < 768) {
+                    if (window.innerWidth < 768 && !sidebar.classList.contains('-translate-x-full')) {
                         toggleMobileMenu();
                     }
                 }
-            });
+            }
 
-            // 音声読み上げ機能 (変更なし)
+            function handleSpeakButtonClick(event) {
+                const button = event.target.closest('.speak-button');
+                if (!button) return;
+
+                const section = button.closest('.content-card');
+                if (currentUtterance && currentUtterance.sectionId === section.id && speechSynthesis.speaking) {
+                    stopSpeech();
+                    return;
+                }
+                stopSpeech();
+                
+                let textToSpeak = Array.from(section.querySelectorAll('h2, h3, p, li'))
+                    .filter(el => !el.closest('div')?.querySelector('h3')?.textContent.includes('情報元'))
+                    .map(el => el.textContent.trim())
+                    .join('。 ');
+
+                const utterance = new SpeechSynthesisUtterance(textToSpeak);
+                utterance.lang = 'ja-JP';
+                utterance.rate = 1.15;
+                utterance.pitch = 1.0;
+                
+                currentUtterance = { utterance, sectionId: section.id, button };
+                utterance.onstart = () => button.classList.add('speaking');
+                utterance.onend = () => {
+                    button.classList.remove('speaking');
+                    currentUtterance = null;
+                };
+                speechSynthesis.speak(utterance);
+            }
+
+            // --- 実行 ---
+            // 既存のHTMLからコンテンツを読み込むために一時的に元のHTMLを表示しておく
+            const originalContent = document.getElementById('content-container').innerHTML;
+            const tempDiv = document.createElement('div');
+            tempDiv.innerHTML = originalContent;
+            document.body.appendChild(tempDiv);
+            tempDiv.style.display = 'none';
+
+            Object.keys(contentData).forEach(key => {
+                const element = tempDiv.querySelector('#' + key);
+                if (element) {
+                    contentData[key] = element.innerHTML;
+                }
+            });
+            
+            document.body.removeChild(tempDiv);
+            
+            initialize();
         });
     </script>
+
 </body>
 </html>
