@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>チームチャーター | Next Leaders 6</title>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        /* 基本設定 */
+        body {
+            font-family: 'Noto Sans JP', sans-serif;
+            background-color: #f4f7f6; /* 少しだけ色味のある背景 */
+            color: #333;
+            margin: 0;
+            padding: 20px;
+            line-height: 1.8;
+        }
+
+        /* 全体を中央に配置するコンテナ */
+        .container {
+            max-width: 800px;
+            margin: 20px auto;
+            padding: 20px;
+        }
+
+        /* メインタイトル */
+        header h1 {
+            color: #005A9C; /* 落ち着いた青色 */
+            text-align: center;
+            font-size: 2.5em;
+            margin-bottom: 40px;
+            border-bottom: 2px solid #005A9C;
+            padding-bottom: 10px;
+        }
+
+        /* 各セクションのカードスタイル */
+        .charter-section {
+            background-color: #ffffff;
+            border-radius: 12px;
+            padding: 25px 30px;
+            margin-bottom: 25px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08); /* 影を付けて立体感を出す */
+            border-left: 5px solid #005A9C; /* 左側にアクセントカラー */
+        }
+
+        /* セクションのタイトル */
+        .charter-section h2 {
+            font-size: 1.5em;
+            color: #005A9C;
+            margin-top: 0;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+        }
+        
+        /* タイトルの横のアイコン */
+        .charter-section h2::before {
+            margin-right: 10px;
+            font-size: 1.2em;
+        }
+
+        /* 各項目のアイコンを設定 */
+        #team-name h2::before { content: '📛'; }
+        #mission h2::before { content: '🎯'; }
+        #roles h2::before { content: '👥'; }
+        #conduct h2::before { content: '📜'; }
+        #communication h2::before { content: '💬'; }
+        #success h2::before { content: '✅'; }
+
+        /* リストのスタイル */
+        ul {
+            padding-left: 20px;
+            list-style-type: '・ ';
+        }
+
+        li {
+            margin-bottom: 10px;
+        }
+
+        /* 行動規範のキーワードを強調 */
+        li strong {
+            color: #1a4a73;
+            font-weight: 700;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <header>
+            <h1>Team Charter</h1>
+        </header>
+
+        <section id="team-name" class="charter-section">
+            <h2>チーム名</h2>
+            <p>Next Leaders 6</p>
+        </section>
+
+        <section id="mission" class="charter-section">
+            <h2>Mission</h2>
+            <ul>
+                <li>各メンバーの強みを活かし、革新的かつ実行可能な成果を生み出す。</li>
+                <li>意見を尊重し合いながら、協働で成果を最大化する。</li>
+                <li>チーム全員が成長できるプロセスを重視する。</li>
+            </ul>
+        </section>
+
+        <section id="roles" class="charter-section">
+            <h2>役割分担</h2>
+            <p>チーム分析参照</p>
+        </section>
+
+        <section id="conduct" class="charter-section">
+            <h2>行動規範</h2>
+            <ul>
+                <li><strong>Respect：</strong>意見を否定せず、まず受け止める。</li>
+                <li><strong>Balance：</strong>発言が偏らないよう、全員の声を聞く。</li>
+                <li><strong>Clarity：</strong>目標・役割・期限を常に明確にする。</li>
+                <li><strong>Constructive Conflict：</strong>衝突は成長の機会と捉え、建設的に解決する。</li>
+                <li><strong>Accountability：</strong>各自が責任をもって行動し、進捗を共有する。</li>
+            </ul>
+        </section>
+
+        <section id="communication" class="charter-section">
+            <h2>コミュニケーションルール</h2>
+            <p>意見が対立した場合は、「全員の意見を聞いた上で多数決 or コンセンサス」で決定。</p>
+        </section>
+
+        <section id="success" class="charter-section">
+            <h2>成功の定義 (Success Criteria)</h2>
+            <ul>
+                <li>全員が役割を果たし、期限内に目標を達成すること。</li>
+                <li>新しい価値や発想を盛り込み、「他のチームにない強み」を示すこと。</li>
+                <li>チームの雰囲気が良く、次回以降も一緒に活動したいと思える関係性を築くこと。</li>
+            </ul>
+        </section>
+
+    </div>
+
+</body>
+</html>
