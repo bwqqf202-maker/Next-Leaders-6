@@ -2,206 +2,119 @@
 <html lang="ja">
 <head>
     <meta charset="UTF-8">
+    <title>Next Leaders 6</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>第四次産業革命テクノロジー・インタラクティブガイド</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
     <style>
         :root {
-            --primary-color: #3498db;
-            --primary-hover-color: #2980b9;
-            --bg-gradient: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
-            --card-bg: #ffffff;
-            --text-primary: #2c3e50;
-            --text-secondary: #5d6d7e;
-            --nav-active-bg: #eaf5fc;
+            /* 色定義: 白を基調とした、クリーンで洗練された配色 */
+            --background-color: #f5f5f7; /* 明るいオフホワイト */
+            --card-background: #ffffff;
+            --primary-text-color: #1f2937; /* 高コントラストなダークグレー */
+            --accent-color: #0070f3; /* 鮮やかなブルー */
+            --header-color: #111827;
+            --secondary-text-color: #6b7280; /* やや薄めのグレー */
+            --card-hover-background: #f9fafb;
         }
+
         body {
-            font-family: 'Poppins', 'Noto Sans JP', sans-serif;
-            background: var(--bg-gradient);
-            color: var(--text-primary);
+            margin: 0;
+            font-family: 'Noto Sans JP', sans-serif;
+            color: var(--primary-text-color);
+            background-color: var(--background-color);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 50px 20px;
+            min-height: 100vh;
+            box-sizing: border-box;
         }
-        body.overflow-hidden {
-            overflow: hidden;
+
+        h1 {
+            font-size: 2.8em;
+            margin-bottom: 40px;
+            color: var(--header-color);
+            text-align: center;
+            letter-spacing: 1px;
+            font-weight: 700;
         }
-        .nav-item {
-            transition: all 0.2s ease-in-out;
+
+        ul {
+            list-style: none;
+            padding: 0;
+            width: 100%;
+            max-width: 650px;
         }
-        .nav-item.active {
-            background-color: var(--nav-active-bg);
-            color: var(--primary-hover-color);
-            font-weight: 600;
-            transform: translateX(4px);
+
+        li {
+            margin-bottom: 18px;
         }
-        .nav-item:hover {
-            background-color: #f0f4f7;
-            color: var(--primary-hover-color);
+
+        .section-header {
+            color: var(--secondary-text-color);
+            margin-top: 40px;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            font-size: 1em;
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            border-bottom: 1px solid #e5e7eb;
         }
-        .content-card {
-            background: var(--card-bg);
+        
+        a {
+            display: block;
+            padding: 20px 25px;
+            background-color: var(--card-background);
+            border: 1px solid #e5e7eb;
             border-radius: 12px;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.08);
-            animation: fadeIn 0.5s ease-in-out;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+            text-decoration: none;
+            color: var(--primary-text-color);
+            font-weight: 500;
+            font-size: 1.1em;
+            transition: transform 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease;
         }
-        h1, h2, h3 {
-            font-weight: 600;
+
+        a:hover {
+            transform: translateY(-3px);
+            background-color: var(--card-hover-background);
+            border-color: #d1d5db;
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.08);
+            color: var(--accent-color);
         }
-        .main-content::-webkit-scrollbar { width: 8px; }
-        .main-content::-webkit-scrollbar-track { background: #f1f1f1; }
-        .main-content::-webkit-scrollbar-thumb { background: #d1d5db; border-radius: 4px; }
-        .main-content::-webkit-scrollbar-thumb:hover { background: #9ca3af; }
-        .speak-button.speaking span { animation: pulse 1.5s infinite; }
-        @keyframes pulse {
-            0%, 100% { transform: scale(1); }
-            50% { transform: scale(1.2); }
-        }
-        .link-arrow::after { content: ' ↗'; font-size: 0.8em; display: inline-block; }
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
+        
+        footer {
+            margin-top: auto;
+            padding-top: 40px;
+            font-size: 0.9em;
+            color: var(--secondary-text-color);
+            text-align: center;
         }
     </style>
 </head>
-<body class="text-gray-800">
+<body>
 
-    <div class="flex flex-col md:flex-row h-screen">
-        <header class="md:hidden flex justify-between items-center p-4 bg-white/80 backdrop-blur-sm shadow-md sticky top-0 z-30">
-            <h1 class="text-xl font-bold text-gray-700">テクノロジーガイド</h1>
-            <button id="mobile-menu-button" class="text-gray-600 focus:outline-none">
-                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>
-            </button>
-        </header>
+    <h1>Next Leaders 6</h1>
+    
+    <ul>
+        <li><a href="チームチャーター.html">チームチャーター</a></li>
 
-        <nav id="sidebar" class="w-full md:w-72 bg-white p-4 transition-transform transform -translate-x-full md:translate-x-0 fixed md:relative h-full z-20 md:flex flex-col overflow-y-auto">
-            <div class="flex-shrink-0">
-                <h2 class="text-2xl font-bold text-gray-800 mb-6 border-b pb-4">技術を探る</h2>
-                <ul class="space-y-2" id="nav-menu">
-                    </ul>
-            </div>
-        </nav>
+        <li class="section-header">Day1,2 宿題</li>
+        <li><a href="四次元産業.html">四次元産業を知ろう！</a></li>
+        <li><a href="Frontier Ventures 2025.html">新奇性が感じられるベンチャー</a></li>
+        <li><a href="大企業の新規事業開発.html">日本の大企業の新規事業開発</a></li>
+        <li><a href="日本のネクストユニコン.html">日本のネクストユニコーン</a></li>
+
+        <li class="section-header">インデックス</li>
+        <li><a href="ワークショップ.html">プロダクトアイデアのコツ</a></li>
+        <li><a href="product_evaluation.html">プロダクトアイデア評価シート</a></li>
         
-        <main id="main-content-area" class="flex-1 p-6 md:p-8 overflow-y-auto main-content">
-            <div id="content-container">
-                </div>
-        </main>
-        
-        <div id="overlay" class="fixed inset-0 bg-black bg-opacity-50 z-10 hidden md:hidden"></div>
-    </div>
+        <li class="section-header">山形</li>
+        <li><a href="10.4土 アクティビティ.html">10.4土 アクティビティ</a></li>
+    </ul>
 
-    <script>
-        // JavaScript部分は前回と同じで変更ありません
-        document.addEventListener('DOMContentLoaded', () => {
-            const technologyData = [
-                { id: 'intro', icon: '🏠', title: 'はじめに' },
-                { id: 'ai', icon: '🧠', title: 'AI (人工知能)' },
-                { id: 'iot', icon: '🌐', title: 'IoT' },
-                { id: '6g', icon: '🛰️', title: '6G' },
-                { id: 'bigdata', icon: '📊', title: 'ビッグデータ & アルゴリズム' },
-                { id: 'blockchain', icon: '🔗', title: 'ブロックチェーン' },
-                { id: 'bio', icon: '🧬', title: '合成生物学' },
-                { id: 'xr', icon: '👓', title: 'VR / AR / MR' },
-                { id: 'ips', icon: '🔬', title: 'iPS細胞' },
-                { id: 'genome', icon: '✂️', title: 'ゲノム編集' },
-                { id: 'robotics', icon: '🤖', title: 'ロボティクス' },
-                { id: '3dp', icon: '🖨️', title: '3Dプリンティング' },
-                { id: 'quantum', icon: '🖥️', title: '量子コンピューティング' },
-                { id: 'cybersecurity', icon: '🛡️', title: 'サイバーセキュリティ' }
-            ];
+    <footer>© 2025 Next Leaders 6</footer>
 
-            const tempContentContainer = document.createElement('div');
-            tempContentContainer.innerHTML = `
-                <div id="intro">
-                    <h1 class="text-4xl font-bold text-gray-800 mb-4">第四次産業革命テクノロジーガイドへようこそ</h1>
-                    <p class="text-lg mb-6" style="color: var(--text-secondary);">このガイドは、「第四次産業革命」を支える最先端のテクノロジーを、誰にでも分かりやすく解説するインタラクティブな資料です。</p>
-                    <div class="bg-sky-100 border-l-4 border-sky-500 text-sky-800 p-4 rounded-r-lg">
-                        <p class="font-semibold">💡 使い方：</p>
-                        <p>PCでは左側のメニューから、<strong>スマートフォンでは画面左上のメニューボタン [≡] をタップして</strong>、興味のあるテクノロジー名を選択してください。各技術の概要や具体例、未来の可能性などを知ることができます。また、各セクションの🔊アイコンをクリックすると、内容を音声で聞くこともできます。</p>
-                    </div>
-                </div>
-                `;
-
-            const contentData = {
-                intro: tempContentContainer.querySelector('#intro').innerHTML
-                // ... 他のコンテンツも同様に読み込む ...
-            };
-
-            const navMenu = document.getElementById('nav-menu');
-            const contentContainer = document.getElementById('content-container');
-            const mobileMenuButton = document.getElementById('mobile-menu-button');
-            const sidebar = document.getElementById('sidebar');
-            const overlay = document.getElementById('overlay');
-            const body = document.body;
-            let currentUtterance = null;
-
-            function initialize() {
-                navMenu.innerHTML = technologyData.map(item => `
-                    <li>
-                        <a href="#" class="nav-item flex items-center space-x-3 px-3 py-2 rounded-lg" data-target="${item.id}">
-                            <span>${item.icon}</span>
-                            <span>${item.title}</span>
-                        </a>
-                    </li>
-                `).join('');
-
-                contentContainer.innerHTML = technologyData.map(item => `
-                    <section id="${item.id}" class="content-card hidden p-6 md:p-8">${contentData[item.id] || 'コンテンツの読み込みに失敗しました。'}</section>
-                `).join('');
-
-                switchTab('intro');
-                setupEventListeners();
-            }
-
-            function setupEventListeners() {
-                mobileMenuButton.addEventListener('click', toggleMobileMenu);
-                overlay.addEventListener('click', toggleMobileMenu);
-                navMenu.addEventListener('click', handleNavClick);
-                contentContainer.addEventListener('click', handleSpeakButtonClick);
-            }
-
-            function stopSpeech() {
-                if (speechSynthesis.speaking) {
-                    speechSynthesis.cancel();
-                }
-                document.querySelectorAll('.speak-button.speaking').forEach(b => b.classList.remove('speaking'));
-                currentUtterance = null;
-            }
-
-            function switchTab(targetId) {
-                stopSpeech();
-                navMenu.querySelectorAll('.nav-item').forEach(item => {
-                    item.classList.toggle('active', item.dataset.target === targetId);
-                });
-                contentContainer.querySelectorAll('.content-card').forEach(section => {
-                    section.classList.toggle('hidden', section.id !== targetId);
-                });
-            }
-
-            function toggleMobileMenu() {
-                sidebar.classList.toggle('-translate-x-full');
-                overlay.classList.toggle('hidden');
-                body.classList.toggle('overflow-hidden');
-            }
-
-            function handleNavClick(event) {
-                event.preventDefault();
-                const anchor = event.target.closest('a.nav-item');
-                if (anchor) {
-                    const targetId = anchor.dataset.target;
-                    switchTab(targetId);
-                    if (window.innerWidth < 768 && !sidebar.classList.contains('-translate-x-full')) {
-                        toggleMobileMenu();
-                    }
-                }
-            }
-            
-            function handleSpeakButtonClick(event) {
-                // (この関数は変更なし)
-            }
-
-            initialize();
-        });
-    </script>
 </body>
 </html>
