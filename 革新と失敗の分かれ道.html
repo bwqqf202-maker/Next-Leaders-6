@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>革新と失敗の分かれ道 - 製品成功要因分析</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <!-- Chosen Palette: Warm Neutrals -->
+    <!-- Application Structure Plan: このSPAは、「ヒット製品」と「失敗製品」をトグルで切り替えて比較できる対話的な構造を採用しています。ユーザーはまずカテゴリ（ヒット/失敗）を選び、製品カード一覧を閲覧します。カードをクリックすると詳細な成功・失敗要因が展開され、情報過多を避けます。この直接比較とオンデマンドの詳細表示により、ユーザーは直感的に製品間の違いを理解できます。さらに、全事例を統合分析するレーダーチャートを配置し、成功と失敗を分ける要因の傾向を視覚的に提示。最後に、分析結果を総括する「成功へのカギ」セクションを設け、ユーザーが得た洞察を具体的な教訓として持ち帰れるように設計しました。 -->
+    <!-- Visualization & Content Choices: 
+        - Report Info: ヒット/失敗製品のケーススタディ -> Goal: 比較と発見 -> Viz/Presentation: トグル式カードグリッド (HTML/Tailwind/JS) -> Interaction: クリックで詳細情報を展開 -> Justification: カテゴリごとの製品を一覧し、興味のあるものを深掘りできるため、探索が容易になる。
+        - Report Info: 成功と失敗を分ける6つの主要因 -> Goal: 傾向の集約と可視化 -> Viz/Presentation: レーダーチャート (Chart.js/Canvas) -> Interaction: 表示カテゴリに応じてチャートのデータが更新される -> Justification: 複数の要因を一つのグラフで直感的に比較でき、ヒット製品と失敗製品の特性の違いが一目でわかる。
+        - Report Info: 分析から得られる教訓 -> Goal: 知見の集約と提示 -> Viz/Presentation: テキストベースの要約セクション (HTML/Tailwind) -> Interaction: なし（静的コンテンツ） -> Justification: ユーザーがインタラクティブな探索の末にたどり着く結論として、明確で理解しやすい形で成功法則を提示するため。
+    -->
+    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+    <style>
+        body {
+            font-family: 'Noto Sans JP', sans-serif;
+            background-color: #FDFBF8;
+            color: #3a3a3a;
+        }
+        .chart-container {
+            position: relative;
+            width: 100%;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+            height: 40vh;
+            max-height: 400px;
+        }
+        @media (min-width: 768px) {
+            .chart-container {
+                height: 50vh;
+                max-height: 500px;
+            }
+        }
+        .active-tab {
+            background-color: #A6806A;
+            color: #FFFFFF;
+            font-weight: 500;
+        }
+        .inactive-tab {
+            background-color: #EFEAE6;
+            color: #A6806A;
+        }
+        .card {
+            transition: all 0.3s ease-in-out;
+            border: 1px solid #EFEAE6;
+        }
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.05), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+            border-color: #A6806A;
+        }
+        .details {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.5s ease-in-out;
+        }
+        .details.open {
+            max-height: 1000px;
+        }
+    </style>
+</head>
+<body class="antialiased">
+    <div class="container mx-auto px-4 sm:px-6 lg:px-8 py-8 md:py-12">
+        <header class="text-center mb-10 md:mb-16">
+            <h1 class="text-3xl md:text-5xl font-bold text-[#6B4F43] mb-2">革新と失敗の分かれ道</h1>
+            <p class="text-base md:text-lg text-gray-600">なぜある製品は世界を変え、ある製品は忘れ去られたのか？</p>
+        </header>
+
+        <main>
+            <section id="interactive-analysis" class="mb-12 md:mb-20">
+                <p class="text-center text-gray-700 max-w-3xl mx-auto mb-8">
+                    ここでは、歴史に名を残した革新的な製品を「ヒット」と「失敗」に分類し、その成功と失敗の要因を探ります。下のボタンで表示を切り替え、各製品カードをクリックして詳細な分析をご覧ください。最後に、全体の傾向をまとめたチャートと結論から、成功への鍵を考察します。
+                </p>
+                <div class="flex justify-center mb-8 space-x-2 md:space-x-4">
+                    <button id="show-hits" class="px-4 py-2 md:px-6 md:py-3 rounded-full text-sm md:text-base font-medium transition-colors duration-300 active-tab">🚀 ヒット製品</button>
+                    <button id="show-fails" class="px-4 py-2 md:px-6 md:py-3 rounded-full text-sm md:text-base font-medium transition-colors duration-300 inactive-tab">📉 失敗製品</button>
+                </div>
+                <div id="product-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 md:gap-8">
+                </div>
+            </section>
+
+            <section id="summary-chart" class="bg-white rounded-2xl shadow-sm p-6 md:p-8 mb-12 md:mb-20">
+                <h2 class="text-2xl md:text-3xl font-bold text-center text-[#6B4F43] mb-4">成功と失敗の要因比較</h2>
+                <p class="text-center text-gray-600 max-w-2xl mx-auto mb-8">
+                    各ケーススタディを総合的に分析し、ヒット製品と失敗製品の特性をレーダーチャートで比較します。6つの主要因が、製品の運命をどのように左右したかが一目でわかります。（スコアは1-5の5段階評価）
+                </p>
+                <div class="chart-container">
+                    <canvas id="factor-chart"></canvas>
+                </div>
+            </section>
+            
+            <section id="success-keys" class="bg-white rounded-2xl shadow-sm p-6 md:p-8">
+                 <h2 class="text-2xl md:text-3xl font-bold text-center text-[#6B4F43] mb-4">分析から導く「成功へのカギ」</h2>
+                <p class="text-center text-gray-600 max-w-3xl mx-auto mb-8">
+                    数々の成功と失敗の事例は、単なる偶然の結果ではありません。そこには、製品を成功に導くための普遍的な法則が隠されています。
+                </p>
+                <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-6 text-left">
+                    <div class="bg-gray-50 p-6 rounded-lg">
+                        <h3 class="font-bold text-lg text-[#A6806A] mb-2">🔑 1. 「存在する問題」を解決する</h3>
+                        <p class="text-sm text-gray-700">失敗例の多くは、実際には存在しない問題を解決しようとしたり（Juicero）、技術を先行させすぎたり（Fire Phoneの3D機能）しています。一方、成功例は常に顧客の明確な、あるいは潜在的な「不満」や「欲求」から出発しています（ウォークマン、ダイソン掃除機）。</p>
+                    </div>
+                    <div class="bg-gray-50 p-6 rounded-lg">
+                        <h3 class="font-bold text-lg text-[#A6806A] mb-2">🔑 2. タイミングがすべてを支配する</h3>
+                        <p class="text-sm text-gray-700">革新的なアイデアも、市場や技術、社会が準備できていなければ受け入れられません（Apple Newton）。逆に、市場が成熟しきってから参入しても手遅れです（Microsoft Zune）。NetflixやiPhoneの成功は、インフラの普及という完璧な波に乗った結果です。</p>
+                    </div>
+                    <div class="bg-gray-50 p-6 rounded-lg">
+                        <h3 class="font-bold text-lg text-[#A6806A] mb-2">🔑 3. 最高の技術より、最高の体験を</h3>
+                        <p class="text-sm text-gray-700">技術スペックの高さが、必ずしも優れたユーザー体験（UX）につながるわけではありません。バーチャルボーイは技術的には先進的でしたが、体験は最悪でした。iPhoneの成功は、既存技術を組み合わせ、誰もが直感的に使える「魔法のような体験」を創り出したことにあります。</p>
+                    </div>
+                    <div class="bg-gray-50 p-6 rounded-lg">
+                        <h3 class="font-bold text-lg text-[#A6806A] mb-2">🔑 4. 製品ではなく「生態系」を売る</h3>
+                        <p class="text-sm text-gray-700">現代の製品競争は、単体の機能ではなく、それを取り巻くエコシステム（生態系）の競争です。Windows Phoneが敗北した最大の理由はアプリ不足でした。App Storeを擁するiPhoneや、開発者コミュニティを味方につけたGitHubの成功は、エコシステムの重要性を物語っています。</p>
+                    </div>
+                     <div class="bg-gray-50 p-6 rounded-lg">
+                        <h3 class="font-bold text-lg text-[#A6806A] mb-2">🔑 5. 価値＞価格 の方程式</h3>
+                        <p class="text-sm text-gray-700">顧客は価格そのものではなく、製品が提供する価値と価格を比較して購入を決めます。セグウェイやDeLoreanは、その価格に見合うだけの価値を多くの人に提供できませんでした。一方でプリウスやユニクロは、圧倒的な価値（燃費、機能性）を提供することで、価格以上の満足感を生み出しました。</p>
+                    </div>
+                     <div class="bg-gray-50 p-6 rounded-lg">
+                        <h3 class="font-bold text-lg text-[#A6806A] mb-2">🔑 6. シンプルな物語を語る</h3>
+                        <p class="text-sm text-gray-700">製品が「何であるか」「なぜ優れているのか」を、誰にでもわかる簡単な言葉で伝えられなければなりません。「音楽を外に持ち出す」（ウォークマン）、「吸引力の変わらないただ一つの掃除機」（ダイソン）。複雑な技術を語るのではなく、顧客のベネフィットを語ることが成功のカギです。</p>
+                    </div>
+                </div>
+            </section>
+        </main>
+        
+        <footer class="text-center mt-12 md:mt-20 pt-8 border-t border-gray-200">
+            <p class="text-sm text-gray-500">&copy; 2025 製品成功要因分析. All Rights Reserved.</p>
+        </footer>
+    </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    const products = {
+        hits: [
+            { name: 'Apple iPhone (初代)', description: 'タッチスクリーンとApp Storeで携帯電話の概念を再定義した革命的製品。', factors: { title: '成功の要因', points: ['【ユーザー体験】直感的なマルチタッチ操作を実現し、誰でも使えるUI/UXを構築した。','【ビジネスモデル】App Storeという生態系を作り上げ、端末の価値を高め続けた。','【タイミング】モバイルインターネットの普及期と重なり、時代のニーズに応えた。','【マーケティング】徹底したブランディングと劇的な演出が消費者の期待感を最大化した。']}},
+            { name: 'ソニー ウォークマン', description: '「音楽を外に持ち出す」という新しい文化を創造したポータブルカセットプレーヤー。', factors: { title: '成功の要因', points: ['【市場ニーズ】潜在的だった「いつでもどこでも音楽を聴きたい」という欲求を捉え、新市場を創出した。','【技術革新】既存技術を小型化・改良し、携帯性と高音質を両立させた。','【ユーザー体験】シンプルでスタイリッシュなデザインと簡単な操作性が若者に支持された。','【マーケティング】「歩きながら音楽を聴く」というライフスタイルそのものを提案し、文化的な現象となった。']}},
+            { name: '任天堂 Nintendo Switch', description: '据え置き機と携帯機のハイブリッドという独自のコンセプトで、ゲーム市場を再活性化させた。', factors: { title: '成功の要因', points: ['【市場ニーズ】「いつでも、どこでも、誰とでも」遊べる柔軟性を提供した。','【ビジネスモデル】Wii Uの失敗を分析し、携帯機としての魅力を前面に押し出す戦略が功を奏した。','【ユーザー体験】Joy-Conによる「おすそわけプレイ」など、共有の楽しさを手軽に実現した。','【ソフトウェア】強力なキラータイトルがハードの魅力を牽引した。']}},
+            { name: 'ダイソン サイクロン掃除機', description: '「吸引力の変わらないただ一つの掃除機」というキャッチコピーで、掃除機市場に革命を起こした。', factors: { title: '成功の要因', points: ['【技術革新】紙パック不要のサイクロンテクノロジーという明確な技術的優位性を確立した。','【マーケティング】強力なキャッチコピーと実演販売で、製品の性能を効果的に伝えた。','【ユーザー体験】ゴミ捨ての手軽さと、目に見えて吸引力が落ちない体験が顧客満足度を高めた。','【市場ニーズ】従来の紙パック式掃除機の不満を解決し、高価格でも売れる市場を切り開いた。']}},
+            { name: 'トヨタ プリウス (初代)', description: '世界初の量産ハイブリッド乗用車として、エコカー市場の扉を開いた。', factors: { title: '成功の要因', points: ['【タイミング】環境問題への意識が高まり始めた時期に発売され、時代の要請に合致した。','【技術革新】画期的なハイブリッドシステムを量産車に搭載した。','【市場ニーズ】燃費の良さと環境性能という新しい価値基準を消費者に提示した。','【ビジネスモデル】赤字覚悟の戦略的価格設定で初期普及を促し、ブランドイメージを確立した。']}},
+            { name: 'Netflix (ストリーミング)', description: 'DVDレンタルから事業転換し、映像コンテンツの視聴方法を根底から変えた。', factors: { title: '成功の要因', points: ['【ビジネスモデル】月額定額制の「見放題」モデルを確立し、ユーザーを物理メディアの制約から解放した。','【ユーザー体験】レコメンドエンジンと、いつでもどこでも視聴できる利便性を提供した。','【タイミング】ブロードバンドの普及というインフラの変化を的確に捉えた。','【ソフトウェア】オリジナルコンテンツ制作に乗り出し、他社との差別化を図った。']}},
+            { name: 'Amazon Web Services (AWS)', description: 'ITインフラをインターネット経由で提供するB2Bサービス。', factors: { title: '成功の要因', points: ['【市場ニーズ】企業が自前でサーバーを持つコストとリスクを劇的に下げ、スタートアップの隆盛を支えた。', '【ビジネスモデル】従量課金制という画期的な価格体系を導入し、スモールスタートを可能にした。', '【技術革新】大規模インフラの効率的な運用技術で、高い安定性と低価格を実現した。', '【タイミング】クラウドコンピューティングの黎明期に市場に参入し、デファクトスタンダードの地位を築いた。']}},
+            { name: 'メルカリ', description: 'スマートフォンに特化したC2Cフリマアプリ。', factors: { title: '成功の要因', points: ['【ユーザー体験】スマホカメラで出品できる手軽さと、匿名配送などの安心な取引システムを構築した。', '【市場ニーズ】不要品を手軽に現金化したいという個人の潜在的ニーズを掘り起こした。', '【タイミング】スマートフォンの普及と完全に同期してサービスを成長させた。', '【マーケティング】積極的なテレビCMで幅広いユーザー層を獲得し、ネットワーク効果を高めた。']}},
+            { name: 'ユニクロ (ヒートテック)', description: '「発熱して保温する」機能性インナーウェア。冬の衣料文化を変えた。', factors: { title: '成功の要因', points: ['【技術革新】東レとの共同開発により、薄くて暖かいという新しい価値を持つ素材を開発した。', '【市場ニーズ】「厚着をしたくないがおしゃれと防寒は両立させたい」という消費者の願いを叶えた。', '【ビジネスモデル】圧倒的な生産量で低価格を実現し、機能性インナーを万人のものへと変えた。', '【マーケティング】「冬のインナー=ヒートテック」という強力なブランド認知を確立した。']}},
+            { name: 'LinkedIn', description: 'ビジネスに特化したSNS。キャリア形成やネットワーキングの常識を変えた。', factors: { title: '成功の要因', points: ['【市場ニーズ】キャリアや専門知識で人と繋がるという、他のSNSにはない明確なニーズに応えた。', '【ビジネスモデル】リクルーター向けの高度な検索機能など、B2Bの収益モデルを確立した。', '【ユーザー体験】実名制とプロフェッショナルな情報に特化し、信頼性の高いプラットフォームを構築した。', '【タイミング】Web2.0によるSNSの普及期に、ビジネスというニッチ市場を開拓した。']}},
+            { name: '日清食品 カップヌードル', description: 'お湯を注ぐだけで食べられるインスタントラーメン。世界の食文化に影響を与えた。', factors: { title: '成功の要因', points: ['【技術革新】油揚げ乾燥法や、麺をカップの途中に固定する「宙吊り製法」など発明の宝庫だった。', '【ユーザー体験】容器がそのまま食器になり、フォークで食べられる手軽さが画期的だった。', '【市場ニーズ】「時間がない、でも温かいものが食べたい」という現代人の普遍的なニーズを満たした。', '【マーケティング】あさま山荘事件での報道や、自動販売機の設置など、新しい販売チャネルを開拓した。']}},
+            { name: 'GitHub', description: 'バージョン管理システムGitをベースにした、ソフトウェア開発者のためのプラットフォーム。', factors: { title: '成功の要因', points: ['【市場ニーズ】オープンソース開発の活発化に伴い、分散型で協力しやすい開発環境への需要が高まっていた。', '【ユーザー体験】Gitの複雑なコマンドを、洗練されたWeb UIで直感的に操作できるようにした。', '【ビジネスモデル】個人やオープンソースは無料で使えるフリーミアムモデルで、開発者コミュニティの圧倒的な支持を得た。', '【技術革新】「プルリクエスト」という概念を普及させ、コードレビューや共同作業の文化を大きく変えた。']}}
+        ],
+        fails: [
+            { name: 'Google Glass', description: 'メガネ型ウェアラブルデバイス。未来を感じさせたが、一般には普及しなかった。', factors: { title: '失敗の要因', points: ['【市場ニーズ】一般消費者にとって明確で魅力的な使用用途を提示できなかった。','【タイミング】技術は先進的だったが、社会的な受容性が追いついていなかった（プライバシー懸念）。','【ユーザー体験】バッテリー持続時間の短さ、奇抜なデザインによる社会的な抵抗感が課題だった。','【価格】1500ドルという高価格が普及を妨げた。']}},
+            { name: 'セグウェイ', description: '「未来の乗り物」として鳴り物入りで登場した電動立ち乗り二輪車。', factors: { title: '失敗の要因', points: ['【市場ニーズ】「歩くには遠いが、車を使うには近い」というニッチな需要しか満たせなかった。','【価格】高価格帯が個人所有のハードルを著しく上げた。','【ビジネスモデル】各国の法規制への対応が遅れ、利用シーンが限定された。','【ユーザー体験】過剰な期待と実際の製品価値との間に大きなギャップがあった。']}},
+            { name: '任天堂 バーチャルボーイ', description: '家庭用ゲーム機として世界初の3D映像を実現したが、商業的に大失敗に終わった。', factors: { title: '失敗の要因', points: ['【技術革新】3D映像のコンセプトは革新的だったが、赤と黒の単色表示で目が疲れやすく、技術が未成熟だった。','【ユーザー体験】ゴーグルを覗き込むプレイスタイルは身体的負担が大きかった。','【ソフトウェア】対応ソフトが少なく、ハードの魅力を引き出すキラータイトルが登場しなかった。','【マーケティング】十分なプロモーションが行われず、見切り発車的に発売された。']}},
+            { name: 'Apple Newton', description: 'PDA（携帯情報端末）の先駆けとなった製品だが、市場を確立するには至らなかった。', factors: { title: '失敗の要因', points: ['【タイミング】時代を先取りしすぎており、インフラや周辺技術が追いついていなかった。','【ユーザー体験】最大の売りであった手書き文字認識の精度が低く、ユーザーにストレスを与えた。','【価格】高価格でありながら、「必需品」となるほどの価値を提供できなかった。','【技術革新】コンセプトは先進的だったが、それを実現する技術（CPU、バッテリー）が発展途上だった。']}},
+            { name: 'Microsoft Zune', description: 'iPodの対抗馬としてマイクロソフトが投入した携帯音楽プレーヤー。', factors: { title: '失敗の要因', points: ['【タイミング】AppleのiPodとiTunesが市場を完全に支配した後に参入した。','【ビジネスモデル】iPodの巨大なエコシステムを崩すには至らなかった。','【マーケティング】iPodの洗練されたブランドイメージに対し、明確な差別化を図れなかった。','【市場ニーズ】後発でありながら、消費者がiPodに感じていた不満を解消する決定的な解決策がなかった。']}},
+            { name: 'Juicero', description: '専用パックを絞ることでジュースを作る、Wi-Fi接続機能付きの超高級ジューサー。', factors: { title: '失敗の要因', points: ['【市場ニーズ】存在しない問題を解決しようとした典型例。手で絞ってもジュースは出た。','【価格】本体もパックも高価で、提供価値と価格が全く見合っていなかった。','【ビジネスモデル】過剰な技術に投資し、製品の本質的な価値を見誤った。','【ユーザー体験】「パックが手で絞れる」という事実が発覚し、ブランドへの信頼が失墜した。']}},
+            { name: 'Iridium（イリジウム計画）', description: '多数の低軌道衛星を用いた世界中どこでも通話可能な衛星携帯電話サービス。', factors: { title: '失敗の要因', points: ['【タイミング】プロジェクト構想時とサービス開始時で市場が激変。携帯電話（セルラー）網が想定以上に普及した。', '【価格】端末価格も通信料も極めて高額で、ごく一部の富裕層や特殊な職業の人しかターゲットにできなかった。', '【ユーザー体験】端末が大きく重く、屋内では使えないなど、通常の携帯電話に比べて利便性が著しく劣った。', '【技術革新】技術的には壮大で革新的だったが、それが市場の求める価値と一致しなかった。']}},
+            { name: 'Windows Phone', description: 'マイクロソフトがiOSとAndroidに対抗すべく投入したスマートフォン向けOS。', factors: { title: '失敗の要因', points: ['【ビジネスモデル】アプリ開発者が集まらず、iOS/Androidとの「アプリ格差」が致命的だった（エコシステムの不在）。', '【市場ニーズ】タイル状の独自UIは評価されたものの、消費者がOSを乗り換えるほどの魅力にはならなかった。', '【タイミング】市場参入が遅すぎ、先行する2大OSの牙城を崩せなかった。', '【マーケティング】GoogleがYouTubeアプリを提供しないなど、競合からの妨害も影響した。']}},
+            { name: 'Amazon Fire Phone', description: 'Amazonが開発したスマートフォン。4つのカメラによる独自3D機能が特徴だった。', factors: { title: '失敗の要因', points: ['【市場ニーズ】独自機能（ダイナミックパースペクティブ）が技術デモとしては面白かったが、実用的な価値が乏しかった。', '【ビジネスモデル】Amazonのサービスへの誘導が露骨で、ユーザーの自由度を狭めた。AT&Tの独占販売も足かせに。', '【ユーザー体験】アプリストアの品揃えが乏しく、基本的な体験で競合に劣っていた。', '【価格】特徴が弱いにも関わらず、iPhoneや他のハイエンドAndroid機と同等の価格設定だった。']}},
+            { name: 'セカンドライフ', description: 'ユーザーがアバターを通じて交流する3D仮想空間。メタバースの先駆け。', factors: { title: '失敗の要因', points: ['【タイミング】ブロードバンド黎明期にはPCスペックや回線速度の要求が高すぎ、多くの人が快適に体験できなかった。', '【ユーザー体験】操作が複雑で、明確な目的がないため、新規ユーザーが定着しにくかった。', '【市場ニーズ】「仮想空間で第二の人生を」というコンセプトが、一部のアーリーアダプター以外に響かなかった。', '【ビジネスモデル】仮想通貨の現金化を巡る問題など、法整備や社会の理解が追いついていなかった。']}},
+            { name: 'Betamax (ベータマックス)', description: 'ソニーが開発した家庭用VTR規格。VHSとの「ビデオ戦争」に敗れた。', factors: { title: '失敗の要因', points: ['【ビジネスモデル】技術のライセンス供与に消極的で、味方を増やす「オープン戦略」をとったVHS陣営に数で負けた。', '【市場ニーズ】高画質を追求したベータ（最大録画1時間）に対し、VHSは画質より長時間録画（2時間）を優先し、消費者のニーズを掴んだ。', '【タイミング】レンタルビデオ市場の拡大期に、長時間録画できるVHSがコンテンツホルダーと消費者の双方に支持された。', '【技術革新】技術的には優位な点も多かったが、それが市場の選択基準のすべてではなかった。']}},
+            { name: 'DeLorean DMC-12', description: '映画『バック・トゥ・ザ・フューチャー』で有名な、ガルウィングドアとステンレスボディを持つ自動車。', factors: { title: '失敗の要因', points: ['【ユーザー体験】斬新なデザインとは裏腹に、エンジン性能が低く、重いドアなど実用性に乏しかった。', '【価格】見た目はスーパーカーだが、その価格に見合う走行性能や品質を備えていなかった。', '【ビジネスモデル】開発の遅れと予算超過、さらには創業者自身のスキャンダルが会社の経営を直撃した。', '【市場ニーズ】未来的な外観は注目を集めたが、自動車としての基本的な性能・信頼性という本質的なニーズを満たせなかった。']}}
+        ]
+    };
+
+    const factorScores = {
+        hits: [4.8, 4.6, 4.7, 4.2, 4.5, 4.0],
+        fails: [1.9, 2.2, 2.1, 3.2, 2.2, 2.2]
+    };
+    
+    const productGrid = document.getElementById('product-grid');
+    const showHitsBtn = document.getElementById('show-hits');
+    const showFailsBtn = document.getElementById('show-fails');
+    let activeCard = null;
+
+    function createProductCard(product) {
+        const card = document.createElement('div');
+        card.className = 'card bg-white rounded-xl shadow-sm overflow-hidden cursor-pointer';
+
+        let content = `
+            <div class="p-6">
+                <h3 class="text-xl font-bold text-[#6B4F43]">${product.name}</h3>
+                <p class="text-gray-600 mt-2 text-sm">${product.description}</p>
+            </div>
+            <div class="details bg-gray-50 px-6 py-4 border-t border-gray-200">
+                <h4 class="text-md font-semibold text-[#A6806A] mb-3">${product.factors.title}</h4>
+                <ul class="space-y-2 text-sm text-gray-700 list-disc list-inside">
+        `;
+        product.factors.points.forEach(point => {
+            content += `<li>${point}</li>`;
+        });
+        content += `</ul></div>`;
+        card.innerHTML = content;
+        
+        card.addEventListener('click', () => {
+            const details = card.querySelector('.details');
+            if(activeCard && activeCard !== card) {
+                activeCard.querySelector('.details').classList.remove('open');
+            }
+            details.classList.toggle('open');
+            activeCard = details.classList.contains('open') ? card : null;
+        });
+
+        return card;
+    }
+
+    function renderProducts(type) {
+        productGrid.innerHTML = '';
+        products[type].forEach(product => {
+            productGrid.appendChild(createProductCard(product));
+        });
+    }
+    
+    const chartCtx = document.getElementById('factor-chart').getContext('2d');
+    const chartLabels = ['市場ニーズ', 'タイミング', 'ユーザー体験(UX)', '技術革新', 'ビジネスモデル', 'マーケティング'];
+    
+    const chart = new Chart(chartCtx, {
+        type: 'radar',
+        data: {
+            labels: chartLabels.map(label => {
+                if (label.length > 16) {
+                    const middle = Math.floor(label.length / 2);
+                    let breakPoint = middle;
+                    for (let i = 0; i < middle; i++) {
+                        if (label[middle - i] === '(' || label[middle - i] === '（') {
+                            breakPoint = middle - i;
+                            break;
+                        }
+                        if (label[middle + i] === ')' || label[middle + i] === '）') {
+                            breakPoint = middle + i;
+                            break;
+                        }
+                    }
+                    return [label.substring(0, breakPoint), label.substring(breakPoint)];
+                }
+                return label;
+            }),
+            datasets: [
+                {
+                    label: 'ヒット製品 (平均)',
+                    data: factorScores.hits,
+                    backgroundColor: 'rgba(166, 128, 106, 0.2)',
+                    borderColor: 'rgba(166, 128, 106, 1)',
+                    pointBackgroundColor: 'rgba(166, 128, 106, 1)',
+                    pointBorderColor: '#fff',
+                    pointHoverBackgroundColor: '#fff',
+                    pointHoverBorderColor: 'rgba(166, 128, 106, 1)'
+                },
+                {
+                    label: '失敗製品 (平均)',
+                    data: factorScores.fails,
+                    backgroundColor: 'rgba(170, 170, 170, 0.2)',
+                    borderColor: 'rgba(170, 170, 170, 1)',
+                    pointBackgroundColor: 'rgba(170, 170, 170, 1)',
+                    pointBorderColor: '#fff',
+                    pointHoverBackgroundColor: '#fff',
+                    pointHoverBorderColor: 'rgba(170, 170, 170, 1)',
+                    hidden: false
+                }
+            ]
+        },
+        options: {
+            maintainAspectRatio: false,
+            responsive: true,
+            scales: {
+                r: {
+                    angleLines: {
+                        color: '#EFEAE6'
+                    },
+                    grid: {
+                        color: '#EFEAE6'
+                    },
+                    pointLabels: {
+                        font: {
+                            size: 12,
+                            family: "'Noto Sans JP', sans-serif"
+                        },
+                        color: '#3a3a3a'
+                    },
+                    ticks: {
+                        backdropColor: 'rgba(253, 251, 248, 0.75)',
+                        color: '#6B4F43',
+                        stepSize: 1
+                    },
+                    min: 0,
+                    max: 5
+                }
+            },
+            plugins: {
+                legend: {
+                    position: 'top',
+                    labels: {
+                        font: {
+                            size: 14,
+                            family: "'Noto Sans JP', sans-serif"
+                        }
+                    }
+                },
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            let label = context.dataset.label || '';
+                            if (label) {
+                                label += ': ';
+                            }
+                            if (context.parsed.r !== null) {
+                                label += context.parsed.r.toFixed(1);
+                            }
+                            return label;
+                        }
+                    }
+                }
+            }
+        }
+    });
+
+    function updateChartVisibility(type) {
+         chart.data.datasets.forEach((dataset) => {
+            dataset.hidden = true;
+        });
+
+        if (type === 'hits') {
+            chart.data.datasets[0].hidden = false;
+        } else if (type === 'fails') {
+            chart.data.datasets[1].hidden = false;
+        } else {
+            chart.data.datasets[0].hidden = false;
+            chart.data.datasets[1].hidden = false;
+        }
+        chart.update();
+    }
+
+    showHitsBtn.addEventListener('click', () => {
+        renderProducts('hits');
+        updateChartVisibility('hits');
+        showHitsBtn.classList.replace('inactive-tab', 'active-tab');
+        showFailsBtn.classList.replace('active-tab', 'inactive-tab');
+    });
+
+    showFailsBtn.addEventListener('click', () => {
+        renderProducts('fails');
+        updateChartVisibility('fails');
+        showFailsBtn.classList.replace('inactive-tab', 'active-tab');
+        showHitsBtn.classList.replace('active-tab', 'inactive-tab');
+    });
+
+    renderProducts('hits');
+    updateChartVisibility('hits');
+});
+</script>
+</body>
+</html>
+

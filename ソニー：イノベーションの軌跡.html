@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<html lang="ja" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ソニー：イノベーションの軌跡 (技術詳細版)</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;700&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" rel="stylesheet">
+    <!-- Chosen Palette: "Teal and Terracotta" (#F4F1DE, #E07A5F, #3D405B, #81B29A, #F2CC8F) -->
+    <!-- Application Structure Plan: The application structure has been refined to better distinguish between consumer products and core technologies. The flow is: 1. Historical Product Explorer (Hit/Miss/Niche). 2. Success Factor Analysis (Radar Chart). 3. A renamed and enhanced section, "Core Technologies & Strategy," which now prominently features foundational B2B strengths like Image and Motion Sensors, followed by the consumer-facing ecosystems they enable. This provides a clearer narrative from past products to the foundational tech powering the present and future. -->
+    <!-- Visualization & Content Choices: 
+        - Core Technologies Section: Report Info -> B2B technology pillars (Image/Motion Sensors) -> Goal: Inform/Organize -> Viz/Presentation: Thematic cards with specific icons (eye for image sensor, waves for motion) -> Justification: Separates foundational technologies from consumer product strategies, clarifying Sony's dual strengths. -> Library/Method: HTML/CSS.
+        - Product Explorer & Modal: Updated with more products (PS4, PS TV) and retains the filter/modal interaction with external links for deeper exploration. -> Library/Method: HTML/CSS/JS.
+    -->
+    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+    <style>
+        body {
+            font-family: 'Noto Sans JP', sans-serif;
+            background-color: #F4F1DE;
+            color: #3D405B;
+        }
+        .sticky-nav {
+            position: sticky;
+            top: 0;
+            z-index: 50;
+        }
+        .modal-backdrop {
+            background-color: rgba(0,0,0,0.5);
+        }
+        .chart-container {
+            position: relative;
+            width: 100%;
+            max-width: 500px;
+            margin-left: auto;
+            margin-right: auto;
+            height: 40vh;
+            max-height: 450px;
+        }
+    </style>
+</head>
+<body>
+
+    <header class="text-center py-12 px-4 bg-[#3D405B] text-white">
+        <h1 class="text-4xl md:text-5xl font-bold mb-2">ソニー：イノベーションの軌跡</h1>
+        <p class="text-lg text-gray-300 max-w-3xl mx-auto">製品の栄光と挫折、そしてそれを支える世界最高峰の技術を探る。</p>
+    </header>
+
+    <nav id="nav" class="sticky-nav bg-[#F4F1DE]/80 backdrop-blur-md shadow-md">
+        <div class="container mx-auto px-4">
+            <div class="flex justify-center items-center flex-wrap gap-x-4 md:gap-x-8 py-3">
+                <a href="#explorer" class="text-sm md:text-base font-bold text-[#3D405B] hover:text-[#E07A5F] transition duration-300">製品史</a>
+                <a href="#analysis" class="text-sm md:text-base font-bold text-[#3D405B] hover:text-[#E07A5F] transition duration-300">要因分析</a>
+                <a href="#strategy" class="text-sm md:text-base font-bold text-[#3D405B] hover:text-[#E07A5F] transition duration-300">中核技術と戦略</a>
+                <a href="#conclusion" class="text-sm md:text-base font-bold text-[#3D405B] hover:text-[#E07A5F] transition duration-300">結論</a>
+            </div>
+        </div>
+    </nav>
+
+    <main class="container mx-auto p-4 md:p-8">
+        
+        <section id="explorer" class="py-12">
+            <h2 class="text-3xl font-bold text-center mb-4">製品エクスプローラー</h2>
+            <p class="text-center text-lg max-w-3xl mx-auto mb-8">下のボタンで製品を分類し、ソニーの歴史を探求しましょう。各カードをクリックすると詳細と関連情報へのリンクが表示されます。</p>
+            
+            <div id="filters" class="flex justify-center flex-wrap gap-2 mb-8">
+                <button data-filter="all" class="filter-btn bg-[#3D405B] text-white py-2 px-5 rounded-full font-semibold transition duration-300">すべて</button>
+                <button data-filter="hit" class="filter-btn bg-white text-[#3D405B] py-2 px-5 rounded-full font-semibold transition duration-300 hover:bg-[#81B29A] hover:text-white">時代を創ったヒット</button>
+                <button data-filter="miss" class="filter-btn bg-white text-[#3D405B] py-2 px-5 rounded-full font-semibold transition duration-300 hover:bg-[#E07A5F] hover:text-white">早すぎた挑戦者</button>
+                <button data-filter="niche" class="filter-btn bg-white text-[#3D405B] py-2 px-5 rounded-full font-semibold transition duration-300 hover:bg-[#F2CC8F] hover:text-white">カルトな名機</button>
+            </div>
+
+            <div id="product-grid" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
+                <!-- Product cards will be injected here by JavaScript -->
+            </div>
+        </section>
+
+        <section id="analysis" class="py-12">
+            <h2 class="text-3xl font-bold text-center mb-4">イノベーションの要因分析</h2>
+            <p class="text-center text-lg max-w-3xl mx-auto mb-8">なぜ製品は成功し、あるいは失敗したのか。革新性、タイミング、価格、市場適合性という4つの軸で、象徴的な製品を比較分析します。</p>
+            <div class="bg-white rounded-lg shadow-lg p-4 md:p-8">
+                <div class="chart-container">
+                    <canvas id="innovationChart"></canvas>
+                </div>
+                <div class="mt-6 text-center text-sm text-gray-600">
+                    <p><span class="font-bold text-[#81B29A]">ウォークマン:</span> タイミングと市場適合性に優れ、巨大な市場を創造。</p>
+                    <p><span class="font-bold text-[#E07A5F]">ベータマックス:</span> 革新性は高かったが、市場適合性（録画時間、規格）で劣勢に。</p>
+                    <p><span class="font-bold text-[#F2CC8F]">VAIO type P:</span> 極端な革新性が光るが、価格と性能のバランスで市場は限定的だった。</p>
+                </div>
+            </div>
+        </section>
+
+        <section id="strategy" class="py-12">
+            <h2 class="text-3xl font-bold text-center mb-4">中核技術と近年の戦略</h2>
+            <p class="text-center text-lg max-w-3xl mx-auto mb-8">ソニーの強みは、最終製品だけでなく、それを支える部品技術にあります。特にセンサー技術は事業の根幹であり、それを活用したエコシステムの構築が近年の戦略の核となっています。</p>
+            <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <div class="bg-white p-6 rounded-lg shadow-lg flex items-start space-x-4">
+                    <i class="fa-solid fa-eye fa-2x text-[#3D405B] mt-1"></i>
+                    <div>
+                        <h3 class="font-bold text-xl mb-2">イメージセンサー</h3>
+                        <p>スマートフォンやデジタルカメラの「眼」となるCMOSイメージセンサーで世界トップシェア。高画質化・高速化を牽引し、自社製品だけでなく世界中のデジタル機器の進化を支える最大の収益源。</p>
+                    </div>
+                </div>
+                <div class="bg-white p-6 rounded-lg shadow-lg flex items-start space-x-4">
+                    <i class="fa-solid fa-wave-square fa-2x text-[#3D405B] mt-1"></i>
+                    <div>
+                        <h3 class="font-bold text-xl mb-2">センシング技術</h3>
+                        <p>モーションセンサーがPS5コントローラーのリアルな触覚フィードバックを実現。ToFセンサーがカメラの高速AFを可能にするなど、多様なセンサー技術が製品の付加価値を高め、自動運転など未来の領域も拓く。</p>
+                    </div>
+                </div>
+                <div class="bg-white p-6 rounded-lg shadow-lg flex items-start space-x-4">
+                    <i class="fa-solid fa-gamepad fa-2x text-[#3D405B] mt-1"></i>
+                    <div>
+                        <h3 class="font-bold text-xl mb-2">ゲーム＆ネットワーク</h3>
+                        <p>PlayStation 5を核に、PCゲーマー向け新ブランド「INZONE」を展開。センサー技術を活かしたVR/AR（PS VR2）など、ハード、ソフト、サービスを融合させエンタメ体験を深化。</p>
+                    </div>
+                </div>
+                <div class="bg-white p-6 rounded-lg shadow-lg flex items-start space-x-4">
+                    <i class="fa-solid fa-camera-retro fa-2x text-[#3D405B] mt-1"></i>
+                    <div>
+                        <h3 class="font-bold text-xl mb-2">クリエイター支援</h3>
+                        <p>ミラーレス一眼「α」やVlogカメラ「VLOGCAM」など、自社製高性能センサーを搭載した製品群で映像制作者を支援。撮影から発信まで一貫したソリューションを提供。</p>
+                    </div>
+                </div>
+                <div class="bg-white p-6 rounded-lg shadow-lg flex items-start space-x-4">
+                    <i class="fa-solid fa-headphones-simple fa-2x text-[#3D405B] mt-1"></i>
+                    <div>
+                        <h3 class="font-bold text-xl mb-2">高音質オーディオ</h3>
+                        <p>業界最高クラスのノイズキャンセリング性能を誇る「WH-1000X」シリーズや、高音質ストリーミング対応ウォークマンなど、長年培った音響技術で市場をリード。</p>
+                    </div>
+                </div>
+                <div class="bg-white p-6 rounded-lg shadow-lg flex items-start space-x-4">
+                    <i class="fa-solid fa-car fa-2x text-[#3D405B] mt-1"></i>
+                    <div>
+                        <h3 class="font-bold text-xl mb-2">モビリティ</h3>
+                        <p>ホンダと共同で設立したソニー・ホンダモビリティから、新型EV「AFEELA」を発表。内外に搭載した多数のセンサーやエンタメ技術を融合し、新たな移動体験の創造を目指す。</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="conclusion" class="py-12 text-center bg-white rounded-lg shadow-lg p-8">
+            <h2 class="text-3xl font-bold mb-4">結論：技術と感性のDNA</h2>
+            <p class="text-lg max-w-3xl mx-auto">ソニーの歴史は、消費者製品の成功と失敗の物語であると同時に、世界をリードする部品技術の探求の物語でもあります。イメージセンサーのような中核技術がエンターテインメントの感動価値（感性）を高め、その循環が次のイノベーションを生む。この「技術と感性のDNA」こそが、ソニーを特別な存在たらしめる源泉なのです。</p>
+        </section>
+    </main>
+
+    <div id="modal" class="hidden fixed inset-0 z-50 overflow-y-auto modal-backdrop flex items-center justify-center p-4">
+        <div id="modal-content" class="bg-white rounded-lg shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto transform transition-all duration-300 scale-95 opacity-0">
+            <div class="sticky top-0 bg-white p-4 border-b flex justify-between items-center z-10">
+                 <h3 id="modal-title" class="text-2xl font-bold"></h3>
+                <button id="modal-close" class="text-3xl font-light leading-none">&times;</button>
+            </div>
+            <div class="p-6">
+                <p id="modal-year" class="mb-4 text-sm text-gray-500"></p>
+                <p id="modal-reason" class="text-base md:text-lg leading-relaxed mb-6"></p>
+                <a id="modal-link" href="#" target="_blank" rel="noopener noreferrer" class="inline-block bg-[#3D405B] text-white py-2 px-5 rounded-lg font-semibold hover:bg-[#E07A5F] transition duration-300">
+                    詳しく見る <i class="fa-solid fa-arrow-up-right-from-square fa-xs ml-1"></i>
+                </a>
+            </div>
+        </div>
+    </div>
+
+<script>
+const productData = [
+    { name: 'トランジスタラジオ (TR-55)', year: 1955, category: 'hit', reason: '「ポータブル」の概念を確立。それまで家具だったラジオを個人が持ち運べるサイズにしたことで、屋外で音楽を聴く文化の礎を築いた。', link: 'https://ja.wikipedia.org/wiki/TR-55' },
+    { name: 'トリニトロンカラーテレビ', year: 1968, category: 'hit', reason: '圧倒的な高画質。独自の方式により、他社の追随を許さない鮮明で明るい映像を実現。「技術のソニー」の象徴として、長年にわたりテレビ市場の王者に君臨した。', link: 'https://ja.wikipedia.org/wiki/%E3%83%88%E3%83%AA%E3%83%8B%E3%83%88%E3%83%AD%E3%83%B3' },
+    { name: 'ウォークマン (TPS-L2)', year: 1979, category: 'hit', reason: '音楽体験のパーソナル化。「音楽を外に持ち出す」という全く新しいライフスタイルを提案し、世界的な社会現象となった。ヘッドホンで音楽を聴く文化を定着させた革命的製品。', link: 'https://ja.wikipedia.org/wiki/%E3%82%A6%E3%82%A9%E3%83%BC%E3%82%AF%E3%83%9E%E3%83%B3_(%E5%95%86%E5%93%81)' },
+    { name: 'CDウォークマン (D-50)', year: 1984, category: 'hit', reason: '世界初のポータブルCDプレーヤー。「ディスクマン」の愛称で、高音質なデジタル音源を持ち運ぶ文化を創出した。ウォークマンに続くポータブル革命の立役者。', link: 'https://ja.wikipedia.org/wiki/CD%E3%82%A6%E3%82%A9%E3%83%BC%E3%82%AF%E3%83%9E%E3%83%B3' },
+    { name: 'ハンディカム (CCD-TR55)', year: 1989, category: 'hit', reason: '家庭用ビデオカメラ市場を創造。「パスポートサイズ」のキャッチコピーで小型化を実現し、家族の記録を映像で残す文化を一般家庭に普及させた。', link: 'https://ja.wikipedia.org/wiki/%E3%83%8F%E3%83%B3%E3%83%87%E3%82%A3%E3%82%AB%E3%83%A0' },
+    { name: 'PlayStation', year: 1994, category: 'hit', reason: 'ゲーム市場の勢力図を一変。CD-ROMを採用し、3Dグラフィックスを駆使した多彩なゲームソフトで、それまでの子供向けというイメージを覆し、大人も楽しめるエンターテインメントとしての地位を確立した。', link: 'https://ja.wikipedia.org/wiki/PlayStation_(%E3%82%B2%E3%83%BC%E3%83%A0%E6%A9%9F)' },
+    { name: 'サイバーショット', year: 1996, category: 'hit', reason: 'デジタル写真の楽しみ方を提案。レンズが回転するユニークなデザインと、PCとの連携のしやすさで、デジタルカメラの普及に大きく貢献。「撮る」だけでなく「見て、送る」楽しみを広げた。', link: 'https://ja.wikipedia.org/wiki/%E3%82%B5%E3%82%A4%E3%83%90%E3%83%BC%E3%82%B7%E3%83%A7%E3%83%83%E3%83%88' },
+    { name: 'VAIOノート (PCG-505)', year: 1997, category: 'hit', reason: 'デザインとモビリティの融合。マグネシウム合金ボディを採用した薄型軽量デザインは、性能一辺倒だったノートPC市場に衝撃を与え、「スタイリッシュなPC」という新たな価値観を創造した。', link: 'https://ja.wikipedia.org/wiki/VAIO' },
+    { name: 'PlayStation 2', year: 2000, category: 'hit', reason: '史上最も売れた家庭用ゲーム機。DVDプレーヤー機能を搭載し、ゲーム機としてだけでなく映像再生機としても家庭に普及。圧倒的なソフト資産で一時代を築いた。', link: 'https://ja.wikipedia.org/wiki/PlayStation_2' },
+    { name: 'PlayStation Portable (PSP)', year: 2004, category: 'hit', reason: '高性能携帯ゲーム機の市場を切り拓いた。美しいグラフィックと多機能性で、ゲームだけでなく動画や音楽も楽しめる新しい携帯エンターテインメントを提案した。', link: 'https://ja.wikipedia.org/wiki/PlayStation_Portable' },
+    { name: 'BRAVIA', year: 2005, category: 'hit', reason: '液晶テレビ時代の覇者。トリニトロンで培った高画質技術を液晶に応用し、薄型テレビ市場で高いブランド力を確立。ソニーの映像技術の象徴であり続けている。', link: 'https://ja.wikipedia.org/wiki/BRAVIA' },
+    { name: 'PlayStation 4', year: 2013, category: 'hit', reason: 'ユーザー体験を第一に考えた設計で、競合を圧倒。シェア機能によるSNSとの連携や、安定した性能で多くのユーザーとデベロッパーから支持され、大成功を収めた。', link: 'https://ja.wikipedia.org/wiki/PlayStation_4' },
+    { name: 'WH-1000Xシリーズ', year: 2016, category: 'hit', reason: 'ワイヤレスヘッドホン市場の変革者。業界最高クラスのノイズキャンセリング性能で市場の注目を集め、高音質なワイヤレスリスニング体験を一般化させた。', link: 'https://www.sony.jp/headphone/special/1000X_Series/' },
+    { name: 'α7シリーズ', year: 2013, category: 'hit', reason: 'カメラ市場のゲームチェンジャー。世界初のフルサイズセンサー搭載ミラーレス一眼カメラとして登場。小型軽量でありながらプロの要求に応える高画質を実現し、カメラ市場の勢力図を塗り替えた。', link: 'https://ja.wikipedia.org/wiki/%E3%82%BD%E3%83%8B%E3%83%BC%E3%83%BB%CE%B17' },
+    { name: 'ベータマックス', year: 1975, category: 'miss', reason: '規格争いでの敗北。高画質を誇ったが、録画時間が短く、ライセンス戦略をオープンにしたJVCのVHS陣営に市場シェアを奪われた。「技術的優位性が市場での成功を保証しない」という典型例。', link: 'https://ja.wikipedia.org/wiki/%E3%83%99%E3%83%BC%E3%82%BF%E3%83%9E%E3%83%83%E3%82%AF%E3%82%B9' },
+    { name: 'ミニディスク(MD)', year: 1992, category: 'miss', reason: '中途半端な立ち位置と時代の変化。CDの高音質とカセットの手軽さを両立したが、安価なCD-Rの普及と、MP3圧縮音源の台頭というデジタルオーディオの大きな波に飲み込まれた。', link: 'https://ja.wikipedia.org/wiki/%E3%83%9F%E3%83%8B%E3%83%87%E3%82%A3%E3%82%B9%E3%82%AF' },
+    { name: 'メモリースティック', year: 1998, category: 'miss', reason: '独自規格の限界。ソニー製品間の連携を強める目的だったが、よりオープンなSDカードが業界標準となり、孤立。ユーザーに不便を強いる結果となった。', link: 'https://ja.wikipedia.org/wiki/%E3%83%A1%E3%83%A2%E3%83%AA%E3%83%BC%E3%82%B9%E3%83%86%E3%82%A3%E3%83%83%E3%82%AF' },
+    { name: 'AIBO', year: 1999, category: 'miss', reason: '高価格と限定的な用途。自律型エンターテインメントロボットというコンセプトは画期的だったが、25万円という価格と、実用性よりも愛玩動物としての側面が強く、一般家庭への普及には至らなかった。', link: 'https://ja.wikipedia.org/wiki/AIBO' },
+    { name: 'Airboard', year: 2000, category: 'miss', reason: 'インフラが未整備（早すぎた製品）。ワイヤレスでテレビやインターネットが楽しめる、現代のタブレットの先駆け。しかし、当時は常時接続のブロードバンドやWi-Fi環境が整っておらず、その真価を発揮できなかった。', link: 'https://ja.wikipedia.org/wiki/%E3%82%A8%E3%82%A2%E3%83%BC%E3%83%9C%E3%83%BC%E3%83%89' },
+    { name: 'QUALIAシリーズ', year: 2003, category: 'miss', reason: '極端な高価格戦略。ソニーの持つ最高技術を結集し、究極の品質を追求した超高級ブランド。製品の完成度は高かったが、あまりにも高価で市場が極端に限定され、商業的には成功しなかった。', link: 'https://ja.wikipedia.org/wiki/QUALIA' },
+    { name: 'PlayStation 3 (初期型)', year: 2006, category: 'miss', reason: '高価格と複雑な設計。高性能なCellプロセッサを搭載したが、初期価格が約6万円と非常に高価で、開発の難しさも相まって普及の足かせとなった。後にコストダウン版で成功を収める。', link: 'https://ja.wikipedia.org/wiki/PlayStation_3' },
+    { name: 'Xperia Play', year: 2011, category: 'miss', reason: 'コンセプトの迷走。スマートフォンと携帯ゲーム機の融合は魅力的だったが、中途半端な性能と対応ソフト不足で、どちらのユーザー層にも響かなかった。', link: 'https://ja.wikipedia.org/wiki/Xperia_PLAY_SO-01D' },
+    { name: 'Sony Tablet P', year: 2011, category: 'miss', reason: '奇抜すぎたデザイン。折りたたみ式の2画面タブレットという野心的な製品だったが、画面間のベゼルが太くアプリの対応も不十分で、実用性に欠けると評価された。', link: 'https://ja.wikipedia.org/wiki/Sony_Tablet' },
+    { name: 'PlayStation Vita', year: 2011, category: 'miss', reason: 'スマートフォンの台頭。高性能な有機ELディスプレイとパワフルなCPUを搭載したが、スマートフォンのゲーム市場が急速に拡大したこと、そして高価な専用メモリーカードが普及の足かせとなった。', link: 'https://ja.wikipedia.org/wiki/PlayStation_Vita' },
+    { name: 'PlayStation TV', year: 2013, category: 'miss', reason: 'コンセプトが不明確。PS Vitaのゲームをテレビで遊べるという着眼点は良かったが、互換性のないゲームが多く、マーケティングも不十分だったため、ユーザーに価値が伝わらなかった。', link: 'https://ja.wikipedia.org/wiki/PlayStation_Vita_TV' },
+    { name: 'グラスストロン', year: 1996, category: 'niche', reason: '早すぎたヘッドマウントディスプレイ。個人用の仮想大画面シアターというコンセプトは、後のVRゴーグルの先駆け。技術的な制約と高価格で普及はしなかったが、未来を感じさせた。', link: 'https://ja.wikipedia.org/wiki/%E3%82%B0%E3%83%A9%E3%82%B9%E3%83%88%E3%83%AD%E3%83%B3' },
+    { name: 'デジタルマビカ', year: 1997, category: 'niche', reason: '記録媒体のユニークさ。画像をフロッピーディスクに直接記録するという、今では考えられない仕様。画質は低かったが、PCへの取り込みが非常に簡単だったため、特定の業務用途などで重宝された。', link: 'https://ja.wikipedia.org/wiki/%E3%83%87%E3%82%B8%E3%82%BF%E3%83%AB%E3%83%9E%E3%83%93%E3%82%AB' },
+    { name: 'Librie', year: 2004, category: 'niche', reason: '世界初のE-ink採用電子書籍リーダー。AmazonのKindleより3年も早く登場。コンセプトは正しかったが、コンテンツ不足と動作の遅さが課題だった。しかし、後の電子書籍市場の到来を予感させた記念碑的製品。', link: 'https://ja.wikipedia.org/wiki/LIBRIe' },
+    { name: 'VAIO UX', year: 2006, category: 'niche', reason: '究極のマイクロPC。スライド式キーボードを備えた超小型Windows PCで、当時の技術の粋を集めた製品。ガジェット好きの心を掴んだが、高価格と実用面でニッチな存在に留まった。', link: 'https://ja.wikipedia.org/wiki/VAIO_U' },
+    { name: 'mylo', year: 2006, category: 'niche', reason: 'Wi-Fi特化のコミュニケーション端末。「My Life Online」の名の通り、Wi-Fi環境下でSNSやインスタントメッセンジャーを楽しむことに特化。スマートフォンの前身ともいえるコンセプトだったが、Wi-Fiスポットの少なさがネックとなった。', link: 'https://ja.wikipedia.org/wiki/Mylo' },
+    { name: 'Rolly', year: 2007, category: 'niche', reason: '踊る音楽プレーヤー。卵型の本体が音楽に合わせて回転したり、腕を広げて踊るというユニークな製品。実用性よりも楽しさを追求したコンセプトが一部で熱狂的に愛された。', link: 'https://ja.wikipedia.org/wiki/Rolly' },
+    { name: 'XEL-1', year: 2007, category: 'niche', reason: '世界初の有機ELテレビ。わずか3mmという驚異的な薄さと、自発光ならではの圧倒的なコントラストを実現。11インチで20万円と非常に高価で、技術ショーケースとしての意味合いが強かったが、未来のテレビの姿を鮮烈に示した。', link: 'https://ja.wikipedia.org/wiki/XEL-1' },
+    { name: 'VAIO type P', year: 2009, category: 'niche', reason: '極端なまでの携帯性。「ポケットに入るフルスペックPC」というコンセプトで、横長の独特なデザインを持つ超小型PC。性能は限られたが、その唯一無二の存在感と所有欲を満たすデザインで、熱狂的なファンを生んだ。', link: 'https://ja.wikipedia.org/wiki/VAIO_P' }
+];
+
+document.addEventListener('DOMContentLoaded', () => {
+    const grid = document.getElementById('product-grid');
+    const filterButtons = document.querySelectorAll('.filter-btn');
+    const modal = document.getElementById('modal');
+    const modalContent = document.getElementById('modal-content');
+    const modalClose = document.getElementById('modal-close');
+    const modalTitle = document.getElementById('modal-title');
+    const modalYear = document.getElementById('modal-year');
+    const modalReason = document.getElementById('modal-reason');
+    const modalLink = document.getElementById('modal-link');
+
+    const categoryStyles = {
+        hit: { border: 'border-green-500', bg: 'bg-green-50', text: 'text-green-800' },
+        miss: { border: 'border-red-500', bg: 'bg-red-50', text: 'text-red-800' },
+        niche: { border: 'border-yellow-500', bg: 'bg-yellow-50', text: 'text-yellow-800' }
+    };
+    
+    const renderProducts = (filter = 'all') => {
+        grid.innerHTML = '';
+        const filteredData = (filter === 'all')
+            ? productData
+            : productData.filter(p => p.category === filter);
+
+        filteredData.sort((a,b) => a.year - b.year).forEach(product => {
+            const styles = categoryStyles[product.category];
+            const card = document.createElement('div');
+            card.className = `product-card p-4 rounded-lg shadow-md cursor-pointer transition duration-300 hover:shadow-xl hover:-translate-y-1 border-t-4 ${styles.border} ${styles.bg}`;
+            card.innerHTML = `
+                <h3 class="font-bold text-base md:text-lg ${styles.text}">${product.name}</h3>
+                <p class="text-sm text-gray-500">${product.year}</p>
+            `;
+            card.addEventListener('click', () => openModal(product));
+            grid.appendChild(card);
+        });
+    };
+
+    const openModal = (product) => {
+        modalTitle.textContent = product.name;
+        modalYear.textContent = `${product.year}年発売`;
+        modalReason.textContent = product.reason;
+        
+        if (product.link) {
+            modalLink.href = product.link;
+            modalLink.style.display = 'inline-block';
+        } else {
+            modalLink.style.display = 'none';
+        }
+
+        modal.classList.remove('hidden');
+        setTimeout(() => {
+            modalContent.classList.remove('scale-95', 'opacity-0');
+            modalContent.classList.add('scale-100', 'opacity-100');
+        }, 10);
+    };
+
+    const closeModal = () => {
+        modalContent.classList.add('scale-95', 'opacity-0');
+        setTimeout(() => modal.classList.add('hidden'), 300);
+    };
+
+    filterButtons.forEach(button => {
+        button.addEventListener('click', () => {
+            const filter = button.dataset.filter;
+            
+            filterButtons.forEach(btn => {
+                btn.classList.remove('bg-[#3D405B]', 'text-white');
+                btn.classList.add('bg-white', 'text-[#3D405B]');
+            });
+            button.classList.add('bg-[#3D405B]', 'text-white');
+            button.classList.remove('bg-white', 'text-[#3D405B]');
+
+            renderProducts(filter);
+        });
+    });
+    
+    modalClose.addEventListener('click', closeModal);
+    modal.addEventListener('click', (e) => {
+        if (e.target === modal) {
+            closeModal();
+        }
+    });
+
+    renderProducts();
+
+    const ctx = document.getElementById('innovationChart').getContext('2d');
+    new Chart(ctx, {
+        type: 'radar',
+        data: {
+            labels: ['革新性', 'タイミング', '価格', '市場適合性'],
+            datasets: [{
+                label: 'ウォークマン',
+                data: [4, 5, 4, 5],
+                backgroundColor: 'rgba(129, 178, 154, 0.2)',
+                borderColor: '#81B29A',
+                pointBackgroundColor: '#81B29A',
+                borderWidth: 2
+            }, {
+                label: 'ベータマックス',
+                data: [5, 3, 2, 2],
+                backgroundColor: 'rgba(224, 122, 95, 0.2)',
+                borderColor: '#E07A5F',
+                pointBackgroundColor: '#E07A5F',
+                borderWidth: 2
+            }, {
+                label: 'VAIO type P',
+                data: [5, 2, 1, 2],
+                backgroundColor: 'rgba(242, 204, 143, 0.2)',
+                borderColor: '#F2CC8F',
+                pointBackgroundColor: '#F2CC8F',
+                borderWidth: 2
+            }]
+        },
+        options: {
+            maintainAspectRatio: false,
+            responsive: true,
+            scales: {
+                r: {
+                    angleLines: { color: '#ddd' },
+                    grid: { color: '#eee' },
+                    pointLabels: {
+                        font: { size: 14 },
+                        color: '#3D405B'
+                    },
+                    ticks: {
+                        backdropColor: '#F4F1DE',
+                        color: '#3D405B',
+                        stepSize: 1
+                    },
+                    min: 0,
+                    max: 5
+                }
+            },
+            plugins: {
+                legend: {
+                    position: 'top',
+                }
+            }
+        }
+    });
+});
+</script>
+</body>
+</html>
