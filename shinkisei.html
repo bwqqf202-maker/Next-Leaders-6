@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>未来を創る奇才たち：世界の"新奇な"ベンチャー最前線</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700&family=Noto+Sans+JP:wght@400;700&display=swap');
+        html {
+            scroll-behavior: smooth;
+        }
+        body {
+            font-family: 'Inter', 'Noto Sans JP', sans-serif;
+            background-color: #111827;
+            color: #E5E7EB;
+        }
+        .glass-card {
+            background: rgba(31, 41, 55, 0.6);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 1.5rem;
+            transition: all 0.3s ease;
+        }
+        .glass-card:hover {
+            transform: translateY(-5px) scale(1.01);
+            box-shadow: 0 20px 30px rgba(0, 0, 0, 0.3);
+        }
+        .speaker-button {
+            transition: all 0.3s ease;
+        }
+        .speaker-button:hover {
+            background-color: #4F46E5;
+        }
+        .tag {
+            background-color: rgba(79, 70, 229, 0.2);
+            color: #A5B4FC;
+            font-size: 0.75rem;
+            padding: 0.25rem 0.75rem;
+            border-radius: 9999px;
+            border: 1px solid rgba(79, 70, 229, 0.5);
+        }
+        .index-link {
+            background-color: rgba(55, 65, 81, 0.5);
+            color: #D1D5DB;
+            transition: all 0.2s ease;
+        }
+        .index-link:hover {
+            background-color: #4F46E5;
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    <div class="container mx-auto p-4 md:p-8 max-w-4xl">
+        
+        <!-- ヘッダー -->
+        <header class="text-center mb-12">
+            <h1 class="text-4xl md:text-6xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-indigo-600 mb-4">
+                未来を創る奇才たち
+            </h1>
+            <p class="text-lg md:text-xl text-gray-300">
+                世界の"新奇な"ベンチャー最前線
+            </p>
+            <div class="mt-8 flex justify-center">
+                <button id="speaker-btn" class="speaker-button fixed bottom-5 right-5 md:static w-16 h-16 bg-indigo-600 rounded-full flex items-center justify-center text-white shadow-lg z-10">
+                    <svg id="play-icon" xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clip-rule="evenodd" /></svg>
+                    <svg id="stop-icon" xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 hidden" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8 7a1 1 0 00-1 1v4a1 1 0 001 1h4a1 1 0 001-1V8a1 1 0 00-1-1H8z" clip-rule="evenodd" /></svg>
+                </button>
+            </div>
+        </header>
+
+        <main id="content-to-read">
+            <!-- 導入文 -->
+            <div class="glass-card p-6 md:p-8 mb-12">
+                <p class="text-base md:text-lg leading-relaxed text-gray-300">
+                    世の中には「新しい」ビジネスは数多く存在します。しかし、ここでは単なる「新規性」を超え、常識を疑い、まるでSFの世界を現実にするかのような「新奇性」を持つベンチャー企業に焦点を当てます。彼らの突飛で、しかし大真面目な挑戦は、私たちに未来の可能性を垣間見せてくれるはずです。
+                </p>
+            </div>
+            
+            <!-- 企業インデックス -->
+            <div class="glass-card p-6 md:p-8 mb-12">
+                <h3 class="text-xl font-bold text-white mb-4">掲載企業一覧</h3>
+                <div class="flex flex-wrap gap-3">
+                    <a href="#colossal" class="index-link py-2 px-4 rounded-full text-sm">Colossal</a>
+                    <a href="#upside" class="index-link py-2 px-4 rounded-full text-sm">Upside Foods</a>
+                    <a href="#axiom" class="index-link py-2 px-4 rounded-full text-sm">Axiom Space</a>
+                    <a href="#neuralink" class="index-link py-2 px-4 rounded-full text-sm">Neuralink</a>
+                    <a href="#cfs" class="index-link py-2 px-4 rounded-full text-sm">CFS</a>
+                    <a href="#icon" class="index-link py-2 px-4 rounded-full text-sm">ICON</a>
+                    <a href="#ionq" class="index-link py-2 px-4 rounded-full text-sm">IonQ</a>
+                    <a href="#ispace" class="index-link py-2 px-4 rounded-full text-sm">ispace</a>
+                    <a href="#spiber" class="index-link py-2 px-4 rounded-full text-sm">Spiber</a>
+                    <a href="#tbm" class="index-link py-2 px-4 rounded-full text-sm">TBM</a>
+                    <a href="#avatarin" class="index-link py-2 px-4 rounded-full text-sm">avatarin</a>
+                    <a href="#toregem" class="index-link py-2 px-4 rounded-full text-sm">Toregem</a>
+                    <a href="#telexistence" class="index-link py-2 px-4 rounded-full text-sm">Telexistence</a>
+                    <a href="#gitai" class="index-link py-2 px-4 rounded-full text-sm">GITAI</a>
+                </div>
+            </div>
+
+            <!-- 海外ベンチャー -->
+            <section class="mb-16">
+                <h2 class="text-3xl md:text-4xl font-bold text-white border-b-2 border-indigo-500 pb-3 mb-8">海外の挑戦者たち</h2>
+                <div class="space-y-12">
+                    <article id="colossal" class="glass-card overflow-hidden p-6 md:p-8"><div class="flex flex-wrap items-center gap-4 mb-4"><h2 class="text-2xl md:text-3xl font-bold text-white">Colossal Biosciences</h2><span class="tag">バイオテクノロジー</span></div><h3 class="text-xl font-semibold text-indigo-400 mb-4">絶滅動物を、現代に復活させる。</h3><p class="mb-6 text-gray-300">遺伝子編集技術を駆使し、ケナガマンモスやドードー鳥といった絶滅動物を現代に"復活"させる壮大なプロジェクト。単なる見世物ではなく、彼らを再び野生に返し、破壊された生態系の回復を目指す点が核心です。</p><a href="https://colossal.com/" target="_blank" rel="noopener noreferrer" class="inline-block bg-indigo-500 text-white font-bold py-2 px-4 rounded-lg hover:bg-indigo-600 transition-colors">公式サイトを見る &rarr;</a></article>
+                    <article id="upside" class="glass-card overflow-hidden p-6 md:p-8"><div class="flex flex-wrap items-center gap-4 mb-4"><h2 class="text-2xl md:text-3xl font-bold text-white">Upside Foods</h2><span class="tag">代替食品</span></div><h3 class="text-xl font-semibold text-indigo-400 mb-4">動物を犠牲にしない、本物のお肉。</h3><p class="mb-6 text-gray-300">動物の細胞を巨大なタンクで培養し、本物の肉を作り出す「培養肉」のパイオニア。食糧問題、環境負荷、動物倫理という大きな課題を解決する可能性を秘め、SFだった技術を食卓に届けようとしています。</p><a href="https://upsidefoods.com/" target="_blank" rel="noopener noreferrer" class="inline-block bg-indigo-500 text-white font-bold py-2 px-4 rounded-lg hover:bg-indigo-600 transition-colors">公式サイトを見る &rarr;</a></article>
+                    <article id="axiom" class="glass-card overflow-hidden p-6 md:p-8"><div class="flex flex-wrap items-center gap-4 mb-4"><h2 class="text-2xl md:text-3xl font-bold text-white">Axiom Space</h2><span class="tag">宇宙開発</span></div><h3 class="text-xl font-semibold text-indigo-400 mb-4">宇宙に浮かぶ、商業用ステーションを建設する。</h3><p class="mb-6 text-gray-300">世界初の商業用宇宙ステーションを建設・運営。ISSの後継となる独立ステーションの実現を目指し、宇宙での研究、製造、観光まで、宇宙空間を新たな経済圏に変えようとする「宇宙時代の不動産業」です。</p><a href="https://www.axiomspace.com/" target="_blank" rel="noopener noreferrer" class="inline-block bg-indigo-500 text-white font-bold py-2 px-4 rounded-lg hover:bg-indigo-600 transition-colors">公式サイトを見る &rarr;</a></article>
+                    <article id="neuralink" class="glass-card overflow-hidden p-6 md:p-8"><div class="flex flex-wrap items-center gap-4 mb-4"><h2 class="text-2xl md:text-3xl font-bold text-white">Neuralink</h2><span class="tag">ブレイン・マシン・インターフェース</span></div><h3 class="text-xl font-semibold text-indigo-400 mb-4">脳とコンピューターを、直接つなぐ。</h3><p class="mb-6 text-gray-300">イーロン・マスクが率い、思考だけでデバイスを操作する技術(BMI)を開発。医療応用から始まり、将来的には人間の知能を拡張しAIと共生する未来を目指す、人類の定義を問い直す挑戦です。</p><a href="https://neuralink.com/" target="_blank" rel="noopener noreferrer" class="inline-block bg-indigo-500 text-white font-bold py-2 px-4 rounded-lg hover:bg-indigo-600 transition-colors">公式サイトを見る &rarr;</a></article>
+                    <article id="cfs" class="glass-card overflow-hidden p-6 md:p-8"><div class="flex flex-wrap items-center gap-4 mb-4"><h2 class="text-2xl md:text-3xl font-bold text-white">Commonwealth Fusion Systems</h2><span class="tag">核融合エネルギー</span></div><h3 class="text-xl font-semibold text-indigo-400 mb-4">地上に、小さな太陽を創り出す。</h3><p class="mb-6 text-gray-300">無尽蔵でクリーンな核融合発電の実現を目指すMIT発のベンチャー。強力な超電導磁石技術で小型高効率な核融合炉を開発し、気候変動問題の根本的な解決策となりうるゲームチェンジャーです。</p><a href="https://cfs.energy/" target="_blank" rel="noopener noreferrer" class="inline-block bg-indigo-500 text-white font-bold py-2 px-4 rounded-lg hover:bg-indigo-600 transition-colors">公式サイトを見る &rarr;</a></article>
+                    <article id="icon" class="glass-card overflow-hidden p-6 md:p-8"><div class="flex flex-wrap items-center gap-4 mb-4"><h2 class="text-2xl md:text-3xl font-bold text-white">ICON</h2><span class="tag">3Dプリンティング</span></div><h3 class="text-xl font-semibold text-indigo-400 mb-4">巨大3Dプリンターで、家を"印刷"する。</h3><p class="mb-6 text-gray-300">建設業界に革命を起こすべく、独自開発の巨大な3Dプリンターと特殊なコンクリート素材を用いて、住宅を高速かつ低コストで建設。災害地の仮設住宅から、月面の基地建設まで視野に入れています。</p><a href="https://www.iconbuild.com/" target="_blank" rel="noopener noreferrer" class="inline-block bg-indigo-500 text-white font-bold py-2 px-4 rounded-lg hover:bg-indigo-600 transition-colors">公式サイトを見る &rarr;</a></article>
+                    <article id="ionq" class="glass-card overflow-hidden p-6 md:p-8"><div class="flex flex-wrap items-center gap-4 mb-4"><h2 class="text-2xl md:text-3xl font-bold text-white">IonQ</h2><span class="tag">量子コンピューティング</span></div><h3 class="text-xl font-semibold text-indigo-400 mb-4">原子１つ１つを操り、究極の計算機を創る。</h3><p class="mb-6 text-gray-300">既存のコンピューターでは解決不可能な問題を解く「量子コンピューター」を開発。中でも精度の高い「イオントラップ方式」を採用し、クラウド経由でその計算能力を提供。創薬や金融の未来を根底から変える可能性を秘めています。</p><a href="https://ionq.com/" target="_blank" rel="noopener noreferrer" class="inline-block bg-indigo-500 text-white font-bold py-2 px-4 rounded-lg hover:bg-indigo-600 transition-colors">公式サイトを見る &rarr;</a></article>
+                </div>
+            </section>
+            
+            <!-- 日本ベンチャー -->
+            <section>
+                <h2 class="text-3xl md:text-4xl font-bold text-white border-b-2 border-indigo-500 pb-3 mb-8">日本の革新者たち</h2>
+                <div class="space-y-12">
+                    <article id="ispace" class="glass-card overflow-hidden p-6 md:p-8"><div class="flex flex-wrap items-center gap-4 mb-4"><h2 class="text-2xl md:text-3xl font-bold text-white">ispace</h2><span class="tag">宇宙開発 (日本)</span></div><h3 class="text-xl font-semibold text-indigo-400 mb-4">月を、地球の生活圏にする。</h3><p class="mb-6 text-gray-300">「月での生活」をビジョンに、高頻度かつ低コストの月への輸送サービス構築を目指す宇宙ベンチャー。将来的には月面の水からエネルギーを生成し供給する「宇宙インフラ」の構築を構想しています。</p><a href="https://ispace-inc.com/" target="_blank" rel="noopener noreferrer" class="inline-block bg-indigo-500 text-white font-bold py-2 px-4 rounded-lg hover:bg-indigo-600 transition-colors">公式サイトを見る &rarr;</a></article>
+                    <article id="spiber" class="glass-card overflow-hidden p-6 md:p-8"><div class="flex flex-wrap items-center gap-4 mb-4"><h2 class="text-2xl md:text-3xl font-bold text-white">Spiber</h2><span class="tag">素材科学 (日本)</span></div><h3 class="text-xl font-semibold text-indigo-400 mb-4">微生物から、クモの糸を創り出す。</h3><p class="mb-6 text-gray-300">鋼鉄より強くナイロンよりしなやかな夢の素材「クモの糸」を、微生物の発酵プロセスで人工的に量産。石油に依存しないアパレル素材など、サステナブルな社会の実現を目指す世界が注目する挑戦です。</p><a href="https://www.spiber.inc/" target="_blank" rel="noopener noreferrer" class="inline-block bg-indigo-500 text-white font-bold py-2 px-4 rounded-lg hover:bg-indigo-600 transition-colors">公式サイトを見る &rarr;</a></article>
+                    <article id="tbm" class="glass-card overflow-hidden p-6 md:p-8"><div class="flex flex-wrap items-center gap-4 mb-4"><h2 class="text-2xl md:text-3xl font-bold text-white">TBM</h2><span class="tag">新素材 (日本)</span></div><h3 class="text-xl font-semibold text-indigo-400 mb-4">石灰石から、紙やプラスチックを創る。</h3><p class="mb-6 text-gray-300">地球上に豊富な石灰石を主原料に、紙やプラスチックの代替となる新素材「LIMEX」を開発。水や木、石油資源の使用を大幅に削減し、ありふれた「石」から世界の環境問題に挑む発想の新奇性が光ります。</p><a href="https://tb-m.com/" target="_blank" rel="noopener noreferrer" class="inline-block bg-indigo-500 text-white font-bold py-2 px-4 rounded-lg hover:bg-indigo-600 transition-colors">公式サイトを見る &rarr;</a></article>
+                    <article id="avatarin" class="glass-card overflow-hidden p-6 md:p-8"><div class="flex flex-wrap items-center gap-4 mb-4"><h2 class="text-2xl md:text-3xl font-bold text-white">avatarin</h2><span class="tag">アバターロボット (日本)</span></div><h3 class="text-xl font-semibold text-indigo-400 mb-4">人類の"瞬間移動"を、実現する。</h3><p class="mb-6 text-gray-300">「ドラえもん」の"どこでもドア"のように、自分の分身となるアバターロボットを遠隔操作し、世界中のどこへでも瞬時に移動できる社会を目指すANA発のベンチャー。物理的な距離や身体的な制約を超えたコミュニケーションや体験を可能にします。</p><a href="https://avatarin.com/" target="_blank" rel="noopener noreferrer" class="inline-block bg-indigo-500 text-white font-bold py-2 px-4 rounded-lg hover:bg-indigo-600 transition-colors">公式サイトを見る &rarr;</a></article>
+                    <article id="toregem" class="glass-card overflow-hidden p-6 md:p-8"><div class="flex flex-wrap items-center gap-4 mb-4"><h2 class="text-2xl md:text-3xl font-bold text-white">Toregem BioPharma</h2><span class="tag">バイオ医薬品 (日本)</span></div><h3 class="text-xl font-semibold text-indigo-400 mb-4">歯が何度でも生える"歯生え薬"を開発。</h3><p class="mb-6 text-gray-300">失った歯が再び生えてくることを目指す、世界初の「歯の再生治療薬」を開発する京都大学発のベンチャー。歯の成長を抑制するタンパク質の働きを阻害することで、永久歯の"芽"を成長させます。多くの人が抱える悩みを解決する夢の技術です。</p><a href="https://www.toregem.co.jp/" target="_blank" rel="noopener noreferrer" class="inline-block bg-indigo-500 text-white font-bold py-2 px-4 rounded-lg hover:bg-indigo-600 transition-colors">公式サイトを見る &rarr;</a></article>
+                    <article id="telexistence" class="glass-card overflow-hidden p-6 md:p-8"><div class="flex flex-wrap items-center gap-4 mb-4"><h2 class="text-2xl md:text-3xl font-bold text-white">Telexistence</h2><span class="tag">ロボティクス (日本)</span></div><h3 class="text-xl font-semibold text-indigo-400 mb-4">コンビニで働くアバターロボット。</h3><p class="mb-6 text-gray-300">AIと遠隔操作技術を融合させ、コンビニのバックヤードで飲料を補充するロボット「TX SCARA」を開発・導入。人間がVR端末で操作することで、場所を選ばずに働くことを可能にし、深刻化する労働力不足の解消を目指す、極めて実用的なプロダクトです。</p><a href="https://tx-inc.com/" target="_blank" rel="noopener noreferrer" class="inline-block bg-indigo-500 text-white font-bold py-2 px-4 rounded-lg hover:bg-indigo-600 transition-colors">公式サイトを見る &rarr;</a></article>
+                    <article id="gitai" class="glass-card overflow-hidden p-6 md:p-8"><div class="flex flex-wrap items-center gap-4 mb-4"><h2 class="text-2xl md:text-3xl font-bold text-white">GITAI</h2><span class="tag">宇宙ロボティクス (日本)</span></div><h3 class="text-xl font-semibold text-indigo-400 mb-4">宇宙作業を代替する、汎用ロボット。</h3><p class="mb-6 text-gray-300">宇宙飛行士の作業を代替し、宇宙開発のコストと危険性を劇的に下げることを目指すベンチャー。宇宙ステーション内外での作業や月面基地建設など、多様なタスクをこなせる汎用ロボットアームや月面探査ローバーを開発。宇宙における「労働力」の提供を目指します。</p><a href="https://gitai.tech/" target="_blank" rel="noopener noreferrer" class="inline-block bg-indigo-500 text-white font-bold py-2 px-4 rounded-lg hover:bg-indigo-600 transition-colors">公式サイトを見る &rarr;</a></article>
+                </div>
+            </section>
+        </main>
+        
+        <!-- フッター -->
+        <footer class="text-center mt-16 pt-8 border-t border-gray-700">
+            <p class="text-gray-500">&copy; 2025 Future Insights. All rights reserved.</p>
+        </footer>
+    </div>
+
+    <script>
+        const speakerBtn = document.getElementById('speaker-btn');
+        const playIcon = document.getElementById('play-icon');
+        const stopIcon = document.getElementById('stop-icon');
+        const contentToRead = document.getElementById('content-to-read');
+        let isSpeaking = false;
+        if ('speechSynthesis' in window) {
+            const synth = window.speechSynthesis;
+            let utterance;
+            window.addEventListener('beforeunload', () => { synth.cancel(); });
+            speakerBtn.addEventListener('click', () => {
+                if (!isSpeaking) {
+                    const elements = contentToRead.querySelectorAll('p, h2, h3');
+                    let textToSpeak = '未来を創る奇才たち。世界の、新奇な、ベンチャー最前線。';
+                    elements.forEach(el => { textToSpeak += el.textContent + '。 '; });
+                    utterance = new SpeechSynthesisUtterance(textToSpeak);
+                    utterance.lang = 'ja-JP';
+                    utterance.pitch = 1;
+                    utterance.rate = 1.1;
+                    utterance.onstart = () => {
+                        isSpeaking = true;
+                        playIcon.classList.add('hidden');
+                        stopIcon.classList.remove('hidden');
+                    };
+                    utterance.onend = () => {
+                        isSpeaking = false;
+                        playIcon.classList.remove('hidden');
+                        stopIcon.classList.add('hidden');
+                    };
+                    synth.speak(utterance);
+                } else {
+                    synth.cancel();
+                    isSpeaking = false;
+                    playIcon.classList.remove('hidden');
+                    stopIcon.classList.add('hidden');
+                }
+            });
+        } else {
+            speakerBtn.style.display = 'none';
+        }
+    </script>
+</body>
+</html>
+
