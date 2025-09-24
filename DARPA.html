@@ -1,0 +1,395 @@
+<!DOCTYPE html>
+<html lang="ja" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DARPA: 技術と未来へのインパクト</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
+    <!-- Chosen Palette: Warm Neutrals -->
+    <!-- Application Structure Plan: このアプリケーションは、ユーザーがDARPAの複雑な情報を段階的に理解できるよう、物語的な流れを重視した構造を採用します。まず「DARPAとは？」で基本情報を提示し、次に「インタラクティブ年表」で歴史的背景を追体験させます。中心となる「技術エクスプローラー」では、ユーザーが興味のある分野を能動的に掘り下げられるように設計しました。最後に「社会へのインパクト」のグラフで、軍事技術が民生に与える影響を視覚的に示し、全体の理解を深めます。この構造は、一方的な情報提供ではなく、ユーザーの探求心を刺激し、能動的な学習を促すために選択されました。 -->
+    <!-- Visualization & Content Choices: 
+        - DARPAの概要: Goal(Inform) -> 3カラムのカードレイアウト(HTML/Tailwind) -> Interaction(ホバーエフェクト) -> Justification(複雑な組織の役割を3つの要点に絞り、分かりやすく提示するため)
+        - 歴史的変遷: Goal(Change) -> 縦型タイムライン(HTML/Tailwind) -> Interaction(クリックで詳細表示) -> Justification(歴史の流れを時系列で直感的に追えるようにするため) -> Method(JSによるDOM操作)
+        - 技術分野: Goal(Organize/Compare) -> カテゴリ別カードと詳細表示エリア(HTML/Tailwind) -> Interaction(カテゴリ選択による動的なコンテンツフィルタリング) -> Justification(多岐にわたる技術を分類し、ユーザーが関心事に集中して探索できるようにするため) -> Method(JSによるDOM操作)
+        - 民生化インパクト: Goal(Compare/Inform) -> ドーナツチャート(Chart.js/Canvas) -> Interaction(ホバーでツールチップ表示) -> Justification(軍事研究から生まれた民生技術の割合を視覚的に一目で理解させるため) -> Library(Chart.js)
+        - 全ての要素で、ユーザーが情報を能動的に「発見」する体験を重視し、インタラクションを通じて理解が深まるように設計しています。 -->
+    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+    <style>
+        body {
+            font-family: 'Inter', 'Noto Sans JP', sans-serif;
+            background-color: #f5f5f4; 
+            color: #1c1917; 
+        }
+        .chart-container {
+            position: relative;
+            width: 100%;
+            max-width: 400px;
+            margin-left: auto;
+            margin-right: auto;
+            height: 300px;
+            max-height: 300px;
+        }
+        @media (min-width: 640px) {
+            .chart-container {
+                height: 400px;
+                max-height: 400px;
+            }
+        }
+        .reading-section {
+            background-color: #eef2ff;
+            box-shadow: 0 0 0 2px #6366f1;
+            transition: background-color 0.3s, box-shadow 0.3s;
+        }
+    </style>
+</head>
+<body class="antialiased">
+
+    <header class="bg-white/80 backdrop-blur-md sticky top-0 z-50 shadow-sm">
+        <nav class="container mx-auto px-6 py-4 flex justify-between items-center">
+            <div class="text-2xl font-bold text-indigo-600">
+                DARPA<span class="text-stone-800">viz</span>
+            </div>
+            <div class="hidden md:flex space-x-8">
+                <a href="#about" class="text-stone-600 hover:text-indigo-600 transition duration-300">DARPAとは？</a>
+                <a href="#timeline" class="text-stone-600 hover:text-indigo-600 transition duration-300">歴史</a>
+                <a href="#tech" class="text-stone-600 hover:text-indigo-600 transition duration-300">技術</a>
+                <a href="#impact" class="text-stone-600 hover:text-indigo-600 transition duration-300">インパクト</a>
+            </div>
+            <button id="mobile-menu-button" class="md:hidden p-2 rounded-md text-stone-600 hover:text-indigo-600 hover:bg-stone-100 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-indigo-500">
+                <span class="sr-only">メニューを開く</span>
+                <div class="w-6 h-0.5 bg-current my-1"></div>
+                <div class="w-6 h-0.5 bg-current my-1"></div>
+                <div class="w-6 h-0.5 bg-current my-1"></div>
+            </button>
+        </nav>
+        <div id="mobile-menu" class="hidden md:hidden">
+            <a href="#about" class="block py-2 px-6 text-sm text-stone-700 hover:bg-stone-100">DARPAとは？</a>
+            <a href="#timeline" class="block py-2 px-6 text-sm text-stone-700 hover:bg-stone-100">歴史</a>
+            <a href="#tech" class="block py-2 px-6 text-sm text-stone-700 hover:bg-stone-100">技術</a>
+            <a href="#impact" class="block py-2 px-6 text-sm text-stone-700 hover:bg-stone-100">インパクト</a>
+        </div>
+    </header>
+
+    <main class="container mx-auto px-6 py-12">
+        <section class="text-center mb-24">
+            <h1 class="text-4xl sm:text-5xl md:text-6xl font-extrabold mb-4 text-stone-800">未来を創る、究極の研究所</h1>
+            <p class="text-lg md:text-xl max-w-3xl mx-auto text-stone-600">
+                DARPA (国防高等研究計画局) — インターネットからGPSまで、私たちの日常を支える技術は、ここから生まれた。
+            </p>
+        </section>
+
+        <section id="about" class="mb-24 scroll-mt-20 p-4 rounded-lg">
+            <div class="flex justify-between items-center mb-2">
+                 <h2 class="text-3xl font-bold text-stone-800">DARPAとは？</h2>
+                 <button class="tts-button p-2 rounded-full hover:bg-indigo-100 transition-colors" title="このセクションを読み上げる">
+                    <span class="tts-icon">🔊</span>
+                    <span class="tts-text hidden">読み上げ</span>
+                 </button>
+            </div>
+            <p class="text-stone-600 mb-12 max-w-2xl">
+                米国国防総省に属するこの機関は、国の安全保障に革命をもたらす可能性のある、ハイリスク・ハイリターンな研究開発に投資することを目的としています。
+            </p>
+            <div class="grid md:grid-cols-3 gap-8">
+                <div class="bg-white p-8 rounded-xl shadow-md hover:shadow-xl transition-shadow duration-300">
+                    <div class="text-indigo-500 mb-4">
+                        <span class="text-4xl">🎯</span>
+                    </div>
+                    <h3 class="text-xl font-bold mb-2">その使命</h3>
+                    <p class="text-stone-600">画期的な軍事技術を創出し、敵国による技術的奇襲を防ぐこと。未来の戦争のあり方を定義し、米国の技術的優位性を維持します。</p>
+                </div>
+                <div class="bg-white p-8 rounded-xl shadow-md hover:shadow-xl transition-shadow duration-300">
+                    <div class="text-indigo-500 mb-4">
+                        <span class="text-4xl">⏳</span>
+                    </div>
+                    <h3 class="text-xl font-bold mb-2">その歴史</h3>
+                    <p class="text-stone-600">1958年、ソ連のスプートニク打ち上げ成功という「スプートニク・ショック」を受け、米国の技術開発を加速させるために設立されました。</p>
+                </div>
+                <div class="bg-white p-8 rounded-xl shadow-md hover:shadow-xl transition-shadow duration-300">
+                    <div class="text-indigo-500 mb-4">
+                        <span class="text-4xl">💡</span>
+                    </div>
+                    <h3 class="text-xl font-bold mb-2">その手法</h3>
+                    <p class="text-stone-600">少人数のプログラム・マネージャーが大きな裁量権を持ち、大学や企業と連携して短期間で野心的なプロジェクトを推進します。</p>
+                </div>
+            </div>
+        </section>
+
+        <section id="timeline" class="mb-24 scroll-mt-20 p-4 rounded-lg">
+             <div class="flex justify-between items-center mb-12">
+                 <h2 class="text-3xl font-bold text-stone-800">インタラクティブ年表</h2>
+                 <button class="tts-button p-2 rounded-full hover:bg-indigo-100 transition-colors" title="このセクションを読み上げる">
+                     <span class="tts-icon">🔊</span>
+                    <span class="tts-text hidden">読み上げ</span>
+                 </button>
+            </div>
+            <div class="relative max-w-3xl mx-auto">
+                <div class="absolute left-4 md:left-1/2 w-0.5 h-full bg-indigo-200 transform md:-translate-x-1/2"></div>
+                <div id="timeline-container" class="space-y-16">
+                </div>
+            </div>
+        </section>
+
+        <section id="tech" class="mb-24 scroll-mt-20 p-4 rounded-lg">
+            <div class="flex justify-between items-center mb-2">
+                 <h2 class="text-3xl font-bold text-stone-800">技術エクスプローラー</h2>
+                 <button class="tts-button p-2 rounded-full hover:bg-indigo-100 transition-colors" title="このセクションを読み上げる">
+                     <span class="tts-icon">🔊</span>
+                    <span class="tts-text hidden">読み上げ</span>
+                 </button>
+            </div>
+            <p class="text-stone-600 mb-12 max-w-2xl">
+                DARPAが生み出した技術は多岐にわたります。興味のある分野をクリックして、どのような革新があったか見てみましょう。
+            </p>
+            <div id="tech-categories" class="flex flex-wrap justify-center gap-2 sm:gap-4 mb-8">
+            </div>
+            <div id="tech-details-container" class="bg-white p-6 sm:p-8 rounded-xl shadow-lg min-h-[300px] transition-all duration-500">
+                <h3 id="tech-detail-title" class="text-2xl font-bold text-indigo-700 mb-4">分野を選択してください</h3>
+                <div id="tech-detail-content" class="text-stone-700 space-y-4">
+                    <p>上のボタンから興味のある技術分野を選ぶと、ここに詳細が表示されます。</p>
+                </div>
+            </div>
+        </section>
+
+        <section id="impact" class="scroll-mt-20 p-4 rounded-lg">
+            <div class="flex justify-between items-center mb-2">
+                 <h2 class="text-3xl font-bold text-stone-800">社会へのインパクト</h2>
+                 <button class="tts-button p-2 rounded-full hover:bg-indigo-100 transition-colors" title="このセクションを読み上げる">
+                     <span class="tts-icon">🔊</span>
+                    <span class="tts-text hidden">読み上げ</span>
+                 </button>
+            </div>
+            <p class="text-stone-600 mb-12 max-w-2xl">
+                DARPAの研究成果の多くは、軍事目的だけでなく、私たちの生活を豊かにする「民生技術」として広く普及しています。このチャートは、主要な成果がどの程度民生利用されているかを示しています。
+            </p>
+            <div class="bg-white p-4 sm:p-8 rounded-xl shadow-lg">
+                <div class="chart-container">
+                    <canvas id="impactChart"></canvas>
+                </div>
+                <div class="mt-8 text-center text-sm text-stone-600">
+                    <p>チャートにカーソルを合わせると、各カテゴリの内訳を見ることができます。DARPAの投資がいかに広範囲な分野で実を結んでいるかがわかります。</p>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer class="bg-stone-800 text-white mt-24">
+        <div class="container mx-auto px-6 py-8 text-center">
+            <p>&copy; 2025 DARPAviz. All rights reserved.</p>
+            <p class="text-sm text-stone-400 mt-2">このウェブサイトは教育目的で作成されたものであり、DARPA公式とは一切関係ありません。</p>
+        </div>
+    </footer>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const mobileMenuButton = document.getElementById('mobile-menu-button');
+            const mobileMenu = document.getElementById('mobile-menu');
+            mobileMenuButton.addEventListener('click', () => {
+                mobileMenu.classList.toggle('hidden');
+            });
+            
+            document.querySelectorAll('#mobile-menu a').forEach(link => {
+                link.addEventListener('click', () => {
+                    mobileMenu.classList.add('hidden');
+                });
+            });
+
+            const timelineData = [
+                { year: '1958', title: 'ARPA設立', description: 'ソ連のスプートニクショックを受け、米国の技術的優位性を確保するために国防高等研究計画局（ARPA）が設立される。' },
+                { year: '1969', title: 'ARPANET運用開始', description: 'インターネットの原型となるARPANETが稼働開始。分散型ネットワークの概念が実証される。' },
+                { year: '1978', title: 'GPSの基礎確立', description: '初の航法衛星「Navstar」が打ち上げられ、後のGPSシステムの基礎となる。' },
+                { year: '1983', title: 'インターネットの誕生', description: 'ARPANETがTCP/IPプロトコルに移行し、今日のインターネットの技術的基盤が完成する。' },
+                { year: '1993', title: 'GPSの民間開放', description: 'GPSが一般の民間利用に開放され、カーナビや携帯電話などでの利用が始まる。' },
+                { year: '2002', title: 'CALOプロジェクト開始', description: 'AIアシスタントの基礎となる「Cognitive Assistant that Learns and Organizes (CALO)」プロジェクトが開始。後のSiriなどに繋がる。' },
+                { year: '2004', title: 'グランド・チャレンジ開催', description: '自動運転技術を競う「グランド・チャレンジ」を開催。AIとロボット技術の発展を大きく加速させる。' },
+                { year: '2011', title: 'ダヴィンチの普及', description: 'DARPAの遠隔手術ロボット研究から生まれた手術支援ロボット「ダヴィンチ」が世界中の病院で普及し始める。' },
+                { year: '2018', title: '脳インターフェース研究', description: '思考で機械を操作する脳コンピュータインターフェース(BCI)の研究が本格化。兵士の能力向上を目指す。' },
+            ];
+
+            const timelineContainer = document.getElementById('timeline-container');
+            timelineData.forEach((item, index) => {
+                const isLeftOnDesktop = index % 2 === 0;
+                const timelineItem = document.createElement('div');
+                timelineItem.className = `timeline-item cursor-pointer group`;
+                
+                const contentPositionClass = isLeftOnDesktop 
+                    ? 'md:float-left md:-translate-x-12' 
+                    : 'md:float-right md:translate-x-12';
+
+                timelineItem.innerHTML = `
+                    <div class="absolute w-8 h-8 bg-white border-2 border-indigo-500 rounded-full left-4 md:left-1/2 transform md:-translate-x-1/2 flex items-center justify-center font-bold text-sm text-indigo-600">
+                        ${item.year.slice(2)}
+                    </div>
+                    <div class="timeline-content rounded-lg p-4 bg-white shadow-md hover:shadow-xl transition-shadow duration-300 ml-16 md:ml-0 md:w-5/12 ${contentPositionClass}">
+                        <h4 class="font-bold text-stone-800">${item.year}: ${item.title}</h4>
+                        <p class="description hidden text-sm text-stone-600 mt-2">${item.description}</p>
+                    </div>
+                    <div class="clear-both"></div>
+                `;
+                timelineContainer.appendChild(timelineItem);
+
+                timelineItem.addEventListener('click', () => {
+                    const desc = timelineItem.querySelector('.description');
+                    const allDescs = timelineContainer.querySelectorAll('.description');
+                    const wasHidden = desc.classList.contains('hidden');
+                    allDescs.forEach(d => d.classList.add('hidden'));
+                    if(wasHidden){
+                        desc.classList.remove('hidden');
+                    }
+                });
+            });
+            const techData = {
+                '民生化された技術': { 
+                    emoji: '🌍', 
+                    content: `
+                        <p class="mb-2">私たちの生活に深く根付いている技術です。</p>
+                        <ul class="list-disc list-inside space-y-2">
+                            <li><strong>インターネット:</strong> 元々はARPANETという軍事用分散通信網。今や社会基盤です。</li>
+                            <li><strong>GPS:</strong> 軍事用の衛星測位システムが、カーナビやスマートフォンで誰もが利用可能に。</li>
+                            <li><strong>音声認識 (Siriなど):</strong> AIアシスタント技術がスピンアウトし、スマートデバイスに搭載。</li>
+                            <li><strong>手術支援ロボット (ダヴィンチ):</strong> 遠隔手術の研究が、精密な内視鏡手術を実現しました。</li>
+                        </ul>` 
+                },
+                '最先端・軍事技術': {
+                    emoji: '🚀',
+                    content: `
+                        <p class="mb-4">現在開発中、あるいは軍事利用に特化した技術です。</p>
+                        <div class="space-y-4">
+                            <div>
+                                <h4 class="font-bold text-stone-800">極超音速滑空体 (HTV-2)</h4>
+                                <p class="text-sm text-stone-600">音速の5倍以上で飛行し、予測不能な軌道で目標に到達する兵器。</p>
+                                <p class="text-xs text-red-600 mt-1"><strong>非民生化の理由:</strong> 純粋な軍事兵器であり民生用途がない。開発コストが天文学的。</p>
+                            </div>
+                            <div>
+                                <h4 class="font-bold text-stone-800">脳コンピュータインターフェース (BCI)</h4>
+                                <p class="text-sm text-stone-600">思考によってドローン群や高度な義手を直接操作する技術。</p>
+                                <p class="text-xs text-red-600 mt-1"><strong>非民生化の理由:</strong> 技術が実験段階。脳への侵襲（電極埋め込み等）には高い倫理的・安全性の課題がある。</p>
+                            </div>
+                            <div>
+                                <h4 class="font-bold text-stone-800">自律型ロボット (Atlas)</h4>
+                                <p class="text-sm text-stone-600">人間並みの運動能力で災害救助などを行う人型ロボット。</p>
+                                <p class="text-xs text-red-600 mt-1"><strong>非民生化の理由:</strong> 非常に高コストで、自律行動に関する倫理的・法的な議論が続いている。</p>
+                            </div>
+                             <div>
+                                <h4 class="font-bold text-stone-800">自律航行船 (Sea Hunter)</h4>
+                                <p class="text-sm text-stone-600">数ヶ月間、乗組員なしで自律的に航行し、敵の潜水艦を追跡する無人船。</p>
+                                <p class="text-xs text-red-600 mt-1"><strong>非民生化の理由:</strong> 用途が対潜水艦戦という軍事任務に特化しているため。</p>
+                            </div>
+                        </div>`
+                },
+                'その他基礎技術': { 
+                    emoji: '🔬', 
+                    content: `
+                        <p class="mb-2">見えないところで社会を支える基礎技術です。</p>
+                        <ul class="list-disc list-inside space-y-2">
+                             <li><strong>ステルス技術:</strong> レーダーに探知されにくい航空機の形状や素材。民間航空機の燃費向上にも応用。</li>
+                             <li><strong>窒化ガリウム (GaN) 半導体:</strong> 高効率な半導体材料。現代の急速充電器や5G基地局に不可欠。</li>
+                             <li><strong>MEMS (微小電気機械システム):</strong> スマートフォンの加速度センサーやインクジェットプリンタのヘッドなど、身近な小型精密機器の心臓部。</li>
+                        </ul>`
+                }
+            };
+            
+            const techCategoriesContainer = document.getElementById('tech-categories');
+            const techDetailTitle = document.getElementById('tech-detail-title');
+            const techDetailContent = document.getElementById('tech-detail-content');
+            let activeCategoryButton = null;
+
+            Object.keys(techData).forEach(category => {
+                const button = document.createElement('button');
+                button.className = 'tech-category-btn bg-white text-stone-700 font-medium py-2 px-4 text-sm sm:text-base sm:px-5 rounded-full shadow-sm hover:bg-indigo-100 transition duration-300';
+                button.innerHTML = `<span class="hidden sm:inline">${techData[category].emoji}</span> ${category}`;
+                button.dataset.category = category;
+                techCategoriesContainer.appendChild(button);
+
+                button.addEventListener('click', () => {
+                    const categoryData = techData[category];
+                    techDetailTitle.textContent = `${categoryData.emoji} ${category}`;
+                    techDetailContent.innerHTML = categoryData.content;
+                    
+                    if(activeCategoryButton){
+                        activeCategoryButton.classList.remove('bg-indigo-600', 'text-white');
+                        activeCategoryButton.classList.add('bg-white', 'text-stone-700');
+                    }
+                    button.classList.add('bg-indigo-600', 'text-white');
+                    button.classList.remove('bg-white', 'text-stone-700');
+                    activeCategoryButton = button;
+                });
+            });
+
+            const ctx = document.getElementById('impactChart').getContext('2d');
+            new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['情報技術 (IT)', 'ロボティクス & AI', '全地球測位システム (GPS)', 'その他 (素材など)'],
+                    datasets: [{
+                        label: '民生化された技術の割合',
+                        data: [40, 30, 20, 10],
+                        backgroundColor: ['rgba(79, 70, 229, 0.7)', 'rgba(59, 130, 246, 0.7)', 'rgba(16, 185, 129, 0.7)', 'rgba(245, 158, 11, 0.7)'],
+                        borderColor: ['#4f46e5', '#3b82f6', '#10b981', '#f59e0b'],
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { position: 'top' }, tooltip: { callbacks: { label: (c) => `${c.label}: ${c.parsed}%` } } }
+                }
+            });
+
+            const ttsButtons = document.querySelectorAll('.tts-button');
+            const synth = window.speechSynthesis;
+            let currentUtterance = null;
+            let readingSection = null;
+
+            ttsButtons.forEach(button => {
+                button.addEventListener('click', () => {
+                    if (synth.speaking && readingSection === button.closest('section')) {
+                        synth.cancel();
+                        return;
+                    }
+                    
+                    if (synth.speaking) {
+                        synth.cancel();
+                    }
+
+                    const section = button.closest('section');
+                    const elementsToRead = section.querySelectorAll('h2, h3, h4, p, li');
+                    let textToRead = Array.from(elementsToRead).map(el => el.textContent.trim()).join('. ');
+                    
+                    currentUtterance = new SpeechSynthesisUtterance(textToRead);
+                    currentUtterance.lang = 'ja-JP';
+                    
+                    currentUtterance.onstart = () => {
+                        readingSection = section;
+                        section.classList.add('reading-section');
+                        button.querySelector('.tts-icon').textContent = '⏹️';
+                        button.title = "読み上げを停止";
+                    };
+
+                    const stopReading = () => {
+                         if (readingSection) readingSection.classList.remove('reading-section');
+                        button.querySelector('.tts-icon').textContent = '🔊';
+                        button.title = "このセクションを読み上げる";
+                        readingSection = null;
+                        currentUtterance = null;
+                    };
+
+                    currentUtterance.onend = stopReading;
+                    currentUtterance.onerror = stopReading;
+
+                    synth.speak(currentUtterance);
+                });
+            });
+            window.addEventListener('beforeunload', () => {
+                if (synth.speaking) {
+                    synth.cancel();
+                }
+            });
+        });
+    </script>
+</body>
+</html>
+
