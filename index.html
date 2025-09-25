@@ -23,7 +23,6 @@
 
         body {
             margin: 0;
-            /* 英字にInter、日本語にNoto Sans JPを適用 */
             font-family: 'Inter', 'Noto Sans JP', sans-serif;
             color: var(--text-primary);
             background-image: linear-gradient(180deg, var(--bg-gradient-start) 0%, var(--bg-gradient-end) 40%);
@@ -46,7 +45,7 @@
         }
 
         h1 {
-            font-size: clamp(2rem, 5vw, 2.5rem); /* レスポンシブなフォントサイズ */
+            font-size: clamp(2rem, 5vw, 2.5rem);
             margin: 0 0 10px 0;
             color: var(--text-primary);
             letter-spacing: -0.5px;
@@ -59,27 +58,69 @@
             margin: 0;
         }
 
-        ul {
+        .main-list {
             list-style: none;
             padding: 0;
         }
 
-        li {
+        .main-list > li {
             margin-bottom: 16px;
         }
 
-        .section-header {
+        /* --- ここからアコーディオンのためのスタイル --- */
+        .collapsible {
+            background-color: transparent;
+            border: none;
+            width: 100%;
+            text-align: left;
+            cursor: pointer;
             color: var(--text-secondary);
-            margin-top: 45px;
             margin-bottom: 12px;
-            padding-left: 10px;
+            padding: 10px;
             font-size: 0.9rem;
             font-weight: 600;
             letter-spacing: 0.5px;
             text-transform: uppercase;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-radius: 8px;
+            transition: background-color 0.2s ease;
+        }
+        .collapsible:hover {
+            background-color: #f1f5f9;
         }
 
-        a {
+        .collapsible::after {
+            content: '+'; /* 初期状態はプラス */
+            font-size: 1.4rem;
+            font-weight: 400;
+            color: var(--accent-color);
+        }
+
+        .collapsible.active::after {
+            content: '−'; /* 開いた状態はマイナス */
+        }
+        
+        .content {
+            padding: 0;
+            overflow: hidden;
+            max-height: 0; /* JSで高さを変更してアニメーション */
+            transition: max-height 0.3s ease-out;
+            background-color: transparent;
+        }
+
+        .content ul {
+            list-style: none;
+            padding: 0;
+            margin: 0 0 16px 10px; /* 少しインデント */
+        }
+        .content li {
+            margin-bottom: 12px;
+        }
+        /* --- ここまで --- */
+
+        a.link-item {
             display: flex;
             align-items: center;
             padding: 22px 28px;
@@ -96,7 +137,7 @@
                         border-color 0.2s ease;
         }
 
-        a:hover {
+        a.link-item:hover {
             transform: translateY(-4px);
             border-color: var(--accent-color);
             background-color: var(--card-hover-bg);
@@ -120,30 +161,80 @@
             <p>Team Resources & Documents</p>
         </header>
 
-        <ul>
-            <li><a href="チームチャーター.html">チームチャーター</a></li>
+        <ul class="main-list">
+            <li><a href="チームチャーター.html" class="link-item">チームチャーター</a></li>
 
-            <li class="section-header">Day1,2 宿題</li>
-            <li><a href="yojigen-sangyo.html">四次元産業を知ろう！</a></li>
-            <li><a href="Frontier Ventures 2025.html">新奇性が感じられるベンチャー</a></li>
-            <li><a href="大企業の新規事業開発.html">日本の大企業の新規事業開発</a></li>
-            <li><a href="日本のネクストユニコン.html">日本のネクストユニコーン</a></li>
-            <li><a href="DARPA.html">DARPAの技術</a></li>
-            <li class="section-header">プロダクト</li>
-            <li><a href="ワークショップ.html">プロダクトアイデアのコツ</a></li>
-            <li><a href="product_evaluation.html">プロダクトアイデア評価シート</a></li>
+            <li>
+                <button type="button" class="collapsible">Day1,2 宿題</button>
+                <div class="content">
+                    <ul>
+                        <li><a href="yojigen-sangyo.html" class="link-item">四次元産業を知ろう！</a></li>
+                        <li><a href="Frontier Ventures 2025.html" class="link-item">新奇性が感じられるベンチャー</a></li>
+                        <li><a href="大企業の新規事業開発.html" class="link-item">日本の大企業の新規事業開発</a></li>
+                        <li><a href="日本のネクストユニコン.html" class="link-item">日本のネクストユニコーン</a></li>
+                        <li><a href="DARPA.html" class="link-item">DARPAの技術</a></li>
+                    </ul>
+                </div>
+            </li>
+
+            <li>
+                <button type="button" class="collapsible">プロダクト</button>
+                <div class="content">
+                    <ul>
+                        <li><a href="ワークショップ.html" class="link-item">プロダクトアイデアのコツ</a></li>
+                        <li><a href="product_evaluation.html" class="link-item">プロダクトアイデア評価シート</a></li>
+                    </ul>
+                </div>
+            </li>
             
-            <li class="section-header">山形</li>
-            <li><a href="10.4土 アクティビティ.html">10.4土 アクティビティ</a></li>
-            <li class="section-header">Day3,4予習</li>
-            <li><a href="2035Disrup.html">2035年Sony（SCK)のXX事業やビジネスモデルをDisrupする連中が出現！それは？</a></li>
-            <li class="section-header">準備中</li>
-            <li><a href="shinkisei.html">新奇性</a></li>
-            <li><a href="ソニー：イノベーションの軌跡.html">ソニーのプロダクト歴史</a></li>
+            <li>
+                <button type="button" class="collapsible">山形</button>
+                <div class="content">
+                    <ul>
+                        <li><a href="10.4土 アクティビティ.html" class="link-item">10.4土 アクティビティ</a></li>
+                    </ul>
+                </div>
+            </li>
+            
+            <li>
+                <button type="button" class="collapsible">Day3,4予習</button>
+                <div class="content">
+                    <ul>
+                        <li><a href="2035Disrup.html" class="link-item">2035年Sony（SCK)のXX事業やビジネスモデルをDisrupする連中が出現！それは？</a></li>
+                    </ul>
+                </div>
+            </li>
+
+            <li>
+                <button type="button" class="collapsible">準備中</button>
+                <div class="content">
+                    <ul>
+                        <li><a href="shinkisei.html" class="link-item">新奇性</a></li>
+                        <li><a href="ソニー：イノベーションの軌跡.html" class="link-item">ソニーのプロダクト歴史</a></li>
+                    </ul>
+                </div>
+            </li>
         </ul>
     </div>
 
     <footer>© 2025 Next Leaders 6</footer>
+
+    <script>
+        // --- アコーディオン機能のためのJavaScript ---
+        const collapsibles = document.querySelectorAll(".collapsible");
+
+        collapsibles.forEach(item => {
+            item.addEventListener("click", function () {
+                this.classList.toggle("active");
+                const content = this.nextElementSibling;
+                if (content.style.maxHeight) {
+                    content.style.maxHeight = null;
+                } else {
+                    content.style.maxHeight = content.scrollHeight + "px";
+                } 
+            });
+        });
+    </script>
 
 </body>
 </html>
