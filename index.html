@@ -9,14 +9,13 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
     <style>
         :root {
-            /* 清々しくスタイリッシュなカラーパレット */
-            --bg-gradient-start: #f0f9ff; /* 空のような薄い青 */
+            --bg-gradient-start: #f0f9ff;
             --bg-gradient-end: #ffffff;
             --card-bg: #ffffff;
             --card-hover-bg: #f8fafc;
-            --text-primary: #1e293b; /* 可読性の高いダークブルーグレー */
+            --text-primary: #1e293b;
             --text-secondary: #64748b;
-            --accent-color: #3b82f6; /* 爽やかなブルー */
+            --accent-color: #3b82f6;
             --border-color: #e2e8f0;
             --shadow-color: rgba(0, 0, 0, 0.05);
         }
@@ -41,15 +40,12 @@
 
         header {
             text-align: center;
-            margin-bottom: 50px;
+            margin-bottom: 40px;
         }
 
         h1 {
             font-size: clamp(2rem, 5vw, 2.5rem);
             margin: 0 0 10px 0;
-            color: var(--text-primary);
-            letter-spacing: -0.5px;
-            font-weight: 700;
         }
         
         header p {
@@ -58,16 +54,51 @@
             margin: 0;
         }
 
-        .main-list {
+        /* --- 操作エリア --- */
+        .controls {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+        }
+        #search-box {
+            flex-grow: 1;
+            padding: 12px 16px;
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+            font-size: 1rem;
+            font-family: inherit;
+        }
+        .control-btn {
+            padding: 10px 16px;
+            font-size: 0.9rem;
+            font-weight: 500;
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+            background-color: var(--card-bg);
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+        .control-btn:hover {
+            background-color: #f1f5f9;
+        }
+
+        /* --- リスト共通 --- */
+        .main-list, .quick-links-list {
             list-style: none;
             padding: 0;
         }
-
-        .main-list > li {
-            margin-bottom: 16px;
+        .section-header {
+             color: var(--text-primary);
+             font-weight: 600;
+             font-size: 1.2rem;
+             margin-top: 30px;
+             margin-bottom: 15px;
+             padding-bottom: 8px;
+             border-bottom: 2px solid var(--border-color);
         }
 
-        /* --- ここからアコーディオンのためのスタイル --- */
+        /* --- アコーディオン --- */
         .collapsible {
             background-color: transparent;
             border: none;
@@ -90,38 +121,22 @@
         .collapsible:hover {
             background-color: #f1f5f9;
         }
-
         .collapsible::after {
-            content: '+'; /* 初期状態はプラス */
-            font-size: 1.4rem;
-            font-weight: 400;
-            color: var(--accent-color);
+            content: '+'; font-size: 1.4rem; font-weight: 400; color: var(--accent-color);
         }
-
-        .collapsible.active::after {
-            content: '−'; /* 開いた状態はマイナス */
-        }
+        .collapsible.active::after { content: '−'; }
         
         .content {
-            padding: 0;
-            overflow: hidden;
-            max-height: 0; /* JSで高さを変更してアニメーション */
+            padding: 0; overflow: hidden; max-height: 0;
             transition: max-height 0.3s ease-out;
-            background-color: transparent;
         }
+        .content ul { list-style: none; padding: 0; margin: 0 0 16px 10px; }
+        .content li, .quick-links-list li { margin-bottom: 12px; }
 
-        .content ul {
-            list-style: none;
-            padding: 0;
-            margin: 0 0 16px 10px; /* 少しインデント */
-        }
-        .content li {
-            margin-bottom: 12px;
-        }
-        /* --- ここまで --- */
-
+        /* --- リンク項目 --- */
         a.link-item {
             display: flex;
+            justify-content: space-between; /* 両端揃えに変更 */
             align-items: center;
             padding: 22px 28px;
             background-color: var(--card-bg);
@@ -132,24 +147,26 @@
             color: var(--text-primary);
             font-weight: 500;
             font-size: 1.05em;
-            transition: transform 0.2s cubic-bezier(0.25, 0.46, 0.45, 0.94), 
-                        box-shadow 0.2s cubic-bezier(0.25, 0.46, 0.45, 0.94), 
-                        border-color 0.2s ease;
+            transition: all 0.2s ease;
         }
-
         a.link-item:hover {
             transform: translateY(-4px);
             border-color: var(--accent-color);
             background-color: var(--card-hover-bg);
             box-shadow: 0 8px 20px rgba(0, 0, 0, 0.07);
         }
-        
-        footer {
-            margin-top: auto;
-            padding-top: 50px;
-            font-size: 0.9em;
+        .update-date {
+            font-size: 0.8em;
             color: var(--text-secondary);
-            text-align: center;
+            font-weight: 400;
+            white-space: nowrap; /* 日付が改行しないように */
+            margin-left: 16px; /* タイトルとの間隔 */
+        }
+        .hidden { display: none !important; }
+
+        footer {
+            margin-top: auto; padding-top: 50px; font-size: 0.9em;
+            color: var(--text-secondary); text-align: center;
         }
     </style>
 </head>
@@ -161,56 +178,69 @@
             <p>Team Resources & Documents</p>
         </header>
 
-        <ul class="main-list">
-            <li><a href="チームチャーター.html" class="link-item">チームチャーター</a></li>
+        <div class="controls">
+            <input type="text" id="search-box" placeholder="キーワードで資料を検索...">
+            <button id="expand-all" class="control-btn">すべて開く</button>
+            <button id="collapse-all" class="control-btn">すべて閉じる</button>
+        </div>
 
-            <li>
+        <div class="quick-links-section">
+            <h2 class="section-header">🚀 クイックリンク</h2>
+            <ul class="quick-links-list">
+                <li>
+                    <a href="チームチャーター.html" class="link-item">
+                        <span>チームチャーター</span>
+                        <span class="update-date">更新日: 2025/09/25</span>
+                    </a>
+                </li>
+            </ul>
+        </div>
+        
+        <h2 class="section-header">📚 すべての資料</h2>
+        <ul class="main-list">
+            <li class="collapsible-item">
                 <button type="button" class="collapsible">Day1,2 宿題</button>
                 <div class="content">
                     <ul>
-                        <li><a href="yojigen-sangyo.html" class="link-item">四次元産業を知ろう！</a></li>
-                        <li><a href="Frontier Ventures 2025.html" class="link-item">新奇性が感じられるベンチャー</a></li>
-                        <li><a href="大企業の新規事業開発.html" class="link-item">日本の大企業の新規事業開発</a></li>
-                        <li><a href="日本のネクストユニコン.html" class="link-item">日本のネクストユニコーン</a></li>
-                        <li><a href="DARPA.html" class="link-item">DARPAの技術</a></li>
+                        <li><a href="yojigen-sangyo.html" class="link-item"><span>四次元産業を知ろう！</span><span class="update-date">更新日: 2025/09/24</span></a></li>
+                        <li><a href="Frontier Ventures 2025.html" class="link-item"><span>新奇性が感じられるベンチャー</span><span class="update-date">更新日: 2025/09/24</span></a></li>
+                        <li><a href="大企業の新規事業開発.html" class="link-item"><span>日本の大企業の新規事業開発</span><span class="update-date">更新日: 2025/09/25</span></a></li>
+                        <li><a href="日本のネクストユニコン.html" class="link-item"><span>日本のネクストユニコーン</span><span class="update-date">更新日: 2025/09/25</span></a></li>
+                        <li><a href="DARPA.html" class="link-item"><span>DARPAの技術</span><span class="update-date">更新日: 2025/09/25</span></a></li>
                     </ul>
                 </div>
             </li>
-
-            <li>
+            <li class="collapsible-item">
                 <button type="button" class="collapsible">プロダクト</button>
                 <div class="content">
                     <ul>
-                        <li><a href="ワークショップ.html" class="link-item">プロダクトアイデアのコツ</a></li>
-                        <li><a href="product_evaluation.html" class="link-item">プロダクトアイデア評価シート</a></li>
+                        <li><a href="ワークショップ.html" class="link-item"><span>プロダクトアイデアのコツ</span><span class="update-date">更新日: 2025/09/23</span></a></li>
+                        <li><a href="product_evaluation.html" class="link-item"><span>プロダクトアイデア評価シート</span><span class="update-date">更新日: 2025/09/23</span></a></li>
                     </ul>
                 </div>
             </li>
-            
-            <li>
+            <li class="collapsible-item">
                 <button type="button" class="collapsible">山形</button>
                 <div class="content">
                     <ul>
-                        <li><a href="10.4土 アクティビティ.html" class="link-item">10.4土 アクティビティ</a></li>
+                        <li><a href="10.4土 アクティビティ.html" class="link-item"><span>10.4土 アクティビティ</span><span class="update-date">更新日: 2025/09/22</span></a></li>
                     </ul>
                 </div>
             </li>
-            
-            <li>
+            <li class="collapsible-item">
                 <button type="button" class="collapsible">Day3,4予習</button>
                 <div class="content">
                     <ul>
-                        <li><a href="2035Disrup.html" class="link-item">2035年Sony（SCK)のXX事業やビジネスモデルをDisrupする連中が出現！それは？</a></li>
+                        <li><a href="2035Disrup.html" class="link-item"><span>2035年Sony Disrup予測</span><span class="update-date">更新日: 2025/09/21</span></a></li>
                     </ul>
                 </div>
             </li>
-
-            <li>
+            <li class="collapsible-item">
                 <button type="button" class="collapsible">準備中</button>
                 <div class="content">
                     <ul>
-                        <li><a href="shinkisei.html" class="link-item">新奇性</a></li>
-                        <li><a href="ソニー：イノベーションの軌跡.html" class="link-item">ソニーのプロダクト歴史</a></li>
+                        <li><a href="shinkisei.html" class="link-item"><span>新奇性</span><span class="update-date">更新日: 2025/09/20</span></a></li>
+                        <li><a href="ソニー：イノベーションの軌跡.html" class="link-item"><span>ソニーのプロダクト歴史</span><span class="update-date">更新日: 2025/09/20</span></a></li>
                     </ul>
                 </div>
             </li>
@@ -220,21 +250,66 @@
     <footer>© 2025 Next Leaders 6</footer>
 
     <script>
-        // --- アコーディオン機能のためのJavaScript ---
+    document.addEventListener('DOMContentLoaded', () => {
         const collapsibles = document.querySelectorAll(".collapsible");
+        const searchBox = document.getElementById('search-box');
+        const expandAllBtn = document.getElementById('expand-all');
+        const collapseAllBtn = document.getElementById('collapse-all');
 
+        // アコーディオン機能
         collapsibles.forEach(item => {
             item.addEventListener("click", function () {
-                this.classList.toggle("active");
-                const content = this.nextElementSibling;
-                if (content.style.maxHeight) {
-                    content.style.maxHeight = null;
-                } else {
-                    content.style.maxHeight = content.scrollHeight + "px";
-                } 
+                toggleCollapsible(this);
             });
         });
-    </script>
 
+        function toggleCollapsible(element, forceOpen = null) {
+            const content = element.nextElementSibling;
+            const isOpen = element.classList.contains('active');
+            
+            if (forceOpen === true || (forceOpen === null && !isOpen)) {
+                element.classList.add("active");
+                content.style.maxHeight = content.scrollHeight + "px";
+            } else if (forceOpen === false || (forceOpen === null && isOpen)) {
+                element.classList.remove("active");
+                content.style.maxHeight = null;
+            }
+        }
+
+        // すべて開く/閉じる
+        expandAllBtn.addEventListener('click', () => collapsibles.forEach(c => toggleCollapsible(c, true)));
+        collapseAllBtn.addEventListener('click', () => collapsibles.forEach(c => toggleCollapsible(c, false)));
+
+        // 検索フィルター機能
+        searchBox.addEventListener('input', (e) => {
+            const searchTerm = e.target.value.toLowerCase();
+            const allCollapsibleItems = document.querySelectorAll('.collapsible-item');
+
+            allCollapsibleItems.forEach(item => {
+                const header = item.querySelector('.collapsible');
+                const links = item.querySelectorAll('.link-item');
+                let hasVisibleLink = false;
+
+                links.forEach(link => {
+                    const linkText = link.textContent.toLowerCase();
+                    const listItem = link.parentElement;
+                    if (linkText.includes(searchTerm)) {
+                        listItem.classList.remove('hidden');
+                        hasVisibleLink = true;
+                    } else {
+                        listItem.classList.add('hidden');
+                    }
+                });
+
+                // 表示するリンクがあるセクションだけ表示
+                if (hasVisibleLink) {
+                    item.classList.remove('hidden');
+                } else {
+                    item.classList.add('hidden');
+                }
+            });
+        });
+    });
+    </script>
 </body>
 </html>
