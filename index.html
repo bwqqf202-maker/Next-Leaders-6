@@ -136,7 +136,6 @@
         /* --- リンク項目 --- */
         a.link-item {
             display: flex;
-            justify-content: space-between; /* 両端揃えに変更 */
             align-items: center;
             padding: 22px 28px;
             background-color: var(--card-bg);
@@ -154,13 +153,6 @@
             border-color: var(--accent-color);
             background-color: var(--card-hover-bg);
             box-shadow: 0 8px 20px rgba(0, 0, 0, 0.07);
-        }
-        .update-date {
-            font-size: 0.8em;
-            color: var(--text-secondary);
-            font-weight: 400;
-            white-space: nowrap; /* 日付が改行しないように */
-            margin-left: 16px; /* タイトルとの間隔 */
         }
         .hidden { display: none !important; }
 
@@ -187,12 +179,7 @@
         <div class="quick-links-section">
             <h2 class="section-header">🚀 クイックリンク</h2>
             <ul class="quick-links-list">
-                <li>
-                    <a href="チームチャーター.html" class="link-item">
-                        <span>チームチャーター</span>
-                        <span class="update-date">更新日: 2025/09/25</span>
-                    </a>
-                </li>
+                <li><a href="チームチャーター.html" class="link-item">チームチャーター</a></li>
             </ul>
         </div>
         
@@ -202,11 +189,11 @@
                 <button type="button" class="collapsible">Day1,2 宿題</button>
                 <div class="content">
                     <ul>
-                        <li><a href="yojigen-sangyo.html" class="link-item"><span>四次元産業を知ろう！</span><span class="update-date">更新日: 2025/09/24</span></a></li>
-                        <li><a href="Frontier Ventures 2025.html" class="link-item"><span>新奇性が感じられるベンチャー</span><span class="update-date">更新日: 2025/09/24</span></a></li>
-                        <li><a href="大企業の新規事業開発.html" class="link-item"><span>日本の大企業の新規事業開発</span><span class="update-date">更新日: 2025/09/25</span></a></li>
-                        <li><a href="日本のネクストユニコン.html" class="link-item"><span>日本のネクストユニコーン</span><span class="update-date">更新日: 2025/09/25</span></a></li>
-                        <li><a href="DARPA.html" class="link-item"><span>DARPAの技術</span><span class="update-date">更新日: 2025/09/25</span></a></li>
+                        <li><a href="yojigen-sangyo.html" class="link-item">四次元産業を知ろう！</a></li>
+                        <li><a href="Frontier Ventures 2025.html" class="link-item">新奇性が感じられるベンチャー</a></li>
+                        <li><a href="大企業の新規事業開発.html" class="link-item">日本の大企業の新規事業開発</a></li>
+                        <li><a href="日本のネクストユニコン.html" class="link-item">日本のネクストユニコーン</a></li>
+                        <li><a href="DARPA.html" class="link-item">DARPAの技術</a></li>
                     </ul>
                 </div>
             </li>
@@ -214,8 +201,8 @@
                 <button type="button" class="collapsible">プロダクト</button>
                 <div class="content">
                     <ul>
-                        <li><a href="ワークショップ.html" class="link-item"><span>プロダクトアイデアのコツ</span><span class="update-date">更新日: 2025/09/23</span></a></li>
-                        <li><a href="product_evaluation.html" class="link-item"><span>プロダクトアイデア評価シート</span><span class="update-date">更新日: 2025/09/23</span></a></li>
+                        <li><a href="ワークショップ.html" class="link-item">プロダクトアイデアのコツ</a></li>
+                        <li><a href="product_evaluation.html" class="link-item">プロダクトアイデア評価シート</a></li>
                     </ul>
                 </div>
             </li>
@@ -223,7 +210,7 @@
                 <button type="button" class="collapsible">山形</button>
                 <div class="content">
                     <ul>
-                        <li><a href="10.4土 アクティビティ.html" class="link-item"><span>10.4土 アクティビティ</span><span class="update-date">更新日: 2025/09/22</span></a></li>
+                        <li><a href="10.4土 アクティビティ.html" class="link-item">10.4土 アクティビティ</a></li>
                     </ul>
                 </div>
             </li>
@@ -231,7 +218,7 @@
                 <button type="button" class="collapsible">Day3,4予習</button>
                 <div class="content">
                     <ul>
-                        <li><a href="2035Disrup.html" class="link-item"><span>2035年Sony Disrup予測</span><span class="update-date">更新日: 2025/09/21</span></a></li>
+                        <li><a href="2035Disrup.html" class="link-item">2035年Sony Disrup予測</a></li>
                     </ul>
                 </div>
             </li>
@@ -239,8 +226,8 @@
                 <button type="button" class="collapsible">準備中</button>
                 <div class="content">
                     <ul>
-                        <li><a href="shinkisei.html" class="link-item"><span>新奇性</span><span class="update-date">更新日: 2025/09/20</span></a></li>
-                        <li><a href="ソニー：イノベーションの軌跡.html" class="link-item"><span>ソニーのプロダクト歴史</span><span class="update-date">更新日: 2025/09/20</span></a></li>
+                        <li><a href="shinkisei.html" class="link-item">新奇性</a></li>
+                        <li><a href="ソニー：イノベーションの軌跡.html" class="link-item">ソニーのプロダクト歴史</a></li>
                     </ul>
                 </div>
             </li>
@@ -284,9 +271,10 @@
         searchBox.addEventListener('input', (e) => {
             const searchTerm = e.target.value.toLowerCase();
             const allCollapsibleItems = document.querySelectorAll('.collapsible-item');
+            const quickLinks = document.querySelectorAll('.quick-links-list li');
 
+            // 通常のリストをフィルター
             allCollapsibleItems.forEach(item => {
-                const header = item.querySelector('.collapsible');
                 const links = item.querySelectorAll('.link-item');
                 let hasVisibleLink = false;
 
@@ -300,13 +288,14 @@
                         listItem.classList.add('hidden');
                     }
                 });
+                
+                item.classList.toggle('hidden', !hasVisibleLink);
+            });
 
-                // 表示するリンクがあるセクションだけ表示
-                if (hasVisibleLink) {
-                    item.classList.remove('hidden');
-                } else {
-                    item.classList.add('hidden');
-                }
+            // クイックリンクをフィルター
+            quickLinks.forEach(item => {
+                const linkText = item.textContent.toLowerCase();
+                item.classList.toggle('hidden', !linkText.includes(searchTerm));
             });
         });
     });
