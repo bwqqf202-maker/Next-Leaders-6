@@ -217,4 +217,100 @@
                 </div>
             </li>
             <li class="collapsible-item">
-                <button type="button" class
+                <button type="button" class="collapsible">山形</button>
+                <div class="content">
+                    <ul>
+                        <li><a href="10.4土 アクティビティ.html" class="link-item">10.4土 アクティビティ</a></li>
+                    </ul>
+                </div>
+            </li>
+            <li class="collapsible-item">
+                <button type="button" class="collapsible">いろいろ</button>
+                <div class="content">
+                    <ul>
+                        <li><a href="shinkisei.html" class="link-item">新奇性</a></li>
+                        <li><a href="ソニー：イノベーションの軌跡.html" class="link-item">ソニーのプロダクト歴史</a></li>
+                        <li><a href="革新と失敗の分かれ道.html" class="link-item">ヒット製品の革新と失敗の分かれ道</a></li>
+                        <li><a href="Future bestsellers by 2035.HTML" class="link-item">10年後のヒット商品予測</a></li>
+                        <li><a href="消費者心理を動かすマーケティングの秘密.html" class="link-item">消費者心理を動かすマーケティングの秘密</a></li>
+                        <li><a href="AI_deep_research.html" class="link-item">AI（人工知能）深掘り調査</a></li>
+                        <li><a href="Iot_deep_research.html" class="link-item">IoT（モノのインターネット）深掘り調査</a></li>
+                        <li><a href="Robo_deep_research.html" class="link-item">ロボティクス深掘り調査</a></li>
+                        <li><a href="VRARMR_deep_research.html" class="link-item">VR/AR/MR 深掘り調査</a></li>
+                        <li><a href="Big_data&Algorithm_deep_research.html" class="link-item">ビッグデータ＆アルゴリズム深掘り調査</a></li>
+                        <li><a href="Genome_deep_research.html" class="link-item">ゲノム編集深掘り調査</a></li>
+                        <li><a href="3DP_deep_research.html" class="link-item">3Dプリンティング深掘り調査</a></li>
+                    </ul>
+                </div>
+            </li>
+        </ul>
+    </div>
+
+    <footer>© 2025 Next Leaders 6</footer>
+
+    <script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const collapsibles = document.querySelectorAll(".collapsible");
+        const searchBox = document.getElementById('search-box');
+        const expandAllBtn = document.getElementById('expand-all');
+        const collapseAllBtn = document.getElementById('collapse-all');
+
+        // アコーディオン機能
+        collapsibles.forEach(item => {
+            item.addEventListener("click", function () {
+                toggleCollapsible(this);
+            });
+        });
+
+        function toggleCollapsible(element, forceOpen = null) {
+            const content = element.nextElementSibling;
+            const isOpen = element.classList.contains('active');
+            
+            if (forceOpen === true || (forceOpen === null && !isOpen)) {
+                element.classList.add("active");
+                content.style.maxHeight = content.scrollHeight + "px";
+            } else if (forceOpen === false || (forceOpen === null && isOpen)) {
+                element.classList.remove("active");
+                content.style.maxHeight = null;
+            }
+        }
+
+        // すべて開く/閉じる
+        expandAllBtn.addEventListener('click', () => collapsibles.forEach(c => toggleCollapsible(c, true)));
+        collapseAllBtn.addEventListener('click', () => collapsibles.forEach(c => toggleCollapsible(c, false)));
+
+        // 検索フィルター機能
+        searchBox.addEventListener('input', (e) => {
+            const searchTerm = e.target.value.toLowerCase();
+            const allCollapsibleItems = document.querySelectorAll('.collapsible-item');
+            const quickLinks = document.querySelectorAll('.quick-links-list li');
+
+            // 通常のリストをフィルター
+            allCollapsibleItems.forEach(item => {
+                const links = item.querySelectorAll('.link-item');
+                let hasVisibleLink = false;
+
+                links.forEach(link => {
+                    const linkText = link.textContent.toLowerCase();
+                    const listItem = link.parentElement;
+                    if (linkText.includes(searchTerm)) {
+                        listItem.classList.remove('hidden');
+                        hasVisibleLink = true;
+                    } else {
+                        listItem.classList.add('hidden');
+                    }
+                });
+                
+                item.classList.toggle('hidden', !hasVisibleLink);
+            });
+
+            // クイックリンクをフィルター
+            quickLinks.forEach(item => {
+                const linkText = item.textContent.toLowerCase();
+                item.classList.toggle('hidden', !linkText.includes(searchTerm));
+            });
+        });
+    });
+    </script>
+</body>
+</html>
