@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ロボティクス リサーチレポート</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', 'Helvetica Neue', 'Arial', 'Hiragino Kaku Gothic ProN', 'Hiragino Sans', 'BIZ UDPGothic', 'Meiryo', sans-serif;
+        }
+        .card {
+            background-color: white;
+            border-radius: 0.75rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1);
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+            transition: all 0.3s ease-in-out;
+        }
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -4px rgba(0, 0, 0, 0.1);
+        }
+        .play-button {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0.5rem 1rem;
+            border-radius: 0.5rem;
+            background-color: #3b82f6;
+            color: white;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background-color 0.3s;
+            border: none;
+        }
+        .play-button:hover {
+            background-color: #2563eb;
+        }
+        .play-button svg {
+            margin-right: 0.5rem;
+        }
+        h1, h2, h3 {
+            font-weight: 700;
+        }
+        .search-link {
+            color: #3b82f6;
+            text-decoration: none;
+            transition: color 0.3s;
+            display: inline-flex;
+            align-items: center;
+        }
+        .search-link:hover {
+            color: #1d4ed8;
+            text-decoration: underline;
+        }
+        .search-link svg {
+            margin-left: 0.25rem;
+            width: 1em;
+            height: 1em;
+        }
+        .example-item {
+            padding-left: 1rem;
+            border-left: 3px solid #dbeafe;
+            margin-top: 1rem;
+            margin-bottom: 1rem;
+        }
+    </style>
+</head>
+<body class="bg-gray-100 text-gray-800">
+
+    <div class="container mx-auto p-4 sm:p-6 lg:p-8">
+        <header class="text-center mb-8">
+            <h1 class="text-3xl md:text-4xl font-bold text-gray-900">ロボティクス リサーチレポート</h1>
+            <p class="mt-2 text-gray-600">人と共存し、社会を支える技術の最前線</p>
+        </header>
+
+        <main>
+            <!-- 基本解説 -->
+            <section id="basics" class="card">
+                <h2 class="text-2xl font-semibold mb-4 text-gray-900">1. ロボティクス (ロボット工学) とは？</h2>
+                <p class="text-base leading-relaxed mb-4">
+                    ロボティクスとは、ロボットの設計、製造、制御、そして応用に関する研究開発を行う工学分野です。ロボットは主に３つの要素から構成されます。①<strong>センサー (知覚)</strong>: 人間の五感のように周囲の状況を認識する部分。②<strong>コントローラー (頭脳)</strong>: センサーからの情報に基づき、どう動くかを判断・命令する部分。近年のAI技術の発展は、この頭脳部分を飛躍的に進化させています。③<strong>アクチュエーター (身体)</strong>: コントローラーの命令を受けて、実際に手足を動かすモーターや関節などの部分。これらが連携することで、ロボットは自律的に様々な作業を行うことができます。
+                </p>
+                <div class="mt-4">
+                    <button class="play-button" onclick="speak('basics')"><svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clip-rule="evenodd" /></svg>このセクションを読む</button>
+                </div>
+            </section>
+            
+            <h2 class="text-3xl font-bold text-center my-8 text-gray-900">分野別に見るロボットの活用事例</h2>
+
+            <!-- 産業用ロボット -->
+            <section id="industrial" class="card">
+                <h3 class="text-2xl font-semibold mb-2 text-gray-900">① 産業用ロボット</h3>
+                <p class="text-gray-600 mb-4">工場の自動化や物流の効率化など、ものづくりの現場を支える中核技術です。</p>
+                <div class="example-item">
+                    <strong>垂直多関節ロボット:</strong> 人間の腕のような構造を持ち、自動車の溶接、塗装、組み立てなど、精密で繰り返し精度の高い作業を得意とします。<br>
+                    <a href="https://www.google.com/search?q=垂直多関節ロボット+自動車工場" target="_blank" rel="noopener noreferrer" class="search-link">検索: 垂直多関節ロボット 自動車工場<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" /></svg></a>
+                </div>
+                <div class="example-item">
+                    <strong>協働ロボット:</strong> 安全柵なしで人間のすぐ隣で作業ができるように設計されたロボット。人手不足が深刻な中小企業の工場などで、人との共同作業を担います。<br>
+                    <a href="https://www.google.com/search?q=協働ロボット+事例" target="_blank" rel="noopener noreferrer" class="search-link">検索: 協働ロボット 事例<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" /></svg></a>
+                </div>
+                <div class="example-item">
+                    <strong>AGV / AMR (無人搬送車 / 自律走行搬送ロボット):</strong> 広大な物流倉庫や工場内で、荷物や部品を自動で搬送します。AMRはAGVより高度で、障害物を避けながら自ら最適ルートを判断して走行できます。<br>
+                    <a href="https://www.google.com/search?q=AMR+物流倉庫" target="_blank" rel="noopener noreferrer" class="search-link">検索: AMR 物流倉庫<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" /></svg></a>
+                </div>
+                <div class="mt-6">
+                    <button class="play-button" onclick="speak('industrial')"><svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clip-rule="evenodd" /></svg>このセクションを読む</button>
+                </div>
+            </section>
+            
+            <!-- サービスロボット -->
+            <section id="service" class="card">
+                 <h3 class="text-2xl font-semibold mb-2 text-gray-900">② サービスロボット</h3>
+                <p class="text-gray-600 mb-4">医療、介護、小売、家庭など、私たちの生活の様々な場面で活躍の場を広げています。</p>
+                <div class="example-item">
+                    <strong>手術支援ロボット:</strong> 医師が操作し、人間の手より精密な動きで手術を行うロボット。患者の負担が少ない低侵襲手術を可能にします。<br>
+                    <a href="https://www.google.com/search?q=手術支援ロボット+ダヴィンチ" target="_blank" rel="noopener noreferrer" class="search-link">検索: 手術支援ロボット ダヴィンチ<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" /></svg></a>
+                </div>
+                <div class="example-item">
+                    <strong>配膳・配送ロボット:</strong> レストランでの料理の配膳や、ホテルでのアメニティ配送、オフィスビル内の郵便物配達などを自動で行います。<br>
+                    <a href="https://www.google.com/search?q=配膳ロボット+レストラン" target="_blank" rel="noopener noreferrer" class="search-link">検索: 配膳ロボット レストラン<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" /></svg></a>
+                </div>
+                <div class="example-item">
+                    <strong>介護・装着型ロボット (パワースーツ):</strong> 介護者が人を抱え上げる際の腰の負担を軽減したり、歩行が困難な人のリハビリを支援したりします。<br>
+                     <a href="https://www.google.com/search?q=介護ロボット+装着型" target="_blank" rel="noopener noreferrer" class="search-link">検索: 介護ロボット 装着型<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" /></svg></a>
+                </div>
+                 <div class="example-item">
+                    <strong>家庭用ロボット:</strong> 自動で床を清掃するロボット掃除機や、高齢者の見守りや会話を行うコミュニケーションロボットなど、家庭内に普及が進んでいます。<br>
+                     <a href="https://www.google.com/search?q=ロボット掃除機+ルンバ" target="_blank" rel="noopener noreferrer" class="search-link">検索: ロボット掃除機 ルンバ<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" /></svg></a>
+                </div>
+                <div class="mt-6">
+                    <button class="play-button" onclick="speak('service')"><svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clip-rule="evenodd" /></svg>このセクションを読む</button>
+                </div>
+            </section>
+            
+            <!-- フィールドロボット -->
+            <section id="field" class="card">
+                <h3 class="text-2xl font-semibold mb-2 text-gray-900">③ フィールドロボット (極限環境ロボット)</h3>
+                <p class="text-gray-600 mb-4">人間が立ち入ることが危険または不可能な場所で、調査や作業を代行します。</p>
+                 <div class="example-item">
+                    <strong>災害対応ロボット:</strong> 地震で倒壊した建物内部の捜索や、原子力発電所内の高放射線量環境下での調査・復旧作業を行います。<br>
+                    <a href="https://www.google.com/search?q=災害対応ロボット+がれき" target="_blank" rel="noopener noreferrer" class="search-link">検索: 災害対応ロボット がれき<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" /></svg></a>
+                </div>
+                <div class="example-item">
+                    <strong>宇宙探査ロボット (ローバー):</strong> 火星などの惑星表面を走行し、地質調査やサンプル採集といった科学探査ミッションを遂行します。<br>
+                    <a href="https://www.google.com/search?q=火星探査ローバー+パーサヴィアランス" target="_blank" rel="noopener noreferrer" class="search-link">検索: 火星探査ローバー パーサヴィアランス<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" /></svg></a>
+                </div>
+                 <div class="example-item">
+                    <strong>海洋探査ロボット (AUV):</strong> 深海の海底地形調査や、生態系の観測、海底資源の探査など、広範囲な水中調査を自律的に行います。<br>
+                     <a href="https://www.google.com/search?q=自律型無人探査機+AUV+深海" target="_blank" rel="noopener noreferrer" class="search-link">検索: 自律型無人探査機 AUV 深海<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" /></svg></a>
+                </div>
+                <div class="mt-6">
+                    <button class="play-button" onclick="speak('field')"><svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clip-rule="evenodd" /></svg>このセクションを読む</button>
+                </div>
+            </section>
+            
+            <!-- 課題と未来展望 -->
+            <section id="future" class="card">
+                <h3 class="text-2xl font-semibold mb-2 text-gray-900">④ 課題と未来展望</h3>
+                <p class="text-gray-600 mb-4">AIとのさらなる融合により、ロボットはより賢く、より身近な存在になっていきます。</p>
+                <div class="example-item">
+                    <strong>ソフトロボティクス:</strong> 従来の硬い金属ではなく、柔らかい素材でできたロボット。壊れにくく、人や物を優しく扱うことができ、新たな応用が期待されます。
+                </div>
+                 <div class="example-item">
+                    <strong>群制御 (スウォームロボティクス):</strong> 多数の小型ロボットが協調し、一つの群れとして複雑な作業をこなす技術。ドローンによる一斉ショーや、災害時の広範囲捜索などに応用されます。
+                </div>
+                 <div class="example-item">
+                    <strong>人間との共存:</strong> ロボットが社会に普及するにつれ、人間の仕事を奪うのではないかという懸念や、万が一事故を起こした際の責任問題など、倫理的・法的なルール作りが重要な課題となります。
+                </div>
+                <div class="mt-6">
+                    <button class="play-button" onclick="speak('future')"><svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clip-rule="evenodd" /></svg>このセクションを読む</button>
+                </div>
+            </section>
+
+        </main>
+        
+        <footer class="text-center mt-8 py-4 border-t border-gray-300">
+            <p class="text-gray-600">&copy; 2025 Robotics Research Report. All rights reserved.</p>
+        </footer>
+    </div>
+
+    <script>
+        const synth = window.speechSynthesis;
+        let utterance = null;
+        let googleVoice = null;
+
+        function loadVoices() {
+            const voices = synth.getVoices();
+            googleVoice = voices.find(voice => voice.name.includes('Google') && voice.lang === 'ja-JP');
+            if (!googleVoice) {
+                googleVoice = voices.find(voice => voice.lang === 'ja-JP');
+            }
+        }
+
+        loadVoices();
+        if (synth.onvoiceschanged !== undefined) {
+            synth.onvoiceschanged = loadVoices;
+        }
+
+        function speak(sectionId) {
+            if (synth.speaking) {
+                synth.cancel();
+            }
+
+            const section = document.getElementById(sectionId);
+            if (section) {
+                const title = section.querySelector('h2, h3').innerText;
+                const contents = Array.from(section.querySelectorAll('p, .example-item')).map(el => el.innerText).join('。 ');
+                let textToSpeak = title + '。 ' + contents;
+
+                textToSpeak = textToSpeak
+                    .replace(/AI/g, 'エーアイ')
+                    .replace(/AGV/g, 'エージーブイ')
+                    .replace(/AMR/g, 'エーエムアール')
+                    .replace(/AUV/g, 'エーユーブイ');
+
+                utterance = new SpeechSynthesisUtterance(textToSpeak);
+                utterance.lang = 'ja-JP';
+
+                if (googleVoice) {
+                    utterance.voice = googleVoice;
+                }
+                
+                utterance.rate = 1.0; 
+                utterance.pitch = 1.0; 
+                
+                utterance.onerror = function(event) {
+                    console.error('SpeechSynthesisUtterance.onerror', event);
+                };
+                
+                synth.speak(utterance);
+            }
+        }
+        
+        window.addEventListener('beforeunload', () => {
+            if (synth.speaking) {
+                synth.cancel();
+            }
+        });
+    </script>
+</body>
+</html>

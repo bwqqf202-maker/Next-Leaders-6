@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ゲノム編集リサーチレポート</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', 'Helvetica Neue', 'Arial', 'Hiragino Kaku Gothic ProN', 'Hiragino Sans', 'BIZ UDPGothic', 'Meiryo', sans-serif;
+        }
+        .card {
+            background-color: white;
+            border-radius: 0.75rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1);
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+            transition: all 0.3s ease-in-out;
+        }
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -4px rgba(0, 0, 0, 0.1);
+        }
+        .play-button {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0.5rem 1rem;
+            border-radius: 0.5rem;
+            background-color: #3b82f6;
+            color: white;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background-color 0.3s;
+            border: none;
+        }
+        .play-button:hover {
+            background-color: #2563eb;
+        }
+        .play-button svg {
+            margin-right: 0.5rem;
+        }
+        h1, h2, h3 {
+            font-weight: 700;
+        }
+        .search-link {
+            color: #3b82f6;
+            text-decoration: none;
+            transition: color 0.3s;
+            display: inline-flex;
+            align-items: center;
+        }
+        .search-link:hover {
+            color: #1d4ed8;
+            text-decoration: underline;
+        }
+        .search-link svg {
+            margin-left: 0.25rem;
+            width: 1em;
+            height: 1em;
+        }
+        .example-item {
+            padding-left: 1rem;
+            border-left: 3px solid #dbeafe;
+            margin-top: 1rem;
+            margin-bottom: 1rem;
+        }
+    </style>
+</head>
+<body class="bg-gray-100 text-gray-800">
+
+    <div class="container mx-auto p-4 sm:p-6 lg:p-8">
+        <header class="text-center mb-8">
+            <h1 class="text-3xl md:text-4xl font-bold text-gray-900">ゲノム編集リサーチレポート</h1>
+            <p class="mt-2 text-gray-600">生命の設計図を書き換える技術の最前線</p>
+        </header>
+
+        <main>
+            <!-- ゲノム編集の基本 -->
+            <section id="genome-basics" class="card">
+                <h2 class="text-2xl font-semibold mb-4 text-gray-900">1. ゲノム編集とは？</h2>
+                <p class="text-base leading-relaxed">
+                    ゲノム編集とは、生物が持つ遺伝情報全体である「ゲノム」を、狙った通りに書き換える技術のことです。DNAの特定の場所を「切断」し、生物が本来持つ修復機能を利用して、遺伝子を「削除」したり、別の遺伝子を「挿入」したりします。特に2012年に登場した「CRISPR-Cas9（クリスパー・キャスナイン）」は、従来技術より簡単・正確・安価にゲノム編集を行えるため、生命科学の研究を飛躍的に加速させました。この技術は、病気の治療から食料問題の解決まで、幅広い分野での応用が期待されています。
+                </p>
+                <div class="mt-4">
+                    <button class="play-button" onclick="speak('genome-basics')"><svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clip-rule="evenodd" /></svg>このセクションを読む</button>
+                </div>
+            </section>
+            
+            <h2 class="text-3xl font-bold text-center my-8 text-gray-900">分野別に見るゲノム編集の活用事例</h2>
+
+            <!-- 医療・医薬品開発 -->
+            <section id="genome-medicine" class="card">
+                <h3 class="text-2xl font-semibold mb-2 text-gray-900">① 医療・医薬品開発</h3>
+                <p class="text-gray-600 mb-4">遺伝性疾患の治療や、がん治療、新薬開発に革命をもたらす可能性を秘めています。</p>
+                <div class="example-item">
+                    <strong>遺伝子治療:</strong> 遺伝子の異常が原因で起こる病気に対し、異常な部分をゲノム編集で修復する治療法。重い貧血症である「鎌状赤血球症」などの治療法として実用化が始まっています。<br>
+                    <a href="https://www.google.com/search?q=ゲノム編集+鎌状赤血球症+治療" target="_blank" rel="noopener noreferrer" class="search-link">検索: ゲノム編集 鎌状赤血球症 治療<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" /></svg></a>
+                </div>
+                <div class="example-item">
+                    <strong>がん免疫療法 (CAR-T細胞療法):</strong> 患者自身の免疫細胞（T細胞）を取り出し、がん細胞を特異的に攻撃するようにゲノム編集で改変。体内に戻すことで、がんを治療します。<br>
+                    <a href="https://www.google.com/search?q=CAR-T細胞療法+ゲノム編集" target="_blank" rel="noopener noreferrer" class="search-link">検索: CAR-T細胞療法 ゲノム編集<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" /></svg></a>
+                </div>
+                <div class="example-item">
+                    <strong>創薬研究:</strong> 人間の病気を再現した細胞や実験動物（マウスなど）をゲノム編集で作製。病気のメカニズム解明や、新薬の候補物質の効果・安全性を評価するために利用されます。<br>
+                    <a href="https://www.google.com/search?q=ゲノム編集+創薬+疾患モデルマウス" target="_blank" rel="noopener noreferrer" class="search-link">検索: ゲノム編集 創薬 疾患モデルマウス<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" /></svg></a>
+                </div>
+                <div class="example-item">
+                    <strong>感染症研究:</strong> HIVなどのウイルスが細胞に感染する際に利用する遺伝子を破壊することで、ウイルスに感染しない細胞を作る研究が進められています。<br>
+                    <a href="https://www.google.com/search?q=ゲノム編集+HIV+CCR5" target="_blank" rel="noopener noreferrer" class="search-link">検索: ゲノム編集 HIV CCR5<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" /></svg></a>
+                </div>
+                <div class="mt-6">
+                    <button class="play-button" onclick="speak('genome-medicine')"><svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clip-rule="evenodd" /></svg>このセクションを読む</button>
+                </div>
+            </section>
+            
+            <!-- 農業・食料生産 -->
+            <section id="genome-agriculture" class="card">
+                 <h3 class="text-2xl font-semibold mb-2 text-gray-900">② 農業・食料生産</h3>
+                <p class="text-gray-600 mb-4">品種改良を高速化し、収穫量の増加、栄養価の向上、環境耐性の付与などを実現します。</p>
+                <div class="example-item">
+                    <strong>高機能性作物:</strong> 血圧を下げる効果が期待されるGABA（ギャバ）を豊富に含むトマトや、アレルギーの原因物質を減らした卵などが開発・販売されています。<br>
+                    <a href="https://www.google.com/search?q=GABA高蓄積トマト" target="_blank" rel="noopener noreferrer" class="search-link">検索: GABA高蓄積トマト<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" /></svg></a>
+                </div>
+                <div class="example-item">
+                    <strong>収量増加・可食部増量:</strong> 筋肉の成長を抑える遺伝子を働かなくさせることで、従来より身の量が多いマダイやトラフグが開発されています。<br>
+                    <a href="https://www.google.com/search?q=ゲノム編集+マダイ+肉厚" target="_blank" rel="noopener noreferrer" class="search-link">検索: ゲノム編集 マダイ 肉厚<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" /></svg></a>
+                </div>
+                 <div class="example-item">
+                    <strong>病害虫への耐性:</strong> いもち病にかかりにくいイネや、ジャガイモの芽に含まれる天然毒素（ソラニン）をなくした品種などが研究されています。<br>
+                     <a href="https://www.google.com/search?q=ゲノム編集+いもち病+イネ" target="_blank" rel="noopener noreferrer" class="search-link">検索: ゲノム編集 いもち病 イネ<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 S0 0010.607 10.607z" /></svg></a>
+                </div>
+                <div class="example-item">
+                    <strong>家畜の改良:</strong> 病気にかかりにくいブタや、筋肉量を増やした牛など、生産効率を高めるための研究が進んでいます。<br>
+                    <a href="https://www.google.com/search?q=ゲノム編集+家畜+品種改良" target="_blank" rel="noopener noreferrer" class="search-link">検索: ゲノム編集 家畜 品種改良<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" /></svg></a>
+                </div>
+                <div class="mt-6">
+                    <button class="play-button" onclick="speak('genome-agriculture')"><svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clip-rule="evenodd" /></svg>このセクションを読む</button>
+                </div>
+            </section>
+            
+            <!-- 基礎研究・環境 -->
+            <section id="genome-research" class="card">
+                <h3 class="text-2xl font-semibold mb-2 text-gray-900">③ 基礎研究・環境</h3>
+                <p class="text-gray-600 mb-4">生命現象の根源的な理解を深め、環境問題の解決にも貢献します。</p>
+                 <div class="example-item">
+                    <strong>遺伝子の機能解明:</strong> 特定の遺伝子を働かなくさせた（ノックアウトした）生物を作ることで、その遺伝子がどのような役割を持っているかを調べる研究に不可欠なツールです。<br>
+                    <a href="https://www.google.com/search?q=ノックアウトマウス+ゲノム編集" target="_blank" rel="noopener noreferrer" class="search-link">検索: ノックアウトマウス ゲノム編集<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" /></svg></a>
+                </div>
+                <div class="example-item">
+                    <strong>バイオ燃料生産:</strong> 石油の代替となるバイオ燃料を、藻類や微生物を使ってより効率的に生産するため、ゲノム編集で代謝経路を改変する研究が行われています。<br>
+                    <a href="https://www.google.com/search?q=ゲノム編集+藻類+バイオ燃料" target="_blank" rel="noopener noreferrer" class="search-link">検索: ゲノム編集 藻類 バイオ燃料<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" /></svg></a>
+                </div>
+                <div class="example-item">
+                    <strong>生態系の制御（遺伝子ドライブ）:</strong> マラリアを媒介する蚊など、特定の生物集団に特定の遺伝子を広める「遺伝子ドライブ」という技術。生態系への影響が大きく、慎重な議論が必要です。<br>
+                    <a href="https://www.google.com/search?q=遺伝子ドライブ+マラリア+蚊" target="_blank" rel="noopener noreferrer" class="search-link">検索: 遺伝子ドライブ マラリア 蚊<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" /></svg></a>
+                </div>
+                <div class="mt-6">
+                    <button class="play-button" onclick="speak('genome-research')"><svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clip-rule="evenodd" /></svg>このセクションを読む</button>
+                </div>
+            </section>
+            
+            <!-- 倫理的・社会的課題 -->
+            <section id="genome-ethics" class="card">
+                <h3 class="text-2xl font-semibold mb-2 text-gray-900">④ 倫理的・社会的課題</h3>
+                <p class="text-gray-600 mb-4">大きな可能性を持つ一方で、ゲノム編集技術の利用には慎重な議論が求められます。</p>
+                <div class="example-item">
+                    <strong>安全性（オフターゲット問題）:</strong> 狙った場所以外のDNAを誤って書き換えてしまう「オフターゲット」のリスクがあり、技術の精度向上が重要な課題です。
+                </div>
+                <div class="example-item">
+                    <strong>受精卵への応用:</strong> 人の受精卵にゲノム編集を行うことは、生まれてくる子どもの身体的特徴や能力を操作する「デザイナーベビー」に繋がりかねないとして、多くの国で厳しく規制され、倫理的な議論が続いています。
+                </div>
+                 <div class="example-item">
+                    <strong>社会格差の拡大:</strong> 高額なゲノム編集治療を受けられる人と受けられない人との間で、健康や能力の格差が広がる可能性が懸念されています。
+                </div>
+                 <div class="example-item">
+                    <strong>生態系への影響:</strong> ゲノム編集生物が自然界に放たれた場合、在来種との交雑や予期せぬ影響を及ぼす可能性があり、厳格な管理と影響評価が必要です。
+                </div>
+                <div class="mt-6">
+                    <button class="play-button" onclick="speak('genome-ethics')"><svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clip-rule="evenodd" /></svg>このセクションを読む</button>
+                </div>
+            </section>
+
+        </main>
+        
+        <footer class="text-center mt-8 py-4 border-t border-gray-300">
+            <p class="text-gray-600">&copy; 2025 Genome Editing Research Report. All rights reserved.</p>
+        </footer>
+    </div>
+
+    <script>
+        const synth = window.speechSynthesis;
+        let utterance = null;
+        let googleVoice = null;
+
+        function loadVoices() {
+            const voices = synth.getVoices();
+            googleVoice = voices.find(voice => voice.name.includes('Google') && voice.lang === 'ja-JP');
+            if (!googleVoice) {
+                googleVoice = voices.find(voice => voice.lang === 'ja-JP');
+            }
+        }
+
+        loadVoices();
+        if (synth.onvoiceschanged !== undefined) {
+            synth.onvoiceschanged = loadVoices;
+        }
+
+        function speak(sectionId) {
+            if (synth.speaking) {
+                synth.cancel();
+            }
+
+            const section = document.getElementById(sectionId);
+            if (section) {
+                const title = section.querySelector('h2, h3').innerText;
+                const contents = Array.from(section.querySelectorAll('p, .example-item')).map(el => el.innerText).join('。 ');
+                let textToSpeak = title + '。 ' + contents;
+
+                textToSpeak = textToSpeak
+                    .replace(/ゲノム/g, 'ゲノム')
+                    .replace(/DNA/g, 'ディーエヌエー')
+                    .replace(/CRISPR-Cas9/g, 'クリスパーキャスナイン')
+                    .replace(/CAR-T/g, 'カーティー')
+                    .replace(/HIV/g, 'エイチアイブイ')
+                    .replace(/CCR5/g, 'シーシーアールファイブ')
+                    .replace(/GABA/g, 'ギャバ')
+                    .replace(/AI/g, 'エーアイ');
+
+                utterance = new SpeechSynthesisUtterance(textToSpeak);
+                utterance.lang = 'ja-JP';
+
+                if (googleVoice) {
+                    utterance.voice = googleVoice;
+                }
+                
+                utterance.rate = 1.0; 
+                utterance.pitch = 1.0; 
+                
+                utterance.onerror = function(event) {
+                    console.error('SpeechSynthesisUtterance.onerror', event);
+                };
+                
+                synth.speak(utterance);
+            }
+        }
+        
+        window.addEventListener('beforeunload', () => {
+            if (synth.speaking) {
+                synth.cancel();
+            }
+        });
+    </script>
+</body>
+</html>

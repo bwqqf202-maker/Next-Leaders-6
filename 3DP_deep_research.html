@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>3Dプリンティング リサーチレポート</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', 'Helvetica Neue', 'Arial', 'Hiragino Kaku Gothic ProN', 'Hiragino Sans', 'BIZ UDPGothic', 'Meiryo', sans-serif;
+        }
+        .card {
+            background-color: white;
+            border-radius: 0.75rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1);
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+            transition: all 0.3s ease-in-out;
+        }
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -4px rgba(0, 0, 0, 0.1);
+        }
+        .play-button {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0.5rem 1rem;
+            border-radius: 0.5rem;
+            background-color: #3b82f6;
+            color: white;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background-color 0.3s;
+            border: none;
+        }
+        .play-button:hover {
+            background-color: #2563eb;
+        }
+        .play-button svg {
+            margin-right: 0.5rem;
+        }
+        h1, h2, h3 {
+            font-weight: 700;
+        }
+        .search-link {
+            color: #3b82f6;
+            text-decoration: none;
+            transition: color 0.3s;
+            display: inline-flex;
+            align-items: center;
+        }
+        .search-link:hover {
+            color: #1d4ed8;
+            text-decoration: underline;
+        }
+        .search-link svg {
+            margin-left: 0.25rem;
+            width: 1em;
+            height: 1em;
+        }
+        .example-item {
+            padding-left: 1rem;
+            border-left: 3px solid #dbeafe;
+            margin-top: 1rem;
+            margin-bottom: 1rem;
+        }
+    </style>
+</head>
+<body class="bg-gray-100 text-gray-800">
+
+    <div class="container mx-auto p-4 sm:p-6 lg:p-8">
+        <header class="text-center mb-8">
+            <h1 class="text-3xl md:text-4xl font-bold text-gray-900">3Dプリンティング リサーチレポート</h1>
+            <p class="mt-2 text-gray-600">デジタルデータから立体物を生み出す革新技術</p>
+        </header>
+
+        <main>
+            <!-- 基本解説 -->
+            <section id="basics" class="card">
+                <h2 class="text-2xl font-semibold mb-4 text-gray-900">1. 3Dプリンティングとは？</h2>
+                <p class="text-base leading-relaxed mb-4">
+                    <strong>3Dプリンティング</strong>は、3次元のデジタルデータ（設計図）を基に、樹脂や金属などの材料を一層ずつ積み重ねていき、立体物を造形する技術です。正式には<strong>積層造形 (Additive Manufacturing)</strong> と呼ばれます。
+                </p>
+                 <p class="text-base leading-relaxed">
+                    材料の塊から不要な部分を削り出して形を作る「切削加工」とは対照的に、必要な部分にだけ材料を加えていくため、材料の無駄が少なく、これまで作れなかった複雑な形状や内部構造を持つ部品も一体で製造できるのが最大の特徴です。これにより、ものづくりのあり方を根本から変える可能性を秘めています。
+                </p>
+                <div class="mt-4">
+                    <button class="play-button" onclick="speak('basics')"><svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clip-rule="evenodd" /></svg>このセクションを読む</button>
+                </div>
+            </section>
+            
+            <h2 class="text-3xl font-bold text-center my-8 text-gray-900">分野別に見る活用事例</h2>
+
+            <!-- 製造業 -->
+            <section id="manufacturing" class="card">
+                <h3 class="text-2xl font-semibold mb-2 text-gray-900">① 製造業</h3>
+                <p class="text-gray-600 mb-4">試作品開発の高速化から、最終製品の製造まで、あらゆる工程で活用されています。</p>
+                <div class="example-item">
+                    <strong>ラピッドプロトタイピング (高速試作):</strong> 設計データをすぐさま形にできるため、開発期間を大幅に短縮できます。従来数週間かかっていた試作品が、数時間～数日で完成します。<br>
+                    <a href="https://www.google.com/search?q=ラピッドプロトタイピング+3Dプリンター" target="_blank" rel="noopener noreferrer" class="search-link">検索: ラピッドプロトタイピング 3Dプリンター<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" /></svg></a>
+                </div>
+                <div class="example-item">
+                    <strong>航空宇宙部品:</strong> 従来の製法では作れない複雑な形状の部品を一体成型することで、部品点数を削減し、軽量化と高強度を両立。燃費向上に貢献します。<br>
+                    <a href="https://www.google.com/search?q=GE+3Dプリンター+燃料ノズル" target="_blank" rel="noopener noreferrer" class="search-link">検索: GE 3Dプリンター 燃料ノズル<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 D-105.196 5.196a7.5 7.5 0 0010.607 10.607z" /></svg></a>
+                </div>
+                <div class="example-item">
+                    <strong>治具・工具の製作:</strong> 生産ラインで使われる特注の治具や工具を、必要な時に必要な数だけ素早く製造。現場の改善スピードを向上させます。<br>
+                    <a href="https://www.google.com/search?q=3Dプリンター+治具+製作事例" target="_blank" rel="noopener noreferrer" class="search-link">検索: 3Dプリンター 治具 製作事例<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" /></svg></a>
+                </div>
+                <div class="mt-6">
+                    <button class="play-button" onclick="speak('manufacturing')"><svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clip-rule="evenodd" /></svg>このセクションを読む</button>
+                </div>
+            </section>
+            
+            <!-- 医療 -->
+            <section id="medical" class="card">
+                 <h3 class="text-2xl font-semibold mb-2 text-gray-900">② 医療</h3>
+                <p class="text-gray-600 mb-4">患者一人ひとりに合わせたオーダーメイド医療を実現する技術として注目されています。</p>
+                <div class="example-item">
+                    <strong>実物大の臓器モデル:</strong> 患者のCTやMRIデータから、手術対象となる臓器の精密な3Dモデルを作成。執刀医が事前に手術計画を立てたり、手技をシミュレーションしたりするのに役立ちます。<br>
+                    <a href="https://www.google.com/search?q=3Dプリンター+臓器モデル+手術" target="_blank" rel="noopener noreferrer" class="search-link">検索: 3Dプリンター 臓器モデル 手術<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" /></svg></a>
+                </div>
+                <div class="example-item">
+                    <strong>インプラント・人工関節:</strong> 患者の骨格に完全にフィットする、チタン製のインプラント（人工骨）や人工関節を製造。拒絶反応が少なく、身体への負担を軽減します。<br>
+                    <a href="https://www.google.com/search?q=3Dプリンター+チタン+インプラント" target="_blank" rel="noopener noreferrer" class="search-link">検索: 3Dプリンター チタン インプラント<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" /></svg></a>
+                </div>
+                <div class="example-item">
+                    <strong>義手・義足:</strong> 成長期の子どもや、スポーツ選手など、個々のユーザーの身体や用途に合わせてカスタマイズされた義手や義足を、低コストかつ短期間で製作可能です。<br>
+                     <a href="https://www.google.com/search?q=3Dプリンター+義手" target="_blank" rel="noopener noreferrer" class="search-link">検索: 3Dプリンター 義手<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" /></svg></a>
+                </div>
+                <div class="mt-6">
+                    <button class="play-button" onclick="speak('medical')"><svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clip-rule="evenodd" /></svg>このセクションを読む</button>
+                </div>
+            </section>
+            
+            <!-- 建築・コンシューマー -->
+            <section id="other" class="card">
+                <h3 class="text-2xl font-semibold mb-2 text-gray-900">③ 建築・コンシューマー</h3>
+                <p class="text-gray-600 mb-4">建設現場から個人の趣味まで、3Dプリンティングは社会の隅々に浸透しつつあります。</p>
+                 <div class="example-item">
+                    <strong>建築:</strong> 特殊なモルタルを材料に、巨大な3Dプリンターで住宅の壁などを建設。工期の短縮や建設コストの削減、複雑なデザインの実現が期待されています。<br>
+                    <a href="https://www.google.com/search?q=3Dプリンター+住宅" target="_blank" rel="noopener noreferrer" class="search-link">検索: 3Dプリンター 住宅<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" /></svg></a>
+                </div>
+                <div class="example-item">
+                    <strong>食品:</strong> チョコレートや砂糖菓子、ペースト状の食材などを出力して、複雑なデザインの食品を製造する研究が進んでいます。将来は個人の栄養状態に合わせた調理も期待されます。<br>
+                    <a href="https://www.google.com/search?q=フードプリンター+事例" target="_blank" rel="noopener noreferrer" class="search-link">検索: フードプリンター 事例<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" /></svg></a>
+                </div>
+                 <div class="example-item">
+                    <strong>教育・ホビー:</strong> 個人向けの安価な3Dプリンターが普及し、教育現場での試作品作りや、個人が趣味でフィギュアやオリジナル雑貨、DIY部品などを製作して楽しんでいます。<br>
+                     <a href="https://www.google.com/search?q=家庭用3Dプリンター+作品" target="_blank" rel="noopener noreferrer" class="search-link">検索: 家庭用3Dプリンター 作品<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" /></svg></a>
+                </div>
+                <div class="mt-6">
+                    <button class="play-button" onclick="speak('other')"><svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clip-rule="evenodd" /></svg>このセクションを読む</button>
+                </div>
+            </section>
+            
+            <!-- 課題と未来展望 -->
+            <section id="future" class="card">
+                <h3 class="text-2xl font-semibold mb-2 text-gray-900">④ 課題と未来展望</h3>
+                <p class="text-gray-600 mb-4">材料や技術の進化により、オンデマンドなものづくりがさらに加速します。</p>
+                <div class="example-item">
+                    <strong>材料の多様化:</strong> 利用できる材料は樹脂や金属だけでなく、セラミックス、ゴムライク素材、さらには細胞などの生体材料（バイオプリンティング）へと広がっています。
+                </div>
+                 <div class="example-item">
+                    <strong>技術的課題:</strong> 造形速度の向上、より大きな造形物の製作、異なる素材を組み合わせる複合材料プリンティングなどが今後の課題です。
+                </div>
+                 <div class="example-item">
+                    <strong>4Dプリンティング:</strong> 3Dプリンターで造形された物体が、時間経過や外部からの刺激（熱、光、水分など）によって、プログラムされた通りに変形する技術。自己修復材料や医療分野での応用が期待されます。
+                </div>
+                <div class="mt-6">
+                    <button class="play-button" onclick="speak('future')"><svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clip-rule="evenodd" /></svg>このセクションを読む</button>
+                </div>
+            </section>
+
+        </main>
+        
+        <footer class="text-center mt-8 py-4 border-t border-gray-300">
+            <p class="text-gray-600">&copy; 2025 3D Printing Research Report. All rights reserved.</p>
+        </footer>
+    </div>
+
+    <script>
+        const synth = window.speechSynthesis;
+        let utterance = null;
+        let googleVoice = null;
+
+        function loadVoices() {
+            const voices = synth.getVoices();
+            googleVoice = voices.find(voice => voice.name.includes('Google') && voice.lang === 'ja-JP');
+            if (!googleVoice) {
+                googleVoice = voices.find(voice => voice.lang === 'ja-JP');
+            }
+        }
+
+        loadVoices();
+        if (synth.onvoiceschanged !== undefined) {
+            synth.onvoiceschanged = loadVoices;
+        }
+
+        function speak(sectionId) {
+            if (synth.speaking) {
+                synth.cancel();
+            }
+
+            const section = document.getElementById(sectionId);
+            if (section) {
+                const title = section.querySelector('h2, h3').innerText;
+                const contents = Array.from(section.querySelectorAll('p, .example-item')).map(el => el.innerText).join('。 ');
+                let textToSpeak = title + '。 ' + contents;
+
+                textToSpeak = textToSpeak
+                    .replace(/3D/g, 'スリーディー')
+                    .replace(/4D/g, 'フォーディー')
+                    .replace(/CT/g, 'シーティー')
+                    .replace(/MRI/g, 'エムアールアイ')
+                    .replace(/DIY/g, 'ディーアイワイ')
+                    .replace(/GE/g, 'ジーイー');
+
+                utterance = new SpeechSynthesisUtterance(textToSpeak);
+                utterance.lang = 'ja-JP';
+
+                if (googleVoice) {
+                    utterance.voice = googleVoice;
+                }
+                
+                utterance.rate = 1.0; 
+                utterance.pitch = 1.0; 
+                
+                utterance.onerror = function(event) {
+                    console.error('SpeechSynthesisUtterance.onerror', event);
+                };
+                
+                synth.speak(utterance);
+            }
+        }
+        
+        window.addEventListener('beforeunload', () => {
+            if (synth.speaking) {
+                synth.cancel();
+            }
+        });
+    </script>
+</body>
+</html>

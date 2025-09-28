@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI（人工知能）リサーチレポート</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', 'Helvetica Neue', 'Arial', 'Hiragino Kaku Gothic ProN', 'Hiragino Sans', 'BIZ UDPGothic', 'Meiryo', sans-serif;
+        }
+        .card {
+            background-color: white;
+            border-radius: 0.75rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1);
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+            transition: all 0.3s ease-in-out;
+        }
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -4px rgba(0, 0, 0, 0.1);
+        }
+        .play-button {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0.5rem 1rem;
+            border-radius: 0.5rem;
+            background-color: #3b82f6;
+            color: white;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background-color 0.3s;
+            border: none;
+        }
+        .play-button:hover {
+            background-color: #2563eb;
+        }
+        .play-button svg {
+            margin-right: 0.5rem;
+        }
+        h1, h2, h3 {
+            font-weight: 700;
+        }
+        .search-link {
+            color: #3b82f6;
+            text-decoration: none;
+            transition: color 0.3s;
+            display: inline-flex;
+            align-items: center;
+        }
+        .search-link:hover {
+            color: #1d4ed8;
+            text-decoration: underline;
+        }
+        .search-link svg {
+            margin-left: 0.25rem;
+            width: 1em;
+            height: 1em;
+        }
+        .example-item {
+            padding-left: 1rem;
+            border-left: 3px solid #dbeafe;
+            margin-top: 1rem;
+            margin-bottom: 1rem;
+        }
+    </style>
+</head>
+<body class="bg-gray-100 text-gray-800">
+
+    <div class="container mx-auto p-4 sm:p-6 lg:p-8">
+        <header class="text-center mb-8">
+            <h1 class="text-3xl md:text-4xl font-bold text-gray-900">AI（人工知能）リサーチレポート</h1>
+            <p class="mt-2 text-gray-600">AIがもたらす変革と未来</p>
+        </header>
+
+        <main>
+            <!-- AIの基本 -->
+            <section id="ai-basics" class="card">
+                <h2 class="text-2xl font-semibold mb-4 text-gray-900">1. AI（人工知能）とは？</h2>
+                <p class="text-base leading-relaxed">
+                    AI（Artificial Intelligence）とは、人間の知的活動をコンピュータで模倣したソフトウェアやシステムのことです。特に、データから自動で学習し、ルールやパターンを発見して、予測や判断を行う「機械学習」や、その発展形である「ディープラーニング（深層学習）」といった技術が近年のAIの進化を支えています。これにより、画像認識、音声認識、自然言語処理など、かつては人間にしかできなかった高度なタスクをコンピュータが実行できるようになりました。
+                </p>
+                <div class="mt-4">
+                    <button class="play-button" onclick="speak('ai-basics')"><svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clip-rule="evenodd" /></svg>このセクションを読む</button>
+                </div>
+            </section>
+            
+            <h2 class="text-3xl font-bold text-center my-8 text-gray-900">分野別に見るAI活用事例</h2>
+
+            <!-- 日常生活・エンターテイメント -->
+            <section id="ai-life" class="card">
+                <h3 class="text-2xl font-semibold mb-2 text-gray-900">① 日常生活・エンターテイメント</h3>
+                <p class="text-gray-600 mb-4">私たちの暮らしを豊かにし、新しい楽しみ方を提供するAI技術。</p>
+                <div class="example-item">
+                    <strong>スマートスピーカー:</strong> 「今日の天気は？」といった自然な会話を認識し、情報を提供したり、家電を操作したりします。<br>
+                    <a href="https://www.google.com/search?q=Amazon+Alexa" target="_blank" rel="noopener noreferrer" class="search-link">検索: Amazon Alexa<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" /></svg></a>
+                </div>
+                <div class="example-item">
+                    <strong>レコメンドエンジン:</strong> ネットショッピングや動画配信サービスで、過去の閲覧・購入履歴から個人の好みを分析し、おすすめの商品や作品を提案します。<br>
+                    <a href="https://www.google.com/search?q=Netflix+レコメンド" target="_blank" rel="noopener noreferrer" class="search-link">検索: Netflix レコメンド<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" /></svg></a>
+                </div>
+                <div class="example-item">
+                    <strong>リアルタイム翻訳:</strong> カメラやマイクを通して入力された外国語を、瞬時に認識・翻訳。海外旅行や国際交流の言語の壁を取り払います。<br>
+                    <a href="https://www.google.com/search?q=Google翻訳+リアルタイム" target="_blank" rel="noopener noreferrer" class="search-link">検索: Google翻訳 リアルタイム<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" /></svg></a>
+                </div>
+                <div class="example-item">
+                    <strong>迷惑メールフィルター:</strong> メールの内容や送信元をAIが分析し、迷惑メールやフィッシング詐欺の可能性が高いものを自動で判別・隔離します。<br>
+                    <a href="https://www.google.com/search?q=Gmail+迷惑メールフィルタ+AI" target="_blank" rel="noopener noreferrer" class="search-link">検索: Gmail 迷惑メールフィルタ AI<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" /></svg></a>
+                </div>
+                <div class="mt-6">
+                    <button class="play-button" onclick="speak('ai-life')"><svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clip-rule="evenodd" /></svg>このセクションを読む</button>
+                </div>
+            </section>
+            
+            <!-- クリエイティブ・コンテンツ生成 -->
+            <section id="ai-creative" class="card">
+                 <h3 class="text-2xl font-semibold mb-2 text-gray-900">② クリエイティブ・コンテンツ生成</h3>
+                <p class="text-gray-600 mb-4">文章、画像、音楽、コードなど、これまで人間にしかできなかった創造的な作業をAIが担います。</p>
+                <div class="example-item">
+                    <strong>文章生成AI:</strong> 質問に答えたり、メールやレポートを作成したり、物語を創作したりと、様々なテキストを生成します。<br>
+                    <a href="https://www.google.com/search?q=ChatGPT" target="_blank" rel="noopener noreferrer" class="search-link">検索: ChatGPT<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" /></svg></a>
+                </div>
+                <div class="example-item">
+                    <strong>画像生成AI:</strong> 「青いリンゴに乗る宇宙飛行士」のようなテキスト（プロンプト）から、高品質な画像を生成します。<br>
+                    <a href="https://www.google.com/search?q=Midjourney" target="_blank" rel="noopener noreferrer" class="search-link">検索: Midjourney<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" /></svg></a>
+                </div>
+                 <div class="example-item">
+                    <strong>コード生成AI:</strong> プログラマーが書いたコードの続きを予測して補完したり、コメントからコードを生成したりして開発を支援します。<br>
+                     <a href="https://www.google.com/search?q=GitHub+Copilot" target="_blank" rel="noopener noreferrer" class="search-link">検索: GitHub Copilot<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" /></svg></a>
+                </div>
+                <div class="example-item">
+                    <strong>自動文字起こし:</strong> 会議やインタビューの音声データをAIが認識し、自動でテキスト化。議事録作成の手間を大幅に削減します。<br>
+                    <a href="https://www.google.com/search?q=CLOVA+Note" target="_blank" rel="noopener noreferrer" class="search-link">検索: CLOVA Note<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" /></svg></a>
+                </div>
+                <div class="mt-6">
+                    <button class="play-button" onclick="speak('ai-creative')"><svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clip-rule="evenodd" /></svg>このセクションを読む</button>
+                </div>
+            </section>
+            
+            <!-- ビジネス・業務効率化 -->
+            <section id="ai-business" class="card">
+                <h3 class="text-2xl font-semibold mb-2 text-gray-900">③ ビジネス・業務効率化</h3>
+                <p class="text-gray-600 mb-4">定型業務の自動化、データに基づく需要予測など、ビジネスの生産性を飛躍的に向上させます。</p>
+                 <div class="example-item">
+                    <strong>AI-OCR:</strong> 手書きの書類や帳票をスキャンし、AIが高い精度で文字を認識してデータ化。入力作業を自動化します。<br>
+                    <a href="https://www.google.com/search?q=AI-OCR+DX+Suite" target="_blank" rel="noopener noreferrer" class="search-link">検索: AI-OCR DX Suite<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" /></svg></a>
+                </div>
+                 <div class="example-item">
+                    <strong>チャットボット:</strong> Webサイトやアプリ上で、顧客からの定型的な質問に24時間365日自動で応答。オペレーターの負担を軽減します。<br>
+                    <a href="https://www.google.com/search?q=AIチャットボット" target="_blank" rel="noopener noreferrer" class="search-link">検索: AIチャットボット<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" /></svg></a>
+                </div>
+                <div class="example-item">
+                    <strong>需要予測:</strong> 過去の販売データや天候、イベント情報などをAIが分析し、将来の商品需要を予測。過剰在庫や品切れを防ぎます。<br>
+                    <a href="https://www.google.com/search?q=AI+需要予測+小売" target="_blank" rel="noopener noreferrer" class="search-link">検索: AI 需要予測 小売<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" /></svg></a>
+                </div>
+                <div class="example-item">
+                    <strong>不正検知システム:</strong> クレジットカードの利用パターンを学習し、通常と異なる不審な取引をリアルタイムで検知・警告します。<br>
+                    <a href="https://www.google.com/search?q=クレジットカード+不正利用検知+AI" target="_blank" rel="noopener noreferrer" class="search-link">検索: クレジットカード 不正利用検知 AI<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" /></svg></a>
+                </div>
+                <div class="mt-6">
+                    <button class="play-button" onclick="speak('ai-business')"><svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clip-rule="evenodd" /></svg>このセクションを読む</button>
+                </div>
+            </section>
+            
+            <!-- 医療・科学技術 -->
+            <section id="ai-science" class="card">
+                <h3 class="text-2xl font-semibold mb-2 text-gray-900">④ 医療・科学技術</h3>
+                <p class="text-gray-600 mb-4">膨大なデータ解析により、病気の早期発見や新薬開発、複雑な科学的課題の解決に貢献します。</p>
+                <div class="example-item">
+                    <strong>画像診断支援:</strong> CTやMRIなどの医療画像をAIが解析し、がんなどの病変の疑いがある箇所を検出。医師の診断をサポートし、見落としを防ぎます。<br>
+                    <a href="https://www.google.com/search?q=AI+画像診断支援" target="_blank" rel="noopener noreferrer" class="search-link">検索: AI 画像診断支援<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" /></svg></a>
+                </div>
+                 <div class="example-item">
+                    <strong>創薬AI:</strong> AIが膨大な数の化合物の中から、新薬の候補となる可能性が高い物質を高速に探索。開発期間の大幅な短縮が期待されます。<br>
+                    <a href="https://www.google.com/search?q=創薬AI" target="_blank" rel="noopener noreferrer" class="search-link">検索: 創薬AI<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" /></svg></a>
+                </div>
+                 <div class="example-item">
+                    <strong>タンパク質構造予測:</strong> 生命の設計図であるタンパク質の複雑な立体構造を、AIがアミノ酸配列から高精度に予測。生命科学の研究を加速させます。<br>
+                    <a href="https://www.google.com/search?q=AlphaFold" target="_blank" rel="noopener noreferrer" class="search-link">検索: AlphaFold<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" /></svg></a>
+                </div>
+                <div class="mt-6">
+                    <button class="play-button" onclick="speak('ai-science')"><svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clip-rule="evenodd" /></svg>このセクションを読む</button>
+                </div>
+            </section>
+
+             <!-- 自動運転・社会インフラ -->
+            <section id="ai-infra" class="card">
+                <h3 class="text-2xl font-semibold mb-2 text-gray-900">⑤ 自動運転・社会インフラ</h3>
+                <p class="text-gray-600 mb-4">AIの「目」と「脳」が、より安全で効率的な社会システムの構築を可能にします。</p>
+                 <div class="example-item">
+                    <strong>自動運転:</strong> 車載カメラやセンサーからの情報をAIが瞬時に解析し、周囲の状況を判断。ハンドル、アクセル、ブレーキを制御して自動で走行します。<br>
+                    <a href="https://www.google.com/search?q=テスラ+オートパイロット" target="_blank" rel="noopener noreferrer" class="search-link">検索: テスラ オートパイロット<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" /></svg></a>
+                </div>
+                <div class="example-item">
+                    <strong>インフラ点検:</strong> ドローンが撮影した橋やトンネルの高解像度画像から、AIがひび割れなどの劣化箇所を自動で検出。点検作業の効率化と安全確保に貢献します。<br>
+                    <a href="https://www.google.com/search?q=AI+インフラ点検+ドローン" target="_blank" rel="noopener noreferrer" class="search-link">検索: AI インフラ点検 ドローン<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" /></svg></a>
+                </div>
+                 <div class="example-item">
+                    <strong>精密農業:</strong> ドローンや衛星からの画像データをAIが解析し、作物の生育状況や病害虫の発生を把握。ピンポイントで農薬や肥料を散布し、収穫量向上と環境負荷低減を両立します。<br>
+                    <a href="https://www.google.com/search?q=精密農業+AI" target="_blank" rel="noopener noreferrer" class="search-link">検索: 精密農業 AI<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" /></svg></a>
+                </div>
+                <div class="mt-6">
+                    <button class="play-button" onclick="speak('ai-infra')"><svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clip-rule="evenodd" /></svg>このセクションを読む</button>
+                </div>
+            </section>
+
+        </main>
+        
+        <footer class="text-center mt-8 py-4 border-t border-gray-300">
+            <p class="text-gray-600">&copy; 2025 AI Research Report. All rights reserved.</p>
+        </footer>
+    </div>
+
+    <script>
+        const synth = window.speechSynthesis;
+        let utterance = null;
+        let googleVoice = null;
+
+        function loadVoices() {
+            const voices = synth.getVoices();
+            googleVoice = voices.find(voice => voice.name.includes('Google') && voice.lang === 'ja-JP');
+            if (!googleVoice) {
+                googleVoice = voices.find(voice => voice.lang === 'ja-JP');
+            }
+        }
+
+        loadVoices();
+        if (synth.onvoiceschanged !== undefined) {
+            synth.onvoiceschanged = loadVoices;
+        }
+
+        function speak(sectionId) {
+            if (synth.speaking) {
+                synth.cancel();
+            }
+
+            const section = document.getElementById(sectionId);
+            if (section) {
+                const title = section.querySelector('h2, h3').innerText;
+                const contents = Array.from(section.querySelectorAll('p, .example-item')).map(el => el.innerText).join('。 ');
+                let textToSpeak = title + '。 ' + contents;
+
+                textToSpeak = textToSpeak
+                    .replace(/AI/g, 'エーアイ')
+                    .replace(/IoT/g, 'アイオーティー')
+                    .replace(/ChatGPT/g, 'チャットジーピーティー')
+                    .replace(/DX/g, 'ディーエックス')
+                    .replace(/OCR/g, 'オーシーアール')
+                    .replace(/CT/g, 'シーティー')
+                    .replace(/MRI/g, 'エムアールアイ')
+                    .replace(/Web/g, 'ウェブ');
+
+                utterance = new SpeechSynthesisUtterance(textToSpeak);
+                utterance.lang = 'ja-JP';
+
+                if (googleVoice) {
+                    utterance.voice = googleVoice;
+                }
+                
+                utterance.rate = 1.0; 
+                utterance.pitch = 1.0; 
+                
+                utterance.onerror = function(event) {
+                    console.error('SpeechSynthesisUtterance.onerror', event);
+                };
+                
+                synth.speak(utterance);
+            }
+        }
+        
+        window.addEventListener('beforeunload', () => {
+            if (synth.speaking) {
+                synth.cancel();
+            }
+        });
+    </script>
+</body>
+</html>

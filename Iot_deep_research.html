@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IoT（モノのインターネット）リサーチレポート</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', 'Helvetica Neue', 'Arial', 'Hiragino Kaku Gothic ProN', 'Hiragino Sans', 'BIZ UDPGothic', 'Meiryo', sans-serif;
+        }
+        .card {
+            background-color: white;
+            border-radius: 0.75rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1);
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+            transition: all 0.3s ease-in-out;
+        }
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -4px rgba(0, 0, 0, 0.1);
+        }
+        .play-button {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0.5rem 1rem;
+            border-radius: 0.5rem;
+            background-color: #3b82f6;
+            color: white;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background-color 0.3s;
+            border: none;
+        }
+        .play-button:hover {
+            background-color: #2563eb;
+        }
+        .play-button svg {
+            margin-right: 0.5rem;
+        }
+        h1, h2, h3 {
+            font-weight: 700;
+        }
+        .search-link {
+            color: #3b82f6;
+            text-decoration: none;
+            transition: color 0.3s;
+            display: inline-flex;
+            align-items: center;
+        }
+        .search-link:hover {
+            color: #1d4ed8;
+            text-decoration: underline;
+        }
+        .search-link svg {
+            margin-left: 0.25rem;
+            width: 1em;
+            height: 1em;
+        }
+        .example-item {
+            padding-left: 1rem;
+            border-left: 3px solid #dbeafe;
+            margin-top: 1rem;
+            margin-bottom: 1rem;
+        }
+    </style>
+</head>
+<body class="bg-gray-100 text-gray-800">
+
+    <div class="container mx-auto p-4 sm:p-6 lg:p-8">
+        <header class="text-center mb-8">
+            <h1 class="text-3xl md:text-4xl font-bold text-gray-900">IoT（モノのインターネット）リサーチレポート</h1>
+            <p class="mt-2 text-gray-600">IoTの現在と未来を紐解く</p>
+        </header>
+
+        <main>
+            <!-- IoTの基本 -->
+            <section id="iot-basics" class="card">
+                <h2 class="text-2xl font-semibold mb-4 text-gray-900">1. IoTとは？</h2>
+                <p class="text-base leading-relaxed">
+                    IoT（Internet of Things）とは、「モノのインターネット」と訳されます。従来インターネットに接続されていなかった様々なモノが、ネットワークを通じて相互に情報をやり取りする仕組みのことです。モノが収集したデータをクラウド上で分析し、その結果を元にモノを最適に制御したり、ユーザーに新たな価値を提供したりします。これにより、私たちの生活やビジネスがより便利で効率的になることが期待されています。
+                </p>
+                <div class="mt-4">
+                    <button class="play-button" onclick="speak('iot-basics')"><svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clip-rule="evenodd" /></svg>このセクションを読む</button>
+                </div>
+            </section>
+            
+            <h2 class="text-3xl font-bold text-center my-8 text-gray-900">分野別に見るIoT活用事例</h2>
+
+            <!-- スマートホーム -->
+            <section id="iot-home" class="card">
+                <h3 class="text-2xl font-semibold mb-2 text-gray-900">① スマートホーム</h3>
+                <p class="text-gray-600 mb-4">家電や住宅設備をインターネットに接続し、生活をより安全・快適・便利にします。</p>
+                <!-- ... existing examples ... -->
+                <div class="example-item">
+                    <strong>スマートリモコン:</strong> 家中の赤外線リモコンをスマホに集約し、外出先から家電を操作。<br>
+                    <a href="https://www.google.com/search?q=Nature+Remo" target="_blank" rel="noopener noreferrer" class="search-link">検索: Nature Remo<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" /></svg></a>
+                </div>
+                <div class="example-item">
+                    <strong>スマートロック:</strong> スマホが家の鍵になり、オートロックや一時的な合鍵の発行が可能に。<br>
+                    <a href="https://www.google.com/search?q=Qrio+Lock" target="_blank" rel="noopener noreferrer" class="search-link">検索: Qrio Lock<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" /></svg></a>
+                </div>
+                <div class="example-item">
+                    <strong>HEMS (ヘムス):</strong> 家庭のエネルギー使用量を可視化し、家電を自動制御して節電をサポート。<br>
+                    <a href="https://www.google.com/search?q=HEMS+パナソニック" target="_blank" rel="noopener noreferrer" class="search-link">検索: HEMS パナソニック<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" /></svg></a>
+                </div>
+                 <div class="example-item">
+                    <strong>スマートオーブン:</strong> スマホアプリからレシピを送信すると、適切な温度と時間で自動調理。<br>
+                    <a href="https://www.google.com/search?q=パナソニック+ビストロ+コネクテッド" target="_blank" rel="noopener noreferrer" class="search-link">検索: パナソニック ビストロ コネクテッド<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" /></svg></a>
+                </div>
+                <div class="mt-6">
+                    <button class="play-button" onclick="speak('iot-home')"><svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clip-rule="evenodd" /></svg>このセクションを読む</button>
+                </div>
+            </section>
+            
+            <!-- 医療・ヘルスケア -->
+            <section id="iot-healthcare" class="card">
+                 <h3 class="text-2xl font-semibold mb-2 text-gray-900">② 医療・ヘルスケア</h3>
+                <p class="text-gray-600 mb-4">バイタルデータを収集・分析し、日々の健康管理、病気の予防、遠隔医療に役立てます。</p>
+                <div class="example-item">
+                    <strong>ウェアラブルデバイス:</strong> 心拍数や睡眠などを常時記録し、健康状態を可視化。<br>
+                    <a href="https://www.google.com/search?q=Apple+Watch" target="_blank" rel="noopener noreferrer" class="search-link">検索: Apple Watch<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" /></svg></a>
+                </div>
+                <div class="example-item">
+                    <strong>スマートベッド:</strong> 睡眠中の心拍や呼吸をマットレス内蔵センサーが検知し、睡眠の質を分析。<br>
+                    <a href="https://www.google.com/search?q=パラマウントベッド+Active+Sleep" target="_blank" rel="noopener noreferrer" class="search-link">検索: パラマウントベッド Active Sleep<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" /></svg></a>
+                </div>
+                <div class="example-item">
+                    <strong>コネクテッド吸入器:</strong> 喘息患者がいつどこで吸入器を使ったかを記録し、治療計画に役立てる。<br>
+                    <a href="https://www.google.com/search?q=FindAir+喘息" target="_blank" rel="noopener noreferrer" class="search-link">検索: FindAir 喘息<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" /></svg></a>
+                </div>
+                 <div class="example-item">
+                    <strong>介護施設での見守り:</strong> ベッドセンサーや人感センサーで利用者の状態を把握し、スタッフの負担を軽減。<br>
+                     <a href="https://www.google.com/search?q=眠りSCAN+パラマウントベッド" target="_blank" rel="noopener noreferrer" class="search-link">検索: 眠りSCAN パラマウントベッド<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" /></svg></a>
+                </div>
+                <div class="mt-6">
+                    <button class="play-button" onclick="speak('iot-healthcare')"><svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clip-rule="evenodd" /></svg>このセクションを読む</button>
+                </div>
+            </section>
+            
+            <!-- 交通・モビリティ -->
+            <section id="iot-mobility" class="card">
+                <h3 class="text-2xl font-semibold mb-2 text-gray-900">③ 交通・モビリティ</h3>
+                <p class="text-gray-600 mb-4">自動車や交通インフラをネットワーク化し、安全性向上、渋滞緩和、効率的な移動を実現します。</p>
+                 <div class="example-item">
+                    <strong>コネクテッドカー:</strong> 車両が通信し、地図の自動更新や最適ルートを案内。事故時の自動通報も。<br>
+                    <a href="https://www.google.com/search?q=トヨタ+T-Connect" target="_blank" rel="noopener noreferrer" class="search-link">検索: トヨタ T-Connect<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" /></svg></a>
+                </div>
+                <div class="example-item">
+                    <strong>AIデマンドバス:</strong> AIが利用予約に応じて最適な運行ルートをリアルタイムに計算する乗り合いバス。<br>
+                    <a href="https://www.google.com/search?q=NTTドコモ+AI運行バス" target="_blank" rel="noopener noreferrer" class="search-link">検索: NTTドコモ AI運行バス<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" /></svg></a>
+                </div>
+                 <div class="example-item">
+                    <strong>スマートパーキング:</strong> 駐車場の満空情報をリアルタイムで配信し、予約や決済までアプリで完結。<br>
+                    <a href="https://www.google.com/search?q=akippa" target="_blank" rel="noopener noreferrer" class="search-link">検索: akippa<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" /></svg></a>
+                </div>
+                <div class="mt-6">
+                    <button class="play-button" onclick="speak('iot-mobility')"><svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clip-rule="evenodd" /></svg>このセクションを読む</button>
+                </div>
+            </section>
+            
+            <!-- 製造 (スマートファクトリー) -->
+            <section id="iot-factory" class="card">
+                <h3 class="text-2xl font-semibold mb-2 text-gray-900">④ 製造 (スマートファクトリー)</h3>
+                <p class="text-gray-600 mb-4">工場内の機器や人をIoTで接続・可視化し、生産性向上や安全確保に貢献します。</p>
+                <div class="example-item">
+                    <strong>予知保全:</strong> 設備の振動等をAIが監視し、故障前にメンテナンスを通知。<br>
+                    <a href="https://www.google.com/search?q=オムロン+予知保全" target="_blank" rel="noopener noreferrer" class="search-link">検索: オムロン 予知保全<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" /></svg></a>
+                </div>
+                <div class="example-item">
+                    <strong>遠隔作業支援:</strong> スマートグラスで現場映像を共有し、熟練者が遠隔地から指示。<br>
+                    <a href="https://www.google.com/search?q=NEC+遠隔作業支援システム" target="_blank" rel="noopener noreferrer" class="search-link">検索: NEC 遠隔作業支援システム<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" /></svg></a>
+                </div>
+                <div class="example-item">
+                    <strong>無人搬送車 (AGV/AMR):</strong> 工場内で部品や完成品を自動搬送し、省人化を実現。<br>
+                    <a href="https://www.google.com/search?q=AGV+AMR+違い" target="_blank" rel="noopener noreferrer" class="search-link">検索: AGV AMR 違い<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" /></svg></a>
+                </div>
+                <div class="mt-6">
+                    <button class="play-button" onclick="speak('iot-factory')"><svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clip-rule="evenodd" /></svg>このセクションを読む</button>
+                </div>
+            </section>
+
+             <!-- 農業・水産業 -->
+            <section id="iot-agriculture" class="card">
+                <h3 class="text-2xl font-semibold mb-2 text-gray-900">⑤ 農業・水産業</h3>
+                <p class="text-gray-600 mb-4">センサーやロボット技術を活用し、作業の自動化・効率化、品質・収量向上を目指します。</p>
+                 <div class="example-item">
+                    <strong>水田管理システム:</strong> 水位・水温を自動計測し、給水ゲートを遠隔・自動で開閉。<br>
+                    <a href="https://www.google.com/search?q=クボタ+KSAS" target="_blank" rel="noopener noreferrer" class="search-link">検索: クボタ KSAS<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" /></svg></a>
+                </div>
+                <div class="example-item">
+                    <strong>ハウス環境制御:</strong> 温室内の温度、湿度、CO2濃度などをセンサーで監視し、最適な環境を自動で維持。<br>
+                    <a href="https://www.google.com/search?q=ゼロアグリ" target="_blank" rel="noopener noreferrer" class="search-link">検索: ゼロアグリ<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" /></svg></a>
+                </div>
+                 <div class="example-item">
+                    <strong>スマート養殖:</strong> 生け簀の水質を常時監視し、AIが魚の食欲を判断して自動給餌。<br>
+                    <a href="https://www.google.com/search?q=UMITRON" target="_blank" rel="noopener noreferrer" class="search-link">検索: UMITRON<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" /></svg></a>
+                </div>
+                <div class="mt-6">
+                    <button class="play-button" onclick="speak('iot-agriculture')"><svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clip-rule="evenodd" /></svg>このセクションを読む</button>
+                </div>
+            </section>
+            
+             <!-- 小売・物流 -->
+            <section id="iot-retail" class="card">
+                <h3 class="text-2xl font-semibold mb-2 text-gray-900">⑥ 小売・物流</h3>
+                <p class="text-gray-600 mb-4">在庫管理の自動化や、新しい購買体験の創出にIoTが活用されています。</p>
+                 <div class="example-item">
+                    <strong>スマートシェルフ:</strong> 商品棚の重量センサーが在庫量をリアルタイムで検知し、自動発注を実現。<br>
+                    <a href="https://www.google.com/search?q=スマートシェルフ+在庫管理" target="_blank" rel="noopener noreferrer" class="search-link">検索: スマートシェルフ 在庫管理<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" /></svg></a>
+                </div>
+                <div class="example-item">
+                    <strong>ダイナミックプライシング:</strong> 需要と供給、天気、時間帯などに応じて商品価格を自動で変動させる。<br>
+                    <a href="https://www.google.com/search?q=ダイナミックプライシング+自販機" target="_blank" rel="noopener noreferrer" class="search-link">検索: ダイナミックプライシング 自販機<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" /></svg></a>
+                </div>
+                 <div class="example-item">
+                    <strong>ドローン配送:</strong> 医薬品や食料品などをドローンで過疎地や離島へ配送。<br>
+                    <a href="https://www.google.com/search?q=レベル4飛行+ドローン配送" target="_blank" rel="noopener noreferrer" class="search-link">検索: レベル4飛行 ドローン配送<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" /></svg></a>
+                </div>
+                <div class="mt-6">
+                    <button class="play-button" onclick="speak('iot-retail')"><svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clip-rule="evenodd" /></svg>このセクションを読む</button>
+                </div>
+            </section>
+
+            <!-- インフラ・社会・その他 -->
+            <section id="iot-infra" class="card">
+                <h3 class="text-2xl font-semibold mb-2 text-gray-900">⑦ インフラ・社会・その他</h3>
+                <p class="text-gray-600 mb-4">社会インフラの監視や、様々なサービスの高度化にIoTが活用されています。</p>
+                 <div class="example-item">
+                    <strong>スマートメーター:</strong> 電力やガスの使用量を自動検針し、エネルギーの最適化に貢献。<br>
+                    <a href="https://www.google.com/search?q=スマートメーターとは" target="_blank" rel="noopener noreferrer" class="search-link">検索: スマートメーターとは<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" /></svg></a>
+                </div>
+                 <div class="example-item">
+                    <strong>建設機械の遠隔操作・自動運転:</strong> 熟練操縦者が遠隔で複数の重機を操作したり、危険な場所で無人施工を行ったりする。<br>
+                     <a href="https://www.google.com/search?q=コマツ+スマートコンストラクション" target="_blank" rel="noopener noreferrer" class="search-link">検索: コマツ スマートコンストラクション<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" /></svg></a>
+                </div>
+                <div class="example-item">
+                    <strong>スマート街灯:</strong> 人通りを検知して明るさを自動調整したり、カメラやセンサーで地域の安全を見守ったりする。<br>
+                     <a href="https://www.google.com/search?q=スマート街灯+事例" target="_blank" rel="noopener noreferrer" class="search-link">検索: スマート街灯 事例<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" /></svg></a>
+                </div>
+                <div class="example-item">
+                    <strong>アスリート向けウェアラブル:</strong> 選手の心拍数や走行距離、フォームなどを計測・分析し、パフォーマンス向上に役立てる。<br>
+                    <a href="https://www.google.com/search?q=STATSports+GPSトラッカー" target="_blank" rel="noopener noreferrer" class="search-link">検索: STATSports GPSトラッカー<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" /></svg></a>
+                </div>
+                <div class="mt-6">
+                    <button class="play-button" onclick="speak('iot-infra')"><svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clip-rule="evenodd" /></svg>このセクションを読む</button>
+                </div>
+            </section>
+        </main>
+        
+        <footer class="text-center mt-8 py-4 border-t border-gray-300">
+            <p class="text-gray-600">&copy; 2025 IoT Research Report. All rights reserved.</p>
+        </footer>
+    </div>
+
+    <script>
+        const synth = window.speechSynthesis;
+        let utterance = null;
+        let googleVoice = null;
+
+        function loadVoices() {
+            const voices = synth.getVoices();
+            googleVoice = voices.find(voice => voice.name.includes('Google') && voice.lang === 'ja-JP');
+            if (!googleVoice) {
+                googleVoice = voices.find(voice => voice.lang === 'ja-JP');
+            }
+        }
+
+        loadVoices();
+        if (synth.onvoiceschanged !== undefined) {
+            synth.onvoiceschanged = loadVoices;
+        }
+
+        function speak(sectionId) {
+            if (synth.speaking) {
+                synth.cancel();
+            }
+
+            const section = document.getElementById(sectionId);
+            if (section) {
+                const title = section.querySelector('h2, h3').innerText;
+                const contents = Array.from(section.querySelectorAll('p, .example-item')).map(el => el.innerText).join('。 ');
+                let textToSpeak = title + '。 ' + contents;
+
+                textToSpeak = textToSpeak
+                    .replace(/IoT/g, 'アイオーティー')
+                    .replace(/AIoT/g, 'エーアイオーティー')
+                    .replace(/AI/g, 'エーアイ')
+                    .replace(/5G/g, 'ファイブジー')
+                    .replace(/V2V/g, 'ブイツーブイ')
+                    .replace(/RFID/g, 'アールエフアイディー')
+                    .replace(/CO2/g, 'シーオーツー')
+                    .replace(/GPS/g, 'ジーピーエス')
+                    .replace(/AGV/g, 'エージーブイ')
+                    .replace(/AMR/g, 'エーエムアール')
+                    .replace(/QR/g, 'キューアール')
+                    .replace(/HEMS/g, 'ヘムス');
+
+                utterance = new SpeechSynthesisUtterance(textToSpeak);
+                utterance.lang = 'ja-JP';
+
+                if (googleVoice) {
+                    utterance.voice = googleVoice;
+                }
+                
+                utterance.rate = 1.0; 
+                utterance.pitch = 1.0; 
+                
+                utterance.onerror = function(event) {
+                    console.error('SpeechSynthesisUtterance.onerror', event);
+                };
+                
+                synth.speak(utterance);
+            }
+        }
+        
+        window.addEventListener('beforeunload', () => {
+            if (synth.speaking) {
+                synth.cancel();
+            }
+        });
+    </script>
+</body>
+</html>
+
