@@ -2,172 +2,421 @@
 <html lang="ja">
 <head>
     <meta charset="UTF-8">
+    <title>Next Leaders 6 - Welcome</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>チームE結束大作戦</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
     <style>
+        :root {
+            --bg-gradient-start: #f0f9ff;
+            --bg-gradient-end: #ffffff;
+            --card-bg: #ffffff;
+            --card-hover-bg: #f8fafc;
+            --text-primary: #1e293b;
+            --text-secondary: #64748b;
+            --accent-color: #3b82f6;
+            --border-color: #e2e8f0;
+            --shadow-color: rgba(0, 0, 0, 0.05);
+        }
+
         body {
-            font-family: 'Helvetica Neue', Arial, 'Hiragino Kaku Gothic ProN', 'Hiragino Sans', Meiryo, sans-serif;
             margin: 0;
-            padding: 20px;
-            background-color: #fdfaf0; /* 少しクリーム色がかった背景 */
-            color: #3a3a3a;
+            font-family: 'Inter', 'Noto Sans JP', sans-serif;
+            color: var(--text-primary);
+            background-image: linear-gradient(180deg, var(--bg-gradient-start) 0%, var(--bg-gradient-end) 40%);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 60px 20px;
+            min-height: 100vh;
+            box-sizing: border-box;
         }
+
         .container {
-            max-width: 900px;
-            margin: 0 auto;
+            width: 100%;
+            max-width: 700px;
         }
+
         header {
             text-align: center;
             margin-bottom: 40px;
         }
+
         h1 {
-            color: #2E8B57; /* 緑色 */
-            font-size: 2.5em;
+            font-size: clamp(2rem, 5vw, 2.5rem);
+            margin: 0 0 10px 0;
+        }
+        
+        header p {
+            font-size: 1.1rem;
+            color: var(--text-secondary);
             margin: 0;
-            font-weight: bold;
-        }
-        h2 {
-            font-size: 1.5em;
-            margin-top: 10px;
-            color: #555;
-        }
-        .activities {
-            display: flex;
-            justify-content: center;
-            flex-wrap: wrap;
-            gap: 25px;
-            margin-bottom: 50px;
-        }
-        .card {
-            background-color: white;
-            border: 2px solid #FFA500;
-            border-radius: 12px;
-            padding: 20px;
-            width: 250px;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.08);
-            text-align: center;
-        }
-        .card h3 {
-            color: #FFA500;
-            font-size: 1.3em;
-            margin-top: 0;
-        }
-        .card p.catchphrase {
-            font-weight: bold;
-            color: #333;
-            font-size: 1.1em;
-        }
-        .card p.details {
-            font-size: 0.9em;
-            color: #666;
         }
 
-        /* スケジュールテーブルのスタイル */
-        .schedule {
+        /* --- 操作エリア --- */
+        .controls {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+        }
+        #search-box {
+            flex-grow: 1;
+            padding: 12px 16px;
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+            font-size: 1rem;
+            font-family: inherit;
+        }
+        .control-btn {
+            padding: 10px 16px;
+            font-size: 0.9rem;
+            font-weight: 500;
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+            background-color: var(--card-bg);
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+        .control-btn:hover {
+            background-color: #f1f5f9;
+        }
+
+        /* --- リスト共通 --- */
+        .main-list, .quick-links-list {
+            list-style: none;
+            padding: 0;
+        }
+        .section-header {
+            color: var(--text-primary);
+            font-weight: 600;
+            font-size: 1.2rem;
+            margin-top: 30px;
+            margin-bottom: 15px;
+            padding-bottom: 8px;
+            border-bottom: 2px solid var(--border-color);
+        }
+
+        /* --- アコーディオン --- */
+        .collapsible {
+            background-color: transparent;
+            border: none;
+            width: 100%;
+            text-align: left;
+            cursor: pointer;
+            color: var(--text-secondary);
+            margin-bottom: 12px;
+            padding: 10px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-radius: 8px;
+            transition: background-color 0.2s ease;
+        }
+        .collapsible:hover {
+            background-color: #f1f5f9;
+        }
+        .collapsible::after {
+            content: '+'; font-size: 1.4rem; font-weight: 400; color: var(--accent-color);
+        }
+        .collapsible.active::after { content: '−'; }
+        
+        .content {
+            padding: 0; overflow: hidden; max-height: 0;
+            transition: max-height 0.3s ease-out;
+        }
+        .content ul { list-style: none; padding: 0; margin: 0 0 16px 10px; }
+        .content li, .quick-links-list li { margin-bottom: 12px; }
+
+        /* --- リンク項目 --- */
+        a.link-item {
+            display: flex;
+            align-items: center;
+            padding: 22px 28px;
+            background-color: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 14px;
+            box-shadow: 0 4px 10px var(--shadow-color);
+            text-decoration: none;
+            color: var(--text-primary);
+            font-weight: 500;
+            font-size: 1.05em;
+            transition: all 0.2s ease;
+        }
+        a.link-item:hover {
+            transform: translateY(-4px);
+            border-color: var(--accent-color);
+            background-color: var(--card-hover-bg);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.07);
+        }
+        .hidden { display: none !important; }
+
+        /* --- NEW: テーブルスタイル --- */
+        .content-table {
+            padding: 5px 10px 15px 10px;
+        }
+        table {
             width: 100%;
             border-collapse: collapse;
-            margin-top: 20px;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.08);
+            font-size: 0.9em;
+            background-color: var(--card-bg);
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 4px var(--shadow-color);
         }
-        .schedule th, .schedule td {
-            border: 1px solid #ddd;
-            padding: 12px;
+        th, td {
+            border: 1px solid var(--border-color);
+            padding: 12px 14px;
             text-align: left;
+            vertical-align: top;
         }
-        .schedule th {
-            background-color: #2E8B57;
-            color: white;
-            font-weight: bold;
+        thead th {
+            background-color: #f8fafc;
+            font-weight: 600;
         }
-        .schedule tr:nth-child(even) {
-            background-color: #f9f9f9;
+        tbody tr:nth-child(even) {
+            background-color: #fdfdff;
         }
-        .schedule tr:hover {
-            background-color: #f1f1f1;
+        td ul {
+            margin: 0;
+            padding-left: 18px;
+        }
+        td ul li {
+            margin-bottom: 5px;
+        }
+        td ul li:last-child {
+            margin-bottom: 0;
+        }
+
+        footer {
+            margin-top: auto; padding-top: 50px; font-size: 0.9em;
+            color: var(--text-secondary); text-align: center;
         }
     </style>
 </head>
 <body>
+
     <div class="container">
         <header>
-            <h1>山・竹・飯でつながる！</h1>
-            <h2>〜チームE結束大作戦〜</h2>
+            <h1>Next Leaders 6</h1>
+            <p>Team Resources & Documents</p>
         </header>
-        
-        <div class="activities">
-            <div class="card">
-                <h3>Act1: 金峯山登山 ⛰️</h3>
-                <p class="catchphrase">つらいときも励まし合い</p>
-                <p class="details">準備: リュック, 飲み物, タオル, 帽子, 雨具など</p>
-            </div>
-            <div class="card">
-                <h3>Act2: 竹林整備(竹刈) 🎋</h3>
-                <p class="catchphrase">チーム力を高めよう</p>
-                <p class="details">10:30-12:30<br>道具準備は不要です</p>
-            </div>
-            <div class="card">
-                <h3>Act3: 流しそうめん&BBQ 🍖</h3>
-                <p class="catchphrase">結束力の集大成</p>
-                <p class="details">13:00-15:00<br>そうめん, 肉, 野菜, 芋煮！</p>
-            </div>
+
+        <div class="controls">
+            <input type="text" id="search-box" placeholder="キーワードで資料を検索...">
+            <button id="expand-all" class="control-btn">すべて開く</button>
+            <button id="collapse-all" class="control-btn">すべて閉じる</button>
         </div>
 
-        <h2 style="text-align: center;">当日のスケジュール</h2>
-        <table class="schedule">
-            <thead>
-                <tr>
-                    <th>時間</th>
-                    <th>内容</th>
-                    <th>準備物</th>
-                    <th>備考</th>
-                </tr>
-            </thead>
-            <tbody>
-                <tr>
-                    <td>7:00</td>
-                    <td>鶴岡駅集合、移動</td>
-                    <td>移動手段</td>
-                    <td>バス or 真田送迎</td>
-                </tr>
-                <tr>
-                    <td>7:30</td>
-                    <td>Act1 登山開始 (小雨決行)</td>
-                    <td>リュックサック, 飲み物, タオル, 帽子, 着替え(適宜), 雨具</td>
-                    <td>料金: 無料<br>※雨の場合のバックアッププラン検討</td>
-                </tr>
-                <tr>
-                    <td>9:00</td>
-                    <td>軽食、下山開始</td>
-                    <td>軽食</td>
-                    <td></td>
-                </tr>
-                <tr>
-                    <td>10:30-12:30</td>
-                    <td>Act2 竹刈</td>
-                    <td>現時点で特になし</td>
-                    <td>道具準備不要<br>料金: 無料？</td>
-                </tr>
-                <tr>
-                    <td>13:00-15:00</td>
-                    <td>Act3 BBQ</td>
-                    <td>そうめん, 肉, 野菜, 芋煮セット</td>
-                    <td>調理器具等は真田準備します<br>10/3(金)に買い出し＋芋煮セットも予約</td>
-                </tr>
-                <tr>
-                    <td>15:00-16:00</td>
-                    <td>片付け、温泉</td>
-                    <td></td>
-                    <td>料金: 300円</td>
-                </tr>
-                <tr>
-                    <td>16:30</td>
-                    <td>解散、移動</td>
-                    <td>移動手段</td>
-                    <td>バス or 真田送迎</td>
-                </tr>
-            </tbody>
-        </table>
-
+        <div class="quick-links-section">
+            <h2 class="section-header">🚀 クイックリンク</h2>
+            <ul class="quick-links-list">
+                <li><a href="チームチャーター.html" class="link-item">チームチャーター</a></li>
+            </ul>
+        </div>
+        
+        <h2 class="section-header">📚 すべての資料</h2>
+        <ul class="main-list">
+            <li class="collapsible-item">
+                <button type="button" class="collapsible">Day1,2 宿題</button>
+                <div class="content">
+                    <ul>
+                        <li><a href="yojigen-sangyo.html" class="link-item">四次元産業を知ろう！</a></li>
+                        <li><a href="Frontier Ventures 2025.html" class="link-item">新奇性が感じられるベンチャー</a></li>
+                        <li><a href="大企業の新規事業開発.html" class="link-item">日本の大企業の新規事業開発</a></li>
+                        <li><a href="日本のネクストユニコン.html" class="link-item">日本のネクストユニコーン</a></li>
+                        <li><a href="DARPA.html" class="link-item">DARPAの技術</a></li>
+                    </ul>
+                </div>
+            </li>
+            <li class="collapsible-item">
+                <button type="button" class="collapsible">Day3,4予習</button>
+                <div class="content">
+                    <ul>
+                        <li><a href="2035Disrup.html" class="link-item">2035年Sony Disrup予測</a></li>
+                        <li><a href="CX.html" class="link-item">SonyのXX事業やビジネスモデルが提供するCX(顧客体験)は何だろう？これからは？</a></li>
+                    </ul>
+                </div>
+            </li>
+            <li class="collapsible-item">
+                <button type="button" class="collapsible">プロダクト</button>
+                <div class="content">
+                    <ul>
+                        <li><a href="sony mvv.html" class="link-item">SONY MVV</a></li>
+                        <li><a href="ワークショップ.html" class="link-item">プロダクトアイデアのコツ</a></li>
+                        <li><a href="product_evaluation.html" class="link-item">プロダクトアイデア評価シート</a></li>
+                    </ul>
+                </div>
+            </li>
+            <li class="collapsible-item">
+                <button type="button" class="collapsible">山形 (10/4 アクティビティ)</button>
+                <div class="content content-table">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>時間</th>
+                                <th>内容</th>
+                                <th>準備物</th>
+                                <th>備考</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>7:00-7:30</td>
+                                <td>鶴岡駅集合、移動</td>
+                                <td>移動手段</td>
+                                <td>真田送迎</td>
+                            </tr>
+                            <tr>
+                                <td>7:30-9:00</td>
+                                <td>Act1 登山開始 (小雨決行)</td>
+                                <td>
+                                    <ul>
+                                        <li>リュックサック</li>
+                                        <li>飲み物</li>
+                                        <li>タオル</li>
+                                        <li>帽子</li>
+                                        <li>着替え(滝用)</li>
+                                        <li>雨具</li>
+                                    </ul>
+                                </td>
+                                <td>料金：無料<br>※雨の場合のバックアッププラン検討</td>
+                            </tr>
+                            <tr>
+                                <td>9:00-10:00</td>
+                                <td>下山開始</td>
+                                <td>軽食</td>
+                                <td>&nbsp;</td>
+                            </tr>
+                            <tr>
+                                <td>10:30-12:00</td>
+                                <td>Act2 竹刈</td>
+                                <td>現時点で特になし</td>
+                                <td>道具準備不要<br>料金：無料</td>
+                            </tr>
+                            <tr>
+                                <td>12:00-14:00</td>
+                                <td>Act3 BBQ</td>
+                                <td>
+                                    <ul>
+                                        <li>そうめん</li>
+                                        <li>肉、野菜</li>
+                                        <li>芋煮セット</li>
+                                    </ul>
+                                </td>
+                                <td>調理器具や食器などは必要があれば真田準備します<br>10/3(金)：全員で買い出し<br>+芋煮セットも予約</td>
+                            </tr>
+                            <tr>
+                                <td>14:00-15:00</td>
+                                <td>片付け、温泉</td>
+                                <td>&nbsp;</td>
+                                <td>料金：300円</td>
+                            </tr>
+                            <tr>
+                                <td>15:00-15:30</td>
+                                <td>移動、解散</td>
+                                <td>移動手段</td>
+                                <td>真田送迎</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </li>
+            <li class="collapsible-item">
+                <button type="button" class="collapsible">いろいろ</button>
+                <div class="content">
+                    <ul>
+                        <li><a href="shinkisei.html" class="link-item">新奇性</a></li>
+                        <li><a href="ソニー：イノベーションの軌跡.html" class="link-item">ソニーのプロダクト歴史</a></li>
+                        <li><a href="革新と失敗の分かれ道.html" class="link-item">ヒット製品の革新と失敗の分かれ道</a></li>
+                        <li><a href="Future bestsellers by 2035.HTML" class="link-item">10年後のヒット商品予測</a></li>
+                        <li><a href="消費者心理を動かすマーケティングの秘密.html" class="link-item">消費者心理を動かすマーケティングの秘密</a></li>
+                        <li><a href="AI_deep_research.html" class="link-item">AI（人工知能）深掘り調査</a></li>
+                        <li><a href="Iot_deep_research.html" class="link-item">IoT（モノのインターネット）深掘り調査</a></li>
+                        <li><a href="Robo_deep_research.html" class="link-item">ロボティクス深掘り調査</a></li>
+                        <li><a href="VRARMR_deep_research.html" class="link-item">VR/AR/MR 深掘り調査</a></li>
+                        <li><a href="Big_data&Algorithm_deep_research.html" class="link-item">ビッグデータ＆アルゴリズム深掘り調査</a></li>
+                        <li><a href="Genome_deep_research.html" class="link-item">ゲノム編集深掘り調査</a></li>
+                        <li><a href="3DP_deep_research.html" class="link-item">3Dプリンティング深掘り調査</a></li>
+                    </ul>
+                </div>
+            </li>
+        </ul>
     </div>
+
+    <footer>© 2025 Next Leaders 6</footer>
+
+    <script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const collapsibles = document.querySelectorAll(".collapsible");
+        const searchBox = document.getElementById('search-box');
+        const expandAllBtn = document.getElementById('expand-all');
+        const collapseAllBtn = document.getElementById('collapse-all');
+
+        // アコーディオン機能
+        collapsibles.forEach(item => {
+            item.addEventListener("click", function () {
+                toggleCollapsible(this);
+            });
+        });
+
+        function toggleCollapsible(element, forceOpen = null) {
+            const content = element.nextElementSibling;
+            const isOpen = element.classList.contains('active');
+            
+            if (forceOpen === true || (forceOpen === null && !isOpen)) {
+                element.classList.add("active");
+                content.style.maxHeight = content.scrollHeight + "px";
+            } else if (forceOpen === false || (forceOpen === null && isOpen)) {
+                element.classList.remove("active");
+                content.style.maxHeight = null;
+            }
+        }
+
+        // すべて開く/閉じる
+        expandAllBtn.addEventListener('click', () => collapsibles.forEach(c => toggleCollapsible(c, true)));
+        collapseAllBtn.addEventListener('click', () => collapsibles.forEach(c => toggleCollapsible(c, false)));
+
+        // 検索フィルター機能
+        searchBox.addEventListener('input', (e) => {
+            const searchTerm = e.target.value.toLowerCase();
+            const allItems = document.querySelectorAll('.collapsible-item, .quick-links-list li');
+
+            allItems.forEach(item => {
+                const isQuickLink = item.parentElement.classList.contains('quick-links-list');
+                const textContent = item.textContent.toLowerCase();
+
+                if (isQuickLink) {
+                     item.classList.toggle('hidden', !textContent.includes(searchTerm));
+                } else {
+                    const links = item.querySelectorAll('.link-item');
+                    let hasVisibleLink = false;
+
+                    if (links.length > 0) {
+                         links.forEach(link => {
+                            const linkText = link.textContent.toLowerCase();
+                            const listItem = link.parentElement;
+                            if (linkText.includes(searchTerm)) {
+                                listItem.classList.remove('hidden');
+                                hasVisibleLink = true;
+                            } else {
+                                listItem.classList.add('hidden');
+                            }
+                        });
+                        item.classList.toggle('hidden', !hasVisibleLink);
+                    } else {
+                        // テーブルを持つような項目も検索対象にする
+                        item.classList.toggle('hidden', !textContent.includes(searchTerm));
+                    }
+                }
+            });
+        });
+    });
+    </script>
 </body>
 </html>
