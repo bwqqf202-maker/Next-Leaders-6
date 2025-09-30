@@ -101,32 +101,13 @@
         th:nth-child(4), td:nth-child(4) { width: 30%; }
 
 
-        /* フッター */
-        footer {
-            text-align: center;
-            margin-top: 40px;
-            padding-top: 20px;
-            border-top: 1px solid #ccc;
-            font-size: 0.9em;
-            color: #555;
-        }
-        .confidential {
-            display: inline-block;
-            background-color: red;
-            color: white;
-            padding: 5px 10px;
-            font-weight: bold;
-            border-radius: 3px;
-            margin-top: 10px;
-        }
-
         /* スマートフォン用の調整 */
         @media (max-width: 768px) {
             h1 { font-size: 1.8em; }
             h2 { font-size: 1.2em; }
             .activities {
                 flex-direction: column; /* 縦並びにする */
-                align-items: center;
+                align-items-center;
             }
             .card {
                 width: 90%; /* 画面幅の90%にする */
@@ -223,10 +204,6 @@
                 </div>
             </section>
         </main>
-
-        <footer>
-            <p>Copyright 20xx Sony Semiconductor Solutions Corporation</p>
-        </footer>
     </div>
 
 </body>
