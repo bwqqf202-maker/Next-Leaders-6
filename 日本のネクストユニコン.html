@@ -9,16 +9,6 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
-    <!-- Chosen Palette: Calm Harmony (Background: #FDFBF6, Text: #3C3633, Primary Accent: #7C9D96, Secondary Accent: #E0C097) -->
-    <!-- Application Structure Plan: The application is designed as a single-page interactive dashboard, not a linear report. The core structure features a filterable main view and a detailed drill-down view. The main view consists of an overview bubble chart visualizing the startup landscape and a grid of company summary cards. This allows users to quickly grasp the ecosystem and identify companies of interest. The primary interaction is filtering by industry, which dynamically updates both the chart and the cards. Clicking a card reveals an in-depth view of that company, providing detailed text and a specific chart (e.g., funding). This dashboard-to-detail structure was chosen because it promotes non-linear user exploration based on interest, which is more engaging and efficient for an audience like investors or analysts than a static, page-by-page report. It keeps all relevant information within a single, cohesive context. -->
-    <!-- Visualization & Content Choices:
-- Company Landscape: Goal: Organize/Compare. Viz: Bubble Chart (showing companies by industry and funding size). Interaction: Updates on filter, hover for details. Justification: Provides a high-level, multi-dimensional view of the startup ecosystem. Library: Chart.js (Canvas).
-- Company List: Goal: Inform/Organize. Presentation: Grid of interactive cards. Interaction: Click to drill-down, filterable. Justification: Scannable and provides an intuitive entry point to detailed information. Method: HTML/Tailwind/JS.
-- Industry Filter: Goal: Organize. Presentation: Buttons. Interaction: Click to filter dataset. Justification: Main navigation tool for user-driven exploration. Method: HTML/JS.
-- Company Details: Goal: Inform. Presentation: Expanded section with text blocks and key metrics. Interaction: Appears on card click. Justification: Presents deep-dive information without leaving the main page context. Method: HTML/Tailwind/JS.
-- Funding Data: Goal: Compare/Inform. Viz: Vertical Bar Chart within detail view. Interaction: Hover for tooltips. Justification: Clearly illustrates funding amounts for a specific company. Library: Chart.js (Canvas).
-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. All visuals are built with HTML/Tailwind or rendered on a Canvas element. -->
-    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
     <style>
         body {
             font-family: 'Noto Sans JP', sans-serif;
@@ -71,6 +61,15 @@
             <h1 class="text-4xl md:text-5xl font-bold text-slate-800 tracking-tight">日本のネクストユニコーン候補 2025 (実在企業版)</h1>
             <p class="mt-4 text-lg text-slate-600 max-w-3xl mx-auto">日本経済の未来を担う、大きな成長可能性を秘めたスタートアップ企業をインタラクティブに探る。</p>
         </header>
+
+        <section class="my-10 max-w-4xl mx-auto bg-white/70 p-6 rounded-xl shadow-sm border border-gray-200/60">
+            <h2 class="text-2xl font-bold text-slate-800 text-center mb-4">そもそも「ネクストユニコーン」とは？</h2>
+            <div class="text-slate-700 space-y-4 md:text-lg">
+                <p><strong>ユニコーン企業</strong>とは、評価額が10億ドル（約1,500億円）以上で、設立10年以内の非上場ベンチャー企業を指す言葉です。その希少性と圧倒的な成長力から、伝説の生き物になぞらえられています。</p>
+                <p>そして「<strong>ネクストユニコーン</strong>」とは、そのユニコーンへと成長する蓋然性が高いと目される、次世代のスタートアップ群のことです。彼らは、革新的な技術やビジネスモデルを武器に、新たな市場を切り拓き、日本経済の未来を牽引する存在として大きな期待が寄せられています。</p>
+                 <p class="pt-2 text-center text-slate-600">このダッシュボードで、未来のメガベンチャーを発掘しましょう。</p>
+            </div>
+        </section>
 
         <main>
             <section id="explorer" class="space-y-12">
