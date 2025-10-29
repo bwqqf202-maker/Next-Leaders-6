@@ -1,0 +1,697 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ノイズキャンセリング技術とプロジェクト管理ツール 徹底解説</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@3.7.1/dist/chart.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+      body {
+        font-family: 'Noto Sans JP', sans-serif;
+      }
+      .chart-container {
+        position: relative;
+        width: 100%;
+        max-width: 600px;
+        margin-left: auto;
+        margin-right: auto;
+        height: 300px;
+        max-height: 350px;
+      }
+      @media (min-width: 768px) {
+        .chart-container {
+          height: 350px;
+          max-height: 400px;
+        }
+      }
+      .html-diagram {
+        border: 2px solid #e5e7eb;
+        background-color: #f9fafb;
+        transition: all 0.3s ease-in-out;
+      }
+      .html-diagram-box {
+        background-color: #ffffff;
+        border: 1px solid #d1d5db;
+        box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.05);
+      }
+      .html-diagram-arrow {
+        color: #6b7280;
+        font-weight: bold;
+      }
+      .nav-link {
+        transition: color 0.2s, border-bottom-color 0.2s;
+        border-bottom: 2px solid transparent;
+      }
+      .nav-link:hover {
+        color: #0d9488;
+        border-bottom-color: #0d9488;
+      }
+      .tab-btn {
+        transition: all 0.2s ease-in-out;
+      }
+      .tab-btn.active {
+        background-color: #0d9488;
+        color: #ffffff;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      }
+      .filter-btn {
+        transition: all 0.2s ease-in-out;
+      }
+      .filter-btn.active {
+        background-color: #115e59;
+        color: #ffffff;
+        font-weight: 600;
+      }
+      .app-card {
+        transition: opacity 0.3s, transform 0.3s;
+      }
+      .comparison-table-container {
+        overflow-x: auto; /* テーブルがはみ出る場合にスクロール可能にする */
+        -webkit-overflow-scrolling: touch; /* iOSでのスクロールをスムーズに */
+      }
+      .comparison-table {
+        width: 100%;
+        min-width: 800px; /* 小画面でテーブルが小さくなりすぎないように最小幅を設定 */
+        border-collapse: collapse;
+      }
+      .comparison-table th, .comparison-table td {
+        border: 1px solid #e2e8f0; /* TailwindCSSのborder-stone-200に近い色 */
+        padding: 12px 16px;
+        text-align: left;
+        vertical-align: top;
+      }
+      .comparison-table th {
+        background-color: #f1f5f9; /* TailwindCSSのbg-stone-100に近い色 */
+        font-weight: 600;
+        color: #334155; /* TailwindCSSのtext-stone-700に近い色 */
+        white-space: nowrap; /* ヘッダーのテキストを改行しない */
+      }
+      .comparison-table tr:nth-child(even) {
+        background-color: #f8fafc; /* ストライプ模様 */
+      }
+      .comparison-table td a {
+        color: #0d9488; /* Tealカラー */
+        text-decoration: none;
+      }
+      .comparison-table td a:hover {
+        text-decoration: underline;
+      }
+    </style>
+</head>
+<body class="bg-stone-50 text-stone-900 leading-relaxed">
+
+    <header class="sticky top-0 w-full bg-white/80 backdrop-blur-md shadow-sm z-50">
+        <nav class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-16">
+                <div class="flex-shrink-0 flex items-center">
+                    <span class="text-xl font-bold text-teal-700">インタラクティブ・レポート</span>
+                </div>
+                <div class="hidden md:block">
+                    <div class="ml-10 flex items-baseline space-x-4">
+                        <a href="#principles" class="nav-link text-stone-600 hover:text-teal-600 px-3 py-2 rounded-md text-sm font-medium">ノイズキャンセリング</a>
+                        <a href="#trends" class="nav-link text-stone-600 hover:text-teal-600 px-3 py-2 rounded-md text-sm font-medium">最新トレンド</a>
+                        <a href="#future" class="nav-link text-stone-600 hover:text-teal-600 px-3 py-2 rounded-md text-sm font-medium">今後の展望</a>
+                        <a href="#pm-tools" class="nav-link text-stone-600 hover:text-teal-600 px-3 py-2 rounded-md text-sm font-medium">PMツール比較</a>
+                    </div>
+                </div>
+                <div class="md:hidden">
+                    <button id="mobile-menu-button" class="inline-flex items-center justify-center p-2 rounded-md text-stone-500 hover:text-teal-600 hover:bg-stone-100 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-teal-500">
+                        <span class="sr-only">メインメニューを開く</span>
+                        <svg class="block h-6 w-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+                        </svg>
+                        <svg class="hidden h-6 w-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                    </button>
+                </div>
+            </div>
+        </nav>
+        <div id="mobile-menu" class="md:hidden hidden">
+            <div class="px-2 pt-2 pb-3 space-y-1 sm:px-3">
+                <a href="#principles" class="text-stone-600 hover:bg-stone-100 hover:text-teal-600 block px-3 py-2 rounded-md text-base font-medium">ノイズキャンセリング</a>
+                <a href="#trends" class="text-stone-600 hover:bg-stone-100 hover:text-teal-600 block px-3 py-2 rounded-md text-base font-medium">最新トレンド</a>
+                <a href="#future" class="text-stone-600 hover:bg-stone-100 hover:text-teal-600 block px-3 py-2 rounded-md text-base font-medium">今後の展望</a>
+                <a href="#pm-tools" class="text-stone-600 hover:bg-stone-100 hover:text-teal-600 block px-3 py-2 rounded-md text-base font-medium">PMツール比較</a>
+            </div>
+        </div>
+    </header>
+
+    <main class="max-w-6xl mx-auto p-4 md:p-8 pt-10">
+
+        <section id="top" class="text-center mb-16">
+            <h1 class="text-3xl md:text-5xl font-bold text-teal-800 mb-6">インタラクティブ・レポート</h1>
+            <h2 class="text-2xl md:text-4xl font-semibold text-stone-800 mb-6">ノイズキャンセリング技術とプロジェクト管理ツール</h2>
+            <p class="text-base md:text-lg text-stone-700 max-w-3xl mx-auto">
+                このインタラクティブなレポートでは、ノイズキャンセリングの仕組みから最新トレンド、未来の展望までを深く掘り下げるとともに、主要なプロジェクト管理ツールの機能比較を通じて、貴社の生産性向上をサポートする情報を提供します。
+            </p>
+        </section>
+
+        <section id="principles" class="mb-16 scroll-mt-20">
+            <h2 class="text-2xl md:text-3xl font-semibold text-stone-800 border-l-4 border-teal-600 pl-4 mb-6">1. ノイズキャンセリングの基本原理：騒音はなぜ消えるのか？</h2>
+            <p class="text-base md:text-lg text-stone-700 mb-8">
+                ノイズキャンセリングは、不要な音（ノイズ）を低減する技術です。このセクションでは、その核となる2つの主要な方式、「パッシブ」と「アクティブ」の違いと、特に「アクティブノイズキャンセリング（ANC）」がどのようにして音を音で打ち消すのかを学びます。
+            </p>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mb-12">
+                <div class="bg-white p-6 rounded-xl shadow-lg border border-stone-200">
+                    <h3 class="text-xl font-bold text-teal-700 mb-3">PNC (パッシブノイズキャンセリング)</h3>
+                    <p class="text-stone-700">
+                        物理的な「遮音」技術です。イヤーパッドやイヤーピースの素材、形状を工夫することで、耳と外部の騒音との間に「壁」を作ります。耳栓と同じ原理で、特に中音域から高音域のノイズ（例：人の話し声）を防ぐのが得意です。シンプルで安価に実現できる利点があります。
+                    </p>
+                </div>
+                <div class="bg-white p-6 rounded-xl shadow-lg border border-stone-200">
+                    <h3 class="text-xl font-bold text-teal-700 mb-3">ANC (アクティブノイズキャンセリング)</h3>
+                    <p class="text-stone-700">
+                        デジタル信号処理を用いた「相殺」技術です。マイクで外部の騒音を拾い、その音の波形と「正反対の波形（逆位相）」の音をスピーカーから発生させます。2つの波がぶつかり合うことでお互いを打ち消し合い、騒音が聞こえなくなります。特に低音域のノイズ（例：電車の走行音、飛行機のエンジン音）に強力です。
+                    </p>
+                </div>
+            </div>
+
+            <h3 class="text-xl md:text-2xl font-semibold text-stone-800 mb-4 text-center">ANCの仕組み：逆位相によるノイズ相殺</h3>
+            <p class="text-stone-700 text-center max-w-2xl mx-auto mb-6">
+                下のグラフは、ANCの「逆位相」の原理を視覚化したものです。ボタンをクリックして、ノイズがどのように打ち消されるかを確認してください。
+            </p>
+            <div class="bg-white p-4 md:p-6 rounded-xl shadow-lg border border-stone-200">
+                <div class="chart-container mx-auto">
+                    <canvas id="ancPrincipleChart"></canvas>
+                </div>
+                <div class="flex flex-wrap justify-center gap-2 md:gap-4 mt-4">
+                    <button id="showNoiseBtn" class="bg-red-500 hover:bg-red-600 text-white font-medium py-2 px-4 rounded-lg transition-colors text-sm">1. ノイズ波形 (騒音)</button>
+                    <button id="showAntiNoiseBtn" class="bg-blue-500 hover:bg-blue-600 text-white font-medium py-2 px-4 rounded-lg transition-colors text-sm">2. 逆位相の波形 (ANCが作る音)</button>
+                    <button id="showResultBtn" class="bg-green-600 hover:bg-green-700 text-white font-medium py-2 px-4 rounded-lg transition-colors text-sm">3. 合成結果 (耳に届く音)</button>
+                    <button id="resetChartBtn" class="bg-stone-500 hover:bg-stone-600 text-white font-medium py-2 px-4 rounded-lg transition-colors text-sm">リセット</button>
+                </div>
+            </div>
+
+            <h3 class="text-xl md:text-2xl font-semibold text-stone-800 mb-4 mt-12 text-center">ANCの3つの方式</h3>
+            <p class="text-stone-700 text-center max-w-2xl mx-auto mb-6">
+                ANCは、ノイズを拾うマイクの配置によって、主に3つの方式に分けられます。それぞれの特徴をタブで切り替えて確認しましょう。
+            </p>
+            <div class="bg-white p-4 md:p-6 rounded-xl shadow-lg border border-stone-200">
+                <div class="flex flex-wrap justify-center border-b-2 border-stone-200 mb-6">
+                    <button id="ff-btn" class="tab-btn active font-medium py-3 px-6 text-stone-600 rounded-t-lg" data-target="ff-diagram">フィードフォワード (FF)</button>
+                    <button id="fb-btn" class="tab-btn font-medium py-3 px-6 text-stone-600 rounded-t-lg" data-target="fb-diagram">フィードバック (FB)</button>
+                    <button id="hybrid-btn" class="tab-btn font-medium py-3 px-6 text-stone-600 rounded-t-lg" data-target="hybrid-diagram">ハイブリッド</button>
+                </div>
+                
+                <div id="diagram-container" class="relative min-h-[300px]">
+                    <div id="ff-diagram" class="anc-diagram-content p-4">
+                        <h4 class="text-lg font-bold text-teal-700 mb-3">フィードフォワード (FF) 方式</h4>
+                        <p class="text-stone-700 mb-4">マイクをヘッドホンの<strong class="text-red-600">外側</strong>に配置します。騒音が耳に届く「前」に予測して逆位相の音を生成します。広い帯域のノイズに対応しやすい一方、風切り音などの突発的なノイズや、自分の声も拾ってしまうことがあります。</p>
+                        <div class="html-diagram p-4 rounded-lg flex flex-col md:flex-row items-center justify-center space-y-4 md:space-y-0 md:space-x-4 min-h-[150px]">
+                            <div class="html-diagram-box p-3 rounded text-center"><strong>外部ノイズ</strong></div>
+                            <span class="html-diagram-arrow text-2xl md:text-4xl">→</span>
+                            <div class="html-diagram-box p-3 rounded text-center bg-red-100 border-red-300"><strong>外側マイク</strong><br/>(ノイズを拾う)</div>
+                            <span class="html-diagram-arrow text-2xl md:text-4xl">→</span>
+                            <div class="html-diagram-box p-3 rounded text-center bg-teal-100 border-teal-300"><strong>ANC処理</strong></div>
+                            <span class="html-diagram-arrow text-2xl md:text-4xl">→</span>
+                            <div class="html-diagram-box p-3 rounded text-center bg-blue-100 border-blue-300"><strong>スピーカー</strong></div>
+                            <span class="html-diagram-arrow text-2xl md:text-4xl">→</span>
+                            <div class="html-diagram-box p-3 rounded text-center"><strong>耳</strong></div>
+                        </div>
+                    </div>
+                    
+                    <div id="fb-diagram" class="anc-diagram-content p-4 hidden">
+                        <h4 class="text-lg font-bold text-teal-700 mb-3">フィードバック (FB) 方式</h4>
+                        <p class="text-stone-700 mb-4">マイクをヘッドホンの<strong class="text-blue-600">内側</strong>（スピーカーの近く）に配置します。耳に「実際に届いている音」をモニターし、ノイズが残っていれば補正します。精度が高い反面、処理が遅れるとハウリング（不快な高音）を起こす可能性があり、対応できる帯域が狭くなりがちです。</p>
+                        <div class="html-diagram p-4 rounded-lg flex flex-col md:flex-row items-center justify-center space-y-4 md:space-y-0 md:space-x-4 min-h-[150px]">
+                            <div class="html-diagram-box p-3 rounded text-center"><strong>外部ノイズ</strong></div>
+                            <span class="html-diagram-arrow text-2xl md:text-4xl">→</span>
+                            <div class="html-diagram-box p-3 rounded text-center bg-blue-100 border-blue-300"><strong>スピーカー</strong></div>
+                            <span class="html-diagram-arrow text-2xl md:text-4xl">→</span>
+                            <div class="html-diagram-box p-3 rounded text-center bg-blue-100 border-blue-300"><strong>耳</strong></div>
+                            <span class="html-diagram-arrow text-2xl md:text-4xl">↑</span>
+                            <div class="html-diagram-box p-3 rounded text-center bg-red-100 border-red-300"><strong>内側マイク</strong><br/>(残ったノイズを拾う)</div>
+                            <span class="html-diagram-arrow text-2xl md:text-4xl">→</span>
+                            <div class="html-diagram-box p-3 rounded text-center bg-teal-100 border-teal-300"><strong>ANC処理 (補正)</strong></div>
+                        </div>
+                    </div>
+
+                    <div id="hybrid-diagram" class="anc-diagram-content p-4 hidden">
+                        <h4 class="text-lg font-bold text-teal-700 mb-3">ハイブリッド 方式</h4>
+                        <p class="text-stone-700 mb-4">FF方式とFB方式の両方を組み合わせ、<strong class="text-red-600">外側</strong>と<strong class="text-blue-600">内側</strong>の両方にマイクを配置します。両方式の利点を活かし、広帯域で精度の高いノイズキャンセリングを実現します。最も効果が高いですが、コストも高くなります。近年の高性能モデルの主流です。</p>
+                        <div class="html-diagram p-4 rounded-lg flex flex-col items-center justify-center space-y-4 min-h-[150px]">
+                            <div class="flex items-center space-x-4">
+                                <div class="html-diagram-box p-3 rounded text-center"><strong>外部ノイズ</strong></div>
+                                <span class="html-diagram-arrow text-2xl md:text-4xl">→</span>
+                                <div class="html-diagram-box p-3 rounded text-center bg-red-100 border-red-300"><strong>外側マイク</strong></div>
+                                <span class="html-diagram-arrow text-2xl md:text-4xl">→</span>
+                                <div class="html-diagram-box p-3 rounded text-center bg-teal-100 border-teal-300" rowspan="2"><strong>ANC処理</strong></div>
+                            </div>
+                            <div class="flex items-center space-x-4">
+                                <span class="html-diagram-arrow text-2xl md:text-4xl">↓</span>
+                                <div class="html-diagram-box p-3 rounded text-center bg-blue-100 border-blue-300"><strong>スピーカー → 耳</strong></div>
+                                <span class="html-diagram-arrow text-2xl md:text-4xl">↑</span>
+                                <div class="html-diagram-box p-3 rounded text-center bg-red-100 border-red-300"><strong>内側マイク</strong></div>
+                                <span class="html-diagram-arrow text-2xl md:text-4xl">→</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </section>
+
+        <section id="trends" class="mb-16 scroll-mt-20">
+            <h2 class="text-2xl md:text-3xl font-semibold text-stone-800 border-l-4 border-teal-600 pl-4 mb-6">2. 最新トレンド：AIが変える「静寂」</h2>
+            <p class="text-base md:text-lg text-stone-700 mb-8">
+                2024年から2025年にかけて、ノイズキャンセリング技術は「AIの統合」によって劇的に進化しています。単に騒音を消すだけでなく、「必要な音だけを残す」「状況に応じて自動で最適化する」といった、よりインテリジェントな機能が主流になっています。
+            </p>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-12">
+                <div class="bg-white p-6 rounded-xl shadow-lg border border-stone-200">
+                    <h3 class="text-xl font-bold text-teal-700 mb-3">AIによる適応型ANC</h3>
+                    <p class="text-stone-700">
+                        AIがリアルタイムで周囲の騒音の種類（電車の音、カフェの話し声、オフィスの空調音など）を分析。その状況に最適なノイズキャンセリングの強度や特性を瞬時に自動で適用します。
+                    </p>
+                </div>
+                <div class="bg-white p-6 rounded-xl shadow-lg border border-stone-200">
+                    <h3 class="text-xl font-bold text-teal-700 mb-3">パーソナライゼーション</h3>
+                    <p class="text-stone-700">
+                        ユーザー個人の耳の形状や、聴覚プロファイルをAIが学習。その人専用にカスタマイズされたノイズキャンセリングを提供し、より自然で効果の高い静寂を実現します。
+                    </p>
+                </div>
+                <div class="bg-white p-6 rounded-xl shadow-lg border border-stone-200">
+                    <h3 class="text-xl font-bold text-teal-700 mb-3">高音質化とノイズ分離</h3>
+                    <p class="text-stone-700">
+                        AIが音楽や通話の「声」と「ノイズ」をより正確に分離。ノイズだけを強力に消しつつ、音楽や声のディテールは損なわない、高忠実度なサウンド再生が可能になっています。
+                    </p>
+                </div>
+            </div>
+
+            <h3 class="text-xl md:text-2xl font-semibold text-stone-800 mb-4 text-center">最新技術の注目度 (2024-2025)</h3>
+            <p class="text-stone-700 text-center max-w-2xl mx-auto mb-6">
+                近年の製品開発において、どの技術が特に重視されているかをグラフで示します。AIによるインテリジェントな機能が開発の核となっていることがわかります。
+            </p>
+            <div class="bg-white p-4 md:p-6 rounded-xl shadow-lg border border-stone-200">
+                <div class="chart-container mx-auto" style="height: 350px; max-height: 450px;">
+                    <canvas id="trendsChart"></canvas>
+                </div>
+            </div>
+        </section>
+
+        <section id="future" class="mb-16 scroll-mt-20">
+            <h2 class="text-2xl md:text-3xl font-semibold text-stone-800 border-l-4 border-teal-600 pl-4 mb-6">3. 今後の展望：ヘッドホンを越える未来</h2>
+            <p class="text-base md:text-lg text-stone-700 mb-8">
+                ノイズキャンセリング技術の応用範囲は、もはや個人のオーディオ機器に留まりません。AIとのさらなる融合により、私たちの生活空間全体、産業、医療など、あらゆる分野での「音響環境の最適化」へと向かっています。
+            </p>
+            
+            <div class="text-center mb-8">
+                <p class="text-stone-700 mb-3">興味のある分野で絞り込んで、未来の応用例をご覧ください。</p>
+                <div class="flex flex-wrap justify-center gap-2 md:gap-3">
+                    <button class="filter-btn active bg-stone-200 hover:bg-stone-300 text-stone-800 font-medium py-2 px-4 rounded-full" data-filter="all">すべて</button>
+                    <button class="filter-btn bg-stone-200 hover:bg-stone-300 text-stone-800 font-medium py-2 px-4 rounded-full" data-filter="automotive">自動車</button>
+                    <button class="filter-btn bg-stone-200 hover:bg-stone-300 text-stone-800 font-medium py-2 px-4 rounded-full" data-filter="industrial">産業・労働環境</button>
+                    <button class="filter-btn bg-stone-200 hover:bg-stone-300 text-stone-800 font-medium py-2 px-4 rounded-full" data-filter="medical">医療</button>
+                    <button class="filter-btn bg-stone-200 hover:bg-stone-300 text-stone-800 font-medium py-2 px-4 rounded-full" data-filter="smart_device">スマートデバイス</button>
+                </div>
+            </div>
+
+            <div id="future-apps-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <div class="app-card bg-white p-6 rounded-xl shadow-lg border border-stone-200" data-category="automotive">
+                    <h3 class="text-xl font-bold text-teal-700 mb-3">自動車</h3>
+                    <p class="text-stone-700">
+                        車内に設置されたマイクとスピーカーが、エンジン音やロードノイズをリアルタイムで相殺。高級車だけでなく、EV（電気自動車）の静粛性をさらに高める技術として、標準搭載が進むと予測されています。
+                    </p>
+                </div>
+                <div class="app-card bg-white p-6 rounded-xl shadow-lg border border-stone-200" data-category="industrial">
+                    <h3 class="text-xl font-bold text-teal-700 mb-3">産業・労働環境</h3>
+                    <p class="text-stone-700">
+                        工場の機械騒音や、建設現場の重機音を低減するANC搭載のイヤーマフ（耳栓）。労働者の聴覚を保護し、安全な作業環境と集中力の向上に貢献します。
+                    </p>
+                </div>
+                <div class="app-card bg-white p-6 rounded-xl shadow-lg border border-stone-200" data-category="medical">
+                    <h3 class="text-xl font-bold text-teal-700 mb-3">医療機器</h3>
+                    <p class="text-stone-700">
+                        MRIやCTスキャン時の大きな騒音は、患者のストレスの一因です。空間全体、あるいは患者の耳元で騒音を低減する技術により、より快適な検査環境の実現が期待されます。
+                    </p>
+                </div>
+                <div class="app-card bg-white p-6 rounded-xl shadow-lg border border-stone-200" data-category="smart_device">
+                    <h3 class="text-xl font-bold text-teal-700 mb-3">スマートデバイス・アシスタント</h3>
+                    <p class="text-stone-700">
+                        スマートスピーカーやPCのマイクが、エアコンの音や外部の雑音を除去。音声アシスタントがユーザーの声をより正確に認識し、応答精度が飛躍的に向上します。
+                    </p>
+                </div>
+                <div class="app-card bg-white p-6 rounded-xl shadow-lg border border-stone-200" data-category="automotive">
+                    <h3 class="text-xl font-bold text-teal-700 mb-3">クリアな車内通話</h3>
+                    <p class="text-stone-700">
+                        ENC (Environmental Noise Cancellation) 技術が進化し、車内のハンズフリー通話で、通話相手にロードノイズや同乗者の声を届けず、運転者の声だけをクリアに伝達します。
+                    </p>
+                </div>
+                <div class="app-card bg-white p-6 rounded-xl shadow-lg border border-stone-200" data-category="industrial">
+                    <h3 class="text-xl font-bold text-teal-700 mb-3">スマート・セーフティ</h3>
+                    <p class="text-stone-700">
+                        工場の騒音は消しつつ、危険を知らせる警告音や人の呼びかけはAIが判断して通す「選択的ノイズキャンセリング」が、労働安全技術として進化していきます。
+                    </p>
+                </div>
+            </div>
+
+        </section>
+        
+        <section id="pm-tools" class="mb-16 scroll-mt-20">
+            <h2 class="text-2xl md:text-3xl font-semibold text-stone-800 border-l-4 border-teal-600 pl-4 mb-6">4. プロジェクト管理ツール比較：チームの生産性を高める</h2>
+            <p class="text-base md:text-lg text-stone-700 mb-8">
+                ここでは、主要なプロジェクト管理ツールを比較し、それぞれの特徴や最適な用途を解説します。チームのニーズに合ったツールを見つけるための参考にしてください。
+            </p>
+
+            <div class="bg-white p-4 md:p-6 rounded-xl shadow-lg border border-stone-200 comparison-table-container">
+                <table class="comparison-table text-sm md:text-base">
+                    <thead>
+                        <tr>
+                            <th>プロダクト名</th>
+                            <th>種類/特徴</th>
+                            <th>主な機能</th>
+                            <th>最適なチーム/用途</th>
+                            <th>URL</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>**Asana**</td>
+                            <td>多機能、視覚的</td>
+                            <td>タスク・サブタスク管理、カンバンボード、ガントチャート、タイムライン、ポートフォリオ管理</td>
+                            <td>複数のプロジェクトを並行して管理するチーム、視覚的な進捗管理を重視するチーム</td>
+                            <td><a href="https://asana.com/ja" target="_blank" rel="noopener noreferrer">asana.com/ja</a></td>
+                        </tr>
+                        <tr>
+                            <td>**Trello**</td>
+                            <td>シンプル、カンバン特化</td>
+                            <td>カンバンボード、カード（タスク）のドラッグ＆ドロップ、パワーアップ（機能拡張）</td>
+                            <td>個人利用、小規模なチーム、アジャイル開発、タスクのステータス管理を簡単に行いたい場合</td>
+                            <td><a href="https://trello.com/ja" target="_blank" rel="noopener noreferrer">trello.com/ja</a></td>
+                        </tr>
+                        <tr>
+                            <td>**monday.com**</td>
+                            <td>ワークOS、高いカスタマイズ性</td>
+                            <td>カスタムボード、ガントチャート、ワークロード（リソース管理）、自動化、豊富なテンプレート</td>
+                            <td>マーケティング、開発、営業など、幅広い部門で独自のワークフローを構築したいチーム</td>
+                            <td><a href="https://monday.com/lang/ja/" target="_blank" rel="noopener noreferrer">monday.com/lang/ja/</a></td>
+                        </tr>
+                        <tr>
+                            <td>**ClickUp**</td>
+                            <td>オールインワン</td>
+                            <td>タスク、ドキュメント、ゴール、ホワイトボード、チャット、タイムトラッキング、複数のビュー（リスト、ボード、ボックスなど）</td>
+                            <td>多くの機能を1つのツールに統合したいチーム、複雑なプロジェクト管理が必要な場合</td>
+                            <td><a href="https://clickup.com/" target="_blank" rel="noopener noreferrer">clickup.com/</a></td>
+                        </tr>
+                        <tr>
+                            <td>**Jira**</td>
+                            <td>開発特化</td>
+                            <td>スクラム/カンバンボード、バックログ管理、ロードマップ、バーンダウンチャート、CI/CD連携</td>
+                            <td>アジャイル開発チーム、ソフトウェア開発チーム、バグ/課題追跡が中心となる場合</td>
+                            <td><a href="https://www.atlassian.com/ja/software/jira" target="_blank" rel="noopener noreferrer">atlassian.com/ja/software/jira</a></td>
+                        </tr>
+                        <tr>
+                            <td>**Notion**</td>
+                            <td>ドキュメント/データベース一体型</td>
+                            <td>ドキュメント作成、データベース（タスク、カレンダー、ギャラリーなどのビューに変換可能）、ナレッジベース</td>
+                            <td>ドキュメントとタスクをシームレスに連携させたいチーム、柔軟な情報管理が必要なチーム</td>
+                            <td><a href="https://www.notion.so/ja-jp" target="_blank" rel="noopener noreferrer">notion.so/ja-jp</a></td>
+                        </tr>
+                        <tr>
+                            <td>**Smartsheet**</td>
+                            <td>スプレッドシート型</td>
+                            <td>グリッド（スプレッドシート）ビュー、レポート、フォーム、自動化、リソース管理（アドオン）</td>
+                            <td>スプレッドシートの操作に慣れているチーム、データ集計や分析を重視する場合</td>
+                            <td><a href="https://jp.smartsheet.com/" target="_blank" rel="noopener noreferrer">jp.smartsheet.com/</a></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <div class="mt-6 text-stone-700 text-sm">
+                <p><strong>補足:</strong></p>
+                <ul>
+                    <li>**「種類/特徴」**：そのプロダクトが特に強みとしている分野や、設計思想を表しています。</li>
+                    <li>**「主な機能」**：多くのユーザーに利用されている代表的な機能です。</li>
+                    <li>**「最適なチーム/用途」**：チームの規模やプロジェクトの種類によって、最適なツールは異なります。例えば、ソフトウェア開発チームにはJira、シンプルなタスク管理にはTrello、柔軟なカスタマイズにはmonday.comなどがおすすめです。</li>
+                </ul>
+                <p class="mt-3">
+                    これらの情報は一般的なものであり、各ツールの詳細な機能や最新の情報は、それぞれの公式サイトでご確認ください。
+                </p>
+            </div>
+        </section>
+
+    </main>
+
+    <footer class="bg-stone-800 text-stone-300 mt-16 py-8">
+        <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+            <p class="text-sm">このインタラクティブ・レポートは、最新の公開情報を基にAIによって生成されました。</p>
+            <p class="text-xs mt-2">© 2025 Interactive Report Generator. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+
+            const mobileMenuButton = document.getElementById('mobile-menu-button');
+            const mobileMenu = document.getElementById('mobile-menu');
+            mobileMenuButton.addEventListener('click', () => {
+                const isHidden = mobileMenu.classList.contains('hidden');
+                mobileMenu.classList.toggle('hidden', !isHidden);
+                mobileMenuButton.querySelectorAll('svg').forEach(svg => svg.classList.toggle('hidden'));
+            });
+
+            document.querySelectorAll('#mobile-menu a').forEach(link => {
+                link.addEventListener('click', () => {
+                    mobileMenu.classList.add('hidden');
+                    mobileMenuButton.querySelectorAll('svg').forEach(svg => svg.classList.toggle('hidden'));
+                });
+            });
+
+            document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+                anchor.addEventListener('click', function (e) {
+                    if (this.hash !== "") {
+                        e.preventDefault();
+                        const hash = this.hash;
+                        const targetElement = document.querySelector(hash);
+                        if (targetElement) {
+                            const headerOffset = document.querySelector('header').offsetHeight || 64;
+                            const elementPosition = targetElement.getBoundingClientRect().top;
+                            const offsetPosition = elementPosition + window.pageYOffset - headerOffset;
+
+                            window.scrollTo({
+                                top: offsetPosition,
+                                behavior: "smooth"
+                            });
+                        }
+                    }
+                });
+            });
+            
+            Chart.defaults.font.family = "'Noto Sans JP', sans-serif";
+            const chartTooltipLabelWrapper = (tooltipItems) => {
+                const maxLabelLength = 16;
+                const label = tooltipItems[0].label || '';
+                const lines = [];
+                for (let i = 0; i < label.length; i += maxLabelLength) {
+                    lines.push(label.substring(i, i + maxLabelLength));
+                }
+                return lines;
+            };
+
+            let ancChart;
+            const sineWave = (amplitude, frequency, phase, length) => {
+                let data = [];
+                for (let i = 0; i < length; i++) {
+                    data.push(amplitude * Math.sin(frequency * i + phase));
+                }
+                return data;
+            };
+
+            const chartLabels = Array.from({ length: 50 }, (_, i) => i);
+            const noiseData = sineWave(10, 0.5, 0, 50);
+            const antiNoiseData = sineWave(10, 0.5, Math.PI, 50);
+            const resultData = noiseData.map((val, i) => val + antiNoiseData[i]);
+
+            const chartConfig = {
+                type: 'line',
+                data: {
+                    labels: chartLabels,
+                    datasets: []
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: false,
+                            min: -15,
+                            max: 15,
+                            ticks: { display: false },
+                            grid: { display: false }
+                        },
+                        x: {
+                            ticks: { display: false },
+                            grid: { display: false }
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                        },
+                        tooltip: {
+                            enabled: true,
+                            callbacks: {
+                                title: chartTooltipLabelWrapper
+                            }
+                        }
+                    },
+                    elements: {
+                        point: {
+                            radius: 0
+                        },
+                        line: {
+                            borderWidth: 3,
+                            tension: 0.1
+                        }
+                    }
+                }
+            };
+
+            const noiseDataset = {
+                label: 'ノイズ (騒音)',
+                data: noiseData,
+                borderColor: 'rgb(239, 68, 68)',
+                backgroundColor: 'rgba(239, 68, 68, 0.5)',
+            };
+            const antiNoiseDataset = {
+                label: '逆位相 (ANCが作る音)',
+                data: antiNoiseData,
+                borderColor: 'rgb(59, 130, 246)',
+                backgroundColor: 'rgba(59, 130, 246, 0.5)',
+            };
+            const resultDataset = {
+                label: '合成結果 (静寂)',
+                data: resultData,
+                borderColor: 'rgb(22, 163, 74)',
+                backgroundColor: 'rgba(22, 163, 74, 0.5)',
+            };
+            
+            const ctxAnc = document.getElementById('ancPrincipleChart').getContext('2d');
+            if (ctxAnc) {
+                ancChart = new Chart(ctxAnc, chartConfig);
+            }
+
+            const updateChartDatasets = (datasets) => {
+                if(ancChart) {
+                    ancChart.data.datasets = datasets;
+                    ancChart.update();
+                }
+            };
+
+            document.getElementById('showNoiseBtn')?.addEventListener('click', () => updateChartDatasets([noiseDataset]));
+            document.getElementById('showAntiNoiseBtn')?.addEventListener('click', () => updateChartDatasets([noiseDataset, antiNoiseDataset]));
+            document.getElementById('showResultBtn')?.addEventListener('click', () => updateChartDatasets([noiseDataset, antiNoiseDataset, resultDataset]));
+            document.getElementById('resetChartBtn')?.addEventListener('click', () => updateChartDatasets([]));
+
+            updateChartDatasets([noiseDataset]);
+
+            const tabButtons = document.querySelectorAll('.tab-btn');
+            const tabContents = document.querySelectorAll('.anc-diagram-content');
+
+            tabButtons.forEach(button => {
+                button.addEventListener('click', () => {
+                    tabButtons.forEach(btn => btn.classList.remove('active'));
+                    button.classList.add('active');
+
+                    const targetId = button.getAttribute('data-target');
+                    tabContents.forEach(content => {
+                        if (content.id === targetId) {
+                            content.classList.remove('hidden');
+                        } else {
+                            content.classList.add('hidden');
+                        }
+                    });
+                });
+            });
+
+            const ctxTrends = document.getElementById('trendsChart')?.getContext('2d');
+            if (ctxTrends) {
+                new Chart(ctxTrends, {
+                    type: 'bar',
+                    data: {
+                        labels: [
+                            'AIによる適応型ANC',
+                            '高音質化・ノイズ分離',
+                            'パーソナライゼーション',
+                            'バッテリー寿命の向上',
+                            '軽量・快適な素材'
+                        ],
+                        datasets: [{
+                            label: '技術的注目度スコア',
+                            data: [90, 82, 75, 65, 60],
+                            backgroundColor: [
+                                'rgba(13, 148, 136, 0.7)',
+                                'rgba(8, 126, 139, 0.7)',
+                                'rgba(15, 118, 110, 0.7)',
+                                'rgba(19, 78, 74, 0.7)',
+                                'rgba(17, 94, 89, 0.7)'
+                            ],
+                            borderColor: [
+                                'rgb(13, 148, 136)',
+                                'rgb(8, 126, 139)',
+                                'rgb(15, 118, 110)',
+                                'rgb(19, 78, 74)',
+                                'rgb(17, 94, 89)'
+                            ],
+                            borderWidth: 1
+                        }]
+                    },
+                    options: {
+                        indexAxis: 'y',
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                display: false
+                            },
+                            tooltip: {
+                                callbacks: {
+                                    title: chartTooltipLabelWrapper
+                                }
+                            }
+                        },
+                        scales: {
+                            x: {
+                                beginAtZero: true,
+                                max: 100,
+                                title: {
+                                    display: true,
+                                    text: '注目度 (推定スコア)'
+                                }
+                            }
+                        }
+                    }
+                });
+            }
+            
+            const filterButtons = document.querySelectorAll('.filter-btn');
+            const appCards = document.querySelectorAll('.app-card');
+            
+            filterButtons.forEach(button => {
+                button.addEventListener('click', () => {
+                    filterButtons.forEach(btn => btn.classList.remove('active', 'bg-teal-700', 'text-white'));
+                    button.classList.add('active', 'bg-teal-700', 'text-white');
+                    
+                    const filter = button.getAttribute('data-filter');
+                    
+                    appCards.forEach(card => {
+                        const category = card.getAttribute('data-category');
+                        if (filter === 'all' || filter === category) {
+                            card.classList.remove('hidden', 'opacity-0');
+                            card.style.transform = 'scale(1)';
+                        } else {
+                            card.classList.add('hidden', 'opacity-0');
+                            card.style.transform = 'scale(0.95)';
+                        }
+                    });
+                });
+            });
+
+        });
+    </script>
+</body>
+</html>
