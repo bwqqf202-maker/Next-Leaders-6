@@ -1,0 +1,463 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RFIDインタラクティブ・リサーチ</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body {
+            font-family: 'Inter', 'Noto Sans JP', sans-serif;
+        }
+        .tab-content {
+            display: none;
+        }
+        .tab-content.active {
+            display: block;
+        }
+        .tab-btn.active {
+            border-bottom-color: #2563EB; 
+            color: #1E3A8A;
+            font-weight: 600;
+        }
+        .card-accordion-content {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease-out;
+        }
+        .card-accordion-content.open {
+            max-height: 500px; 
+            transition: max-height 0.5s ease-in;
+        }
+        .chart-container {
+            position: relative;
+            width: 100%;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+            height: 300px; 
+            max-height: 400px;
+        }
+        @media (min-width: 768px) {
+            .chart-container {
+                height: 350px;
+            }
+        }
+
+        .rfid-flow {
+            display: flex;
+            align-items: center;
+            justify-content: space-around;
+            padding: 2rem 1rem;
+            background-color: #f9fafb;
+            border-radius: 0.5rem;
+            overflow: hidden;
+        }
+        .flow-item {
+            text-align: center;
+            position: relative;
+            z-index: 1;
+        }
+        .flow-icon {
+            font-size: 2.5rem;
+            line-height: 1;
+        }
+        .flow-label {
+            margin-top: 0.5rem;
+            font-weight: 600;
+            color: #1E3A8A;
+        }
+        .flow-arrow {
+            position: absolute;
+            top: 50%;
+            left: 100%;
+            transform: translateY(-50%);
+            width: 0;
+            height: 0;
+            border-top: 10px solid transparent;
+            border-bottom: 10px solid transparent;
+            border-left: 15px solid #93C5FD;
+            animation: flow-pulse 1.5s infinite ease-in-out;
+        }
+        .flow-item:last-child .flow-arrow {
+            display: none;
+        }
+        
+        @keyframes flow-pulse {
+            0% { opacity: 0.5; transform: translateY(-50%) scale(0.95); }
+            50% { opacity: 1; transform: translateY(-50%) scale(1.05); }
+            100% { opacity: 0.5; transform: translateY(-50%) scale(0.95); }
+        }
+
+    </style>
+    
+    <!-- Chosen Palette: Warm Neutral Harmony (Base: gray-50, Content: white, Primary: blue-600, Text: gray-800/blue-900, Accent: blue-500) -->
+    <!-- Application Structure Plan: タブベースのSPAを採用。ユーザーが「基本」「種類/機能」「応用例」「未来」の各テーマに沿って情報を段階的に探索できるよう設計。ホームで基本概念と仕組みを図解。種類/機能ではインタラクティブな比較（Chart.jsとアコーディオン）を提供。応用例ではカード型レイアウトで具体例を提示。未来の展望ではテキストベースで投機的なアイデアを解説。この構造は、広範な情報を整理し、ユーザーの関心に応じて選択的にアクセス可能にするために最適と判断。 -->
+    <!-- Visualization & Content Choices: 
+        1. RFIDの仕組み: (情報) リーダー/タグ/データの流れ -> (ゴール) 仕組みの視覚的理解 -> (手法) HTML/CSS/JSによる簡易アニメーション図 -> (インタラクション) 自動アニメーション -> (正当化) 静的な図よりデータの「流れ」を直感的に示すため。 (HTML/CSS/JS)
+        2. 周波数別比較: (情報) LF/HF/UHF/マイクロ波の通信距離 -> (ゴール) 定量的な違いの比較 -> (手法) 棒グラフ (Chart.js) -> (インタラクション) ホバーで詳細ツールチップ表示 -> (正当化) 通信距離という連続的な値を視覚的に比較するのに最適。 (Chart.js/Canvas)
+        3. 電源別/機能別: (情報) パッシブ/アクティブ等の特性、非接触/同時読み取り等の機能 -> (ゴール) 特徴の整理と理解 -> (手法) アコーディオン式カード (HTML/JS) -> (インタラクション) クリックで詳細を展開/格納 -> (正当化) 情報をコンパクトにまとめつつ、関心のある項目だけ詳細を読めるようにするため。 (HTML/JS)
+        4. 応用例: (情報) 一般的/奇抜な製品例 -> (ゴール) 具体的な使用シーンの提示 -> (手法) アイコン付きカードグリッド (HTML/Tailwind) -> (インタラクション) ホバーエフェクト（将来的にモーダルでの詳細表示も可能） -> (正当化) 視覚的に魅力的で、多くの例を一覧できるため。 (HTML/Tailwind)
+        5. 未来の展望: (情報) ソニー参入予想、渋滞回避アイデア -> (ゴール) 将来性の提示 -> (手法) テキストベースのリスト -> (インタラクション) なし（静的） -> (正当化) 概念的なアイデアの説明には、詳細なテキストが適しているため。 (HTML)
+    -->
+    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+</head>
+<body class="bg-gray-50 text-gray-800">
+
+    <div class="container mx-auto p-4 md:p-8 max-w-7xl">
+        
+        <header class="text-center mb-8">
+            <h1 class="text-4xl md:text-5xl font-bold text-blue-900 mb-2">RFIDインタラクティブ・リサーチ</h1>
+            <p class="text-lg text-gray-600">RFID技術の全貌：基本から未来の応用まで</p>
+        </header>
+
+        <nav class="mb-8 bg-white rounded-lg shadow-sm">
+            <ul class="flex flex-wrap justify-center border-b border-gray-200">
+                <li><button class="tab-btn p-4 border-b-2 border-transparent hover:bg-gray-100 active" data-tab="home">RFIDとは？</button></li>
+                <li><button class="tab-btn p-4 border-b-2 border-transparent hover:bg-gray-100" data-tab="types">種類と機能</button></li>
+                <li><button class="tab-btn p-4 border-b-2 border-transparent hover:bg-gray-100" data-tab="apps">応用例</button></li>
+                <li><button class="tab-btn p-4 border-b-2 border-transparent hover:bg-gray-100" data-tab="future">未来の展望</button></li>
+            </ul>
+        </nav>
+
+        <main>
+            <!-- ホーム: RFIDとは？ -->
+            <section id="home" class="tab-content active p-6 bg-white rounded-lg shadow-md">
+                <h2 class="text-3xl font-semibold text-blue-800 mb-4">1. RFIDとは？</h2>
+                <p class="mb-6 text-lg leading-relaxed">
+                    RFID (Radio Frequency Identification) は、電波（無線周波数）を用いて、ICタグ（RFIDタグ）に記録された情報を非接触で読み書きする自動認識技術です。バーコードと異なり、複数のタグを一括で読み取ったり、タグが見えない場所にあっても読み取ることが可能です。
+                </p>
+
+                <h3 class="text-2xl font-semibold text-blue-800 mb-4">仕組みの概要</h3>
+                <p class="mb-4">
+                    RFIDシステムは主に「ICタグ」と「リーダー/ライター」で構成されます。リーダー/ライターが電波を発信し、ICタグがその電波を受けて起動（または応答）し、内部の情報を電波に乗せて返信します。リーダー/ライターがその情報を受け取り、上位のシステムでデータが処理されます。
+                </p>
+                <div class="rfid-flow my-6">
+                    <div class="flow-item p-4">
+                        <div class="flow-icon">📡</div>
+                        <div class="flow-label">リーダー/ライター</div>
+                        <div class="flow-arrow" style="animation-delay: 0s;"></div>
+                    </div>
+                    <div class="flow-item p-4">
+                        <div class="flow-icon">🏷️</div>
+                        <div class="flow-label">ICタグ</div>
+                        <div class="flow-arrow" style="border-left: none; border-right: 15px solid #60A5FA; left: auto; right: 100%; animation-delay: 0.75s;"></div>
+                    </div>
+                    <div class="flow-item p-4">
+                        <div class="flow-icon">💻</div>
+                        <div class="flow-label">ホストシステム</div>
+                    </div>
+                </div>
+
+                <h3 class="text-2xl font-semibold text-blue-800 mb-4">主なメリット</h3>
+                <ul class="list-disc list-inside space-y-2 text-lg">
+                    <li><span class="font-semibold text-blue-700">非接触:</span> 遮蔽物があっても（箱の中など）読み取り可能。</li>
+                    <li><span class="font-semibold text-blue-700">複数同時読み取り:</span> 複数のタグを一瞬でスキャン可能。</li>
+                    <li><span class="font-semibold text-blue-700">書き換え可能:</span> タグの情報を繰り返し更新できる（製品による）。</li>
+                    <li><span class="font-semibold text-blue-700">耐環境性:</span> 汚れや水濡れに強いタグが多い。</li>
+                </ul>
+            </section>
+
+            <!-- 種類と機能 -->
+            <section id="types" class="tab-content p-6 bg-white rounded-lg shadow-md">
+                <h2 class="text-3xl font-semibold text-blue-800 mb-6">2. 種類と機能</h2>
+                <p class="mb-8 text-lg">RFIDは、使用する「周波数帯」と、タグの「電源（電池）の有無」によって大きく分類されます。それぞれ通信距離や得意な用途が異なります。</p>
+                
+                <div class="grid md:grid-cols-2 gap-8">
+                    <div>
+                        <h3 class="text-2xl font-semibold text-blue-800 mb-4">周波数帯による分類</h3>
+                        <p class="mb-4">周波数が高いほど通信距離は長くなる傾向がありますが、水や金属の影響を受けやすくなります。</p>
+                        <div class="chart-container">
+                            <canvas id="frequencyChart"></canvas>
+                        </div>
+                    </div>
+
+                    <div>
+                        <h3 class="text-2xl font-semibold text-blue-800 mb-4">電源による分類</h3>
+                        <div class="space-y-4">
+                            <div class="card-accordion border border-gray-200 rounded-lg">
+                                <button class="card-accordion-btn w-full p-4 text-left bg-gray-100 hover:bg-gray-200 focus:outline-none flex justify-between items-center">
+                                    <span class="text-lg font-semibold text-blue-700">パッシブタグ (電池なし)</span>
+                                    <span class="text-2xl transform transition-transform duration-300">＋</span>
+                                </button>
+                                <div class="card-accordion-content p-4 border-t border-gray-200">
+                                    <p>リーダーからの電波をエネルギー源として動作します。電池が不要なため、安価で小型、半永久的に使用可能です。ただし、通信距離は短めです。</p>
+                                    <ul class="list-disc list-inside mt-2">
+                                        <li><strong>特徴:</strong> 安価、小型、軽量、電池交換不要</li>
+                                        <li><strong>通信距離:</strong> 数cm 〜 10m程度 (周波数による)</li>
+                                        <li><strong>主な用途:</strong> 商品タグ、交通系ICカード、社員証</li>
+                                    </ul>
+                                </div>
+                            </div>
+                            
+                            <div class="card-accordion border border-gray-200 rounded-lg">
+                                <button class="card-accordion-btn w-full p-4 text-left bg-gray-100 hover:bg-gray-200 focus:outline-none flex justify-between items-center">
+                                    <span class="text-lg font-semibold text-blue-700">アクティブタグ (電池あり)</span>
+                                    <span class="text-2xl transform transition-transform duration-300">＋</span>
+                                </button>
+                                <div class="card-accordion-content p-4 border-t border-gray-200">
+                                    <p>タグ自体に電池を内蔵し、自ら電波を発信します。数十m〜100m以上の長距離通信が可能ですが、高価で電池交換が必要です。</p>
+                                    <ul class="list-disc list-inside mt-2">
+                                        <li><strong>特徴:</strong> 長距離通信、高機能（センサー連携など）</li>
+                                        <li><strong>通信距離:</strong> 数十m 〜 100m以上</li>
+                                        <li><strong>主な用途:</strong> コンテナ管理、車両管理、人や資産の所在管理</li>
+                                    </ul>
+                                </div>
+                            </div>
+
+                            <div class="card-accordion border border-gray-200 rounded-lg">
+                                <button class="card-accordion-btn w-full p-4 text-left bg-gray-100 hover:bg-gray-200 focus:outline-none flex justify-between items-center">
+                                    <span class="text-lg font-semibold text-blue-700">セミアクティブタグ</span>
+                                    <span class="text-2xl transform transition-transform duration-300">＋</span>
+                                </button>
+                                <div class="card-accordion-content p-4 border-t border-gray-200">
+                                    <p>電池を内蔵しますが、通常は待機状態。リーダーからの電波を検知したときだけ起動して応答します。パッシブタグより長距離で、アクティブタグより電池寿命が長いのが特徴です。</p>
+                                    <ul class="list-disc list-inside mt-2">
+                                        <li><strong>特徴:</strong> パッシブとアクティブの中間、長寿命</li>
+                                        <li><strong>通信距離:</strong> パッシブタグより長い</li>
+                                        <li><strong>主な用途:</strong> 環境モニタリング、セキュリティ</li>
+                                    </ul>
+                                </div>
+                            </div>
+
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 応用例 -->
+            <section id="apps" class="tab-content p-6 bg-white rounded-lg shadow-md">
+                <h2 class="text-3xl font-semibold text-blue-800 mb-6">3. 応用例と製品</h2>
+                <p class="mb-8 text-lg">RFIDはその特性を活かし、非常に多くの分野で利用されています。ここでは一般的・先進的な例から、少し奇抜な例まで紹介します。</p>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    <!-- 一般的な例 -->
+                    <div class="border border-gray-200 rounded-lg p-6 shadow-sm hover:shadow-lg transition-shadow bg-blue-50">
+                        <div class="text-4xl mb-3">🛒</div>
+                        <h4 class="text-xl font-semibold text-blue-900 mb-2">在庫管理・セルフレジ</h4>
+                        <p>UHF帯タグによる棚卸の高速化や、ユニクロのセルフレジのように、複数の商品を一括で読み取るシステム。 (例: Impinj社製リーダー、NXP社製UCODEチップ)</p>
+                    </div>
+                    <div class="border border-gray-200 rounded-lg p-6 shadow-sm hover:shadow-lg transition-shadow bg-blue-50">
+                        <div class="text-4xl mb-3">💳</div>
+                        <h4 class="text-xl font-semibold text-blue-900 mb-2">交通系ICカード・電子マネー</h4>
+                        <p>HF帯 (NFC/FeliCa) を使用した非接触決済や改札通過。 (例: ソニー FeliCa、NXP MIFARE)</p>
+                    </div>
+                    <div class="border border-gray-200 rounded-lg p-6 shadow-sm hover:shadow-lg transition-shadow bg-blue-50">
+                        <div class="text-4xl mb-3">📚</div>
+                        <h4 class="text-xl font-semibold text-blue-900 mb-2">図書館の蔵書管理</h4>
+                        <p>HF帯やUHF帯タグを本に貼り付け、貸出・返却処理や蔵書点検を自動化。 (例: 図書館流通センター (TRC) のシステム)</p>
+                    </div>
+                    
+                    <!-- 奇抜な例 -->
+                    <div class="border border-gray-200 rounded-lg p-6 shadow-sm hover:shadow-lg transition-shadow bg-green-50">
+                        <div class="text-4xl mb-3">🐄</div>
+                        <h4 class="text-xl font-semibold text-green-900 mb-2">畜産（牛の個体・体調管理）</h4>
+                        <p>LF帯の耳標や胃内カプセル型タグで、個体識別や体温・活動量を監視し、健康状態をリアルタイムで把握。</p>
+                    </div>
+                    <div class="border border-gray-200 rounded-lg p-6 shadow-sm hover:shadow-lg transition-shadow bg-green-50">
+                        <div class="text-4xl mb-3">🏃</div>
+                        <h4 class="text-xl font-semibold text-green-900 mb-2">マラソン・スポーツ計測</h4>
+                        <p>ランナーの靴やゼッケンにUHF帯パッシブタグを取り付け、コース上のマット型アンテナで通過タイムを正確に自動計測。</p>
+                    </div>
+                    <div class="border border-gray-200 rounded-lg p-6 shadow-sm hover:shadow-lg transition-shadow bg-green-50">
+                        <div class="text-4xl mb-3">🗑️</div>
+                        <h4 class="text-xl font-semibold text-green-900 mb-2">スマートゴミ箱</h4>
+                        <p>特定のタグが付いたゴミ（例：企業の廃棄物）が捨てられたことを検知したり、ゴミ箱の満杯度をセンサーと連携して通知するシステム。</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 未来の展望 -->
+            <section id="future" class="tab-content p-6 bg-white rounded-lg shadow-md">
+                <h2 class="text-3xl font-semibold text-blue-800 mb-6">4. 未来の展望</h2>
+                <p class="mb-8 text-lg">RFID技術は、他の技術と融合することで、さらに多様な可能性を秘めています。ここでは「ソニーの参入」と「人の渋滞回避」というテーマで未来のアイデアを探ります。</p>
+
+                <div class="grid md:grid-cols-2 gap-8">
+                    <div class="bg-gray-50 p-6 rounded-lg border border-gray-200">
+                        <h3 class="text-2xl font-semibold text-blue-900 mb-4">ソニーが参入した場合の予想</h3>
+                        <p class="mb-4">ソニーはFeliCa技術のリーダーであり、センシングやエンターテインメント分野でも強みを持っています。これらの技術とRFIDが融合した、以下のような機能が予想されます。</p>
+                        <ul class="list-decimal list-inside space-y-3">
+                            <li class="font-semibold">FeliCaとのシームレスな融合:
+                                <span class="font-normal block ml-4">既存のFeliCaインフラ（決済、交通）とUHF帯RFID（個品管理）をスマートフォンやウェアラブル端末でシームレスに連携。購入した商品のRFIDタグ情報が決済と同時にFeliCaに紐づけられ、スマートな在庫管理やリマインダー機能を実現。</span>
+                            </li>
+                            <li class="font-semibold">センシング技術との統合:
+                                <span class="font-normal block ml-4">ソニーの高性能イメージセンサーや温度センサーを内蔵した高機能アクティブタグ。物流のコールドチェーン管理はもちろん、ヘルスケア分野で人の体温やバイタルを非接触で常時モニタリングするシステム。</span>
+                            </li>
+                            <li class="font-semibold">エンターテインメントへの応用:
+                                <span class="font-normal block ml-4">ライブ会場やテーマパークで配布されるリストバンド型RFIDタグ。ソニーのAR技術や音響技術と連携し、特定エリアに入ると特別なARコンテンツがスマホに表示されたり、場所に応じて音楽体験が変化するような、高度なインタラクティブ体験を提供。</span>
+                            </li>
+                        </ul>
+                    </div>
+                    <div class="bg-gray-50 p-6 rounded-lg border border-gray-200">
+                        <h3 class="text-2xl font-semibold text-blue-900 mb-4">人の渋滞を回避するアイデア</h3>
+                        <p class="mb-4">イベント会場や駅など、人が集中する場所での混雑（渋滞）は大きな課題です。RFIDは、人の流れをリアルタイムで把握し、誘導するために活用できます。</p>
+                        <ul class="list-decimal list-inside space-y-3">
+                            <li class="font-semibold">高密度リアルタイム人流把握:
+                                <span class="font-normal block ml-4">会場の入口で安価なUHF帯パッシブタグ（リストバンドやシール）を配布。通路やエリアの境界にリーダーを多数設置し、特定のエリア（例：トイレ前、人気ブース前）に今何人いるかをリアルタイムで高精度に計測・可視化。</span>
+                            </li>
+                            <li class="font-semibold">動的サイネージによる誘導:
+                                <span class="font-normal block ml-4">把握した混雑状況に基づき、会場内のデジタルサイネージの表示を即座に自動変更。「A通路は混雑中。B通路へお回りください」といった具体的な迂回指示をリアルタイムで提供し、人の流れを分散させる。</span>
+                            </li>
+                            <li class="font-semibold">インセンティブによる行動変容:
+                                <span class="font-normal block ml-4">混雑時に、あえて空いているルート（例：遠回りの出口）を利用した人や、混雑時間を避けて来場・退場した人のRFIDタグをリーダーが検知。後日、そのタグ情報に基づいてポイントやクーポンを付与し、利用者の能動的な混雑緩和行動を促進する。</span>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <footer class="text-center p-6 mt-12 text-gray-500 text-sm">
+        <p>This interactive report was generated based on RFID research.</p>
+    </footer>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            
+            const tabs = document.querySelectorAll('.tab-btn');
+            const contents = document.querySelectorAll('.tab-content');
+
+            tabs.forEach(tab => {
+                tab.addEventListener('click', () => {
+                    tabs.forEach(t => t.classList.remove('active'));
+                    tab.classList.add('active');
+
+                    const target = tab.getAttribute('data-tab');
+                    contents.forEach(content => {
+                        content.classList.remove('active');
+                        if (content.id === target) {
+                            content.classList.add('active');
+                        }
+                    });
+                });
+            });
+
+            const accordions = document.querySelectorAll('.card-accordion-btn');
+            accordions.forEach(accordion => {
+                accordion.addEventListener('click', () => {
+                    const content = accordion.nextElementSibling;
+                    const icon = accordion.querySelector('span:last-child');
+                    
+                    if (content.classList.contains('open')) {
+                        content.classList.remove('open');
+                        icon.style.transform = 'rotate(0deg)';
+                    } else {
+                        content.classList.add('open');
+                        icon.style.transform = 'rotate(45deg)';
+                    }
+                });
+            });
+
+            const wrapLabel = (label) => {
+                const maxLength = 16;
+                if (label.length > maxLength) {
+                    const parts = [];
+                    let currentPart = '';
+                    label.split(' ').forEach(word => {
+                        if ((currentPart + word).length > maxLength) {
+                            parts.push(currentPart.trim());
+                            currentPart = word + ' ';
+                        } else {
+                            currentPart += word + ' ';
+                        }
+                    });
+                    parts.push(currentPart.trim());
+                    return parts;
+                }
+                return label;
+            };
+            
+            const ctx = document.getElementById('frequencyChart');
+            if (ctx) {
+                new Chart(ctx, {
+                    type: 'bar',
+                    data: {
+                        labels: ['LF (低周波)', 'HF (高周波)', 'UHF (極超短波)', 'マイクロ波'],
+                        datasets: [{
+                            label: '最大通信距離 (目安)',
+                            data: [0.1, 1, 10, 100], 
+                            backgroundColor: [
+                                'rgba(59, 130, 246, 0.6)',
+                                'rgba(37, 99, 235, 0.6)',
+                                'rgba(29, 78, 216, 0.6)',
+                                'rgba(30, 64, 175, 0.6)'
+                            ],
+                            borderColor: [
+                                'rgba(59, 130, 246, 1)',
+                                'rgba(37, 99, 235, 1)',
+                                'rgba(29, 78, 216, 1)',
+                                'rgba(30, 64, 175, 1)'
+                            ],
+                            borderWidth: 1
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                type: 'logarithmic', 
+                                title: {
+                                    display: true,
+                                    text: '通信距離 (m) ※対数目盛'
+                                },
+                                ticks: {
+                                    callback: function(value, index, values) {
+                                        if (value === 100) return '100m+';
+                                        if (value === 10) return '10m';
+                                        if (value === 1) return '1m';
+                                        if (value === 0.1) return '10cm';
+                                        return null;
+                                    }
+                                }
+                            },
+                            x: {
+                                ticks: {
+                                    callback: function(value) {
+                                        const label = this.getLabelForValue(value);
+                                        return wrapLabel(label);
+                                    }
+                                }
+                            }
+                        },
+                        plugins: {
+                            tooltip: {
+                                callbacks: {
+                                    label: function(context) {
+                                        let label = context.dataset.label || '';
+                                        if (label) {
+                                            label += ': ';
+                                        }
+                                        let value = context.parsed.y;
+                                        if (value === 0.1) label += '〜10cm';
+                                        else if (value === 1) label += '〜1m';
+                                        else if (value === 10) label += '〜10m';
+                                        else if (value === 100) label += '100m以上';
+                                        return label;
+                                    },
+                                    afterLabel: function(context) {
+                                        const index = context.dataIndex;
+                                        const examples = [
+                                            '例: 動物識別, キーレスエントリー',
+                                            '例: 交通系IC, 社員証 (NFC/FeliCa)',
+                                            '例: 在庫管理, 物流タグ',
+                                            '例: 車両管理 (DSRCなど)'
+                                        ];
+                                        return examples[index] || '';
+                                    }
+                                }
+                            },
+                            legend: {
+                                display: false
+                            }
+                        }
+                    }
+                });
+            }
+        });
+    </script>
+</body>
+</html>
