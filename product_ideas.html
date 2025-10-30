@@ -4,7 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>プロダクト提案</title>
+    <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Inter Font -->
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap">
     <style>
         body {
@@ -18,9 +20,12 @@
 </head>
 <body class="bg-gray-100 text-gray-800">
 
+    <!-- ヘッダー (全画面表示) -->
     <header class="bg-white shadow-md sticky top-0 z-50">
         <nav class="container mx-auto px-6 py-4 flex justify-between items-center">
+            <!-- タイトルをスマホで少し小さく -->
             <h1 class="text-xl md:text-2xl font-bold text-indigo-600">プロダクト提案</h1>
+            <!-- 【修正済み】スマホでも表示されるようにし、文字サイズと間隔を調整 -->
             <div class="flex space-x-2 md:space-x-4 text-sm md:text-base">
                 <a href="#kokoro" class="text-gray-600 hover:text-indigo-500 rounded-md px-1 py-1 md:px-3 md:py-2 transition duration-150">Kokoro Tune</a>
                 <a href="#silent" class="text-gray-600 hover:text-indigo-500 rounded-md px-1 py-1 md:px-3 md:py-2 transition duration-150">SilentSphere</a>
@@ -29,22 +34,28 @@
         </nav>
     </header>
 
+    <!-- メインコンテンツ -->
     <main class="container mx-auto px-6 py-12">
 
+        <!-- 1. Kokoro Tune -->
         <section id="kokoro" class="bg-white rounded-2xl shadow-lg overflow-hidden mb-16 p-8 md:p-12">
             <h2 class="text-3xl md:text-4xl font-bold text-gray-900 mb-2">Kokoro Tune -ココロチューン-</h2>
             <p class="text-lg md:text-xl text-gray-600 mb-8">（心を映す鏡）</p>
 
+            <!-- メイン画像 -->
             <div class="mb-10 flex justify-center">
+                <!-- 【サイズ調整済み】max-w-mdに縮小し、高さを固定 -->
                 <img src="https://github.com/user-attachments/assets/c58dbfa6-e3ce-48f8-9988-5f2ccb88c59b" 
                      alt="Kokoro Tune スマートミラーのイメージ" 
                      class="w-full md:w-3/4 max-w-md h-64 md:h-80 object-cover rounded-xl shadow-md border-4 border-indigo-200"
                      onerror="this.onerror=null; this.src='https://placehold.co/1000x600/E0E7FF/4F46E5?text=画像が見つかりません';">
             </div>
 
+            <!-- グリッドレイアウトで詳細を表示 -->
             <div class="grid md:grid-cols-2 gap-x-12 gap-y-8">
+                <!-- Why -->
                 <div>
-                    <h3 class="text-2xl font-semibold text-indigo-600 mb-3">Why “現代人は忙しい”</h3>
+                    <h3 class="text-2xl font-semibold text-indigo-600 mb-3">Why (目的) “現代人は忙しい”</h3>
                     <ul class="list-disc list-inside space-y-2 text-gray-700 text-base">
                         <li>忙しくて、自分の感情や状態を見つめる余裕がない。心が疲れていても気づかず、無理してしまう。</li>
                         <li>カウンセリングや瞑想アプリは「特別なこと」に感じて続かない。もっと自然に、生活の一部で心を整えたい。</li>
@@ -52,21 +63,24 @@
                     </ul>
                 </div>
 
+                <!-- Who -->
                 <div>
-                    <h3 class="text-2xl font-semibold text-indigo-600 mb-3">Who</h3>
+                    <h3 class="text-2xl font-semibold text-indigo-600 mb-3">Who (対象)</h3>
                     <p class="text-gray-700 text-base">女性を中心に、感情のセルフケアに関心のある20〜40代 / スキンケアや歯磨きのように、心を“習慣”で整える</p>
                 </div>
 
+                <!-- What -->
                 <div class="md:col-span-2">
-                    <h3 class="text-2xl font-semibold text-indigo-600 mb-3">What</h3>
+                    <h3 class="text-2xl font-semibold text-indigo-600 mb-3">What (価値)</h3>
                     <ul class="list-disc list-inside space-y-2 text-gray-700 text-base">
                         <li>AIによる感情解析をもとに、その瞬間に最もふさわしい香り・光・音楽・言語コミュニケーションなどを提供</li>
                         <li>ユーザーは、意識せずとも自身の感情変化に気づき、整え、結果としてストレス低減・自己理解の深化・ウェルビーイングの向上が期待できる</li>
                     </ul>
                 </div>
 
+                <!-- How -->
                 <div>
-                    <h3 class="text-2xl font-semibold text-indigo-600 mb-3">How</h3>
+                    <h3 class="text-2xl font-semibold text-indigo-600 mb-3">How (方法)</h3>
                     <p class="text-gray-700 mb-4 text-base">AIとセンシング技術、ビッグデータ解析を組み合わせて、個人に最適化された“心の調律体験”を提供。</p>
                     <ul class="list-disc list-inside space-y-2 text-gray-700 pl-4 text-base">
                         <li><b>感情センシング:</b> 心の状態を読み取り (技術：表情認識、音声解析、AIパーソナライズ)</li>
@@ -74,6 +88,7 @@
                     </ul>
                 </div>
                 
+                <!-- 課題 -->
                 <div>
                     <h3 class="text-2xl font-semibold text-red-600 mb-3">課題</h3>
                     <ul class="list-disc list-inside space-y-2 text-gray-700 text-base">
@@ -86,11 +101,14 @@
             </div>
         </section>
 
+        <!-- 2. SilentSphere -->
         <section id="silent" class="bg-white rounded-2xl shadow-lg overflow-hidden mb-16 p-8 md:p-12">
             <h2 class="text-3xl md:text-4xl font-bold text-gray-900 mb-2">SilentSphere</h2>
             <p class="text-lg md:text-xl text-gray-600 mb-8">「見えない音の壁で、プライバシーと集中を守る。ヘッドセットは時代遅れ。」</p>
 
+            <!-- 画像ギャラリー -->
             <div class="grid grid-cols-1 sm:grid-cols-3 gap-6 mb-10">
+                <!-- 【サイズ調整済み】高さを固定 (h-48 md:h-56) -->
                 <img src="https://github.com/user-attachments/assets/dbc29b92-030c-4bfb-9002-528e61cf8466" 
                      alt="SilentSphere カフェでの会話イメージ" class="w-full h-48 md:h-56 object-cover rounded-xl shadow-md border-4 border-indigo-200"
                      onerror="this.onerror=null; this.src='https://placehold.co/400x300/E0E7FF/4F46E5?text=画像2-1が見つかりません';">
@@ -104,9 +122,11 @@
                      onerror="this.onerror=null; this.src='https://placehold.co/400x300/E0E7FF/4F46E5?text=画像2-3が見つかりません';">
             </div>
 
+            <!-- グリッドレイアウトで詳細を表示 -->
             <div class="grid md:grid-cols-2 gap-x-12 gap-y-8">
+                <!-- Why -->
                 <div>
-                    <h3 class="text-2xl font-semibold text-indigo-600 mb-3">Why</h3>
+                    <h3 class="text-2xl font-semibold text-indigo-600 mb-3">Why (目的)</h3>
                     <ul class="list-disc list-inside space-y-2 text-gray-700 text-base">
                         <li>会話や仕事に集中できる静かな空間をどこでも作りたい。</li>
                         <li>人は言葉を通じてコミュニケーションする生き物。だからこそ、ストレスなく話せる環境が必要。</li>
@@ -114,8 +134,9 @@
                     </ul>
                 </div>
 
+                <!-- Who -->
                 <div>
-                    <h3 class="text-2xl font-semibold text-indigo-600 mb-3">Who</h3>
+                    <h3 class="text-2xl font-semibold text-indigo-600 mb-3">Who (対象)</h3>
                     <ul class="list-disc list-inside space-y-2 text-gray-700 text-base">
                         <li>オフィスワーカー、保険屋の営業者</li>
                         <li>家庭での生活音が気になる人</li>
@@ -124,16 +145,19 @@
                     </ul>
                 </div>
 
+                <!-- What -->
                 <div>
-                    <h3 class="text-2xl font-semibold text-indigo-600 mb-3">What</h3>
+                    <h3 class="text-2xl font-semibold text-indigo-600 mb-3">What (価値)</h3>
                     <p class="text-gray-700 text-base">ポータブルで提供する見えない音のバリア。小型デバイスが周囲の音をリアルタイムに分析し、特定の範囲に“音の壁”を作り出すことで音漏れを防ぎ、不要な雑音を遮断する。</p>
                 </div>
 
+                <!-- How -->
                 <div>
-                    <h3 class="text-2xl font-semibold text-indigo-600 mb-3">How</h3>
+                    <h3 class="text-2xl font-semibold text-indigo-600 mb-3">How (方法)</h3>
                     <p class="text-gray-700 text-base">マイクアレイで周囲音を収集、DSP＋FPGA、ANC処理＋指向性音波、指向性スピーカでリアルタイムに音のバリアを形成</p>
                 </div>
                 
+                <!-- 課題 -->
                 <div class="md:col-span-2">
                     <h3 class="text-2xl font-semibold text-red-600 mb-3">課題</h3>
                     <ul class="list-disc list-inside space-y-2 text-gray-700 text-base">
@@ -144,11 +168,15 @@
             </div>
         </section>
 
+        <!-- 3. Electric Talent Collection (人間ETC) -->
         <section id="etc" class="bg-white rounded-2xl shadow-lg overflow-hidden mb-16 p-8 md:p-12">
             <h2 class="text-3xl md:text-4xl font-bold text-gray-900 mb-2">Electric Talent Collection</h2>
             <p class="text-lg md:text-xl text-gray-600 mb-8">(人間ETC)</p>
 
+            <!-- 画像ギャラリー -->
+            <!-- 【修正済み】スマホで2列、タブレット以上で3列に調整 -->
             <div class="grid grid-cols-2 md:grid-cols-3 gap-6 mb-10">
+                <!-- 【サイズ調整済み】高さを固定 (h-48 md:h-56) -->
                 <img src="https://github.com/user-attachments/assets/538bbdaf-2a1b-4a1c-a740-451ceff3fe64" 
                      alt="イベント会場ゲートのイメージ" class="w-full h-48 md:h-56 object-cover rounded-xl shadow-md border-4 border-indigo-200"
                      onerror="this.onerror=null; this.src='https://placehold.co/400x300/E0E7FF/4F46E5?text=画像3-1が見つかりません';">
@@ -162,44 +190,54 @@
                      onerror="this.onerror=null; this.src='https://placehold.co/400x300/E0E7FF/4F46E5?text=画像3-3が見つかりません';">
             </div>
 
+            <!-- グリッドレイアウトで詳細を表示 -->
             <div class="grid md:grid-cols-2 gap-x-12 gap-y-8">
+                <!-- Why -->
                 <div>
-                    <h3 class="text-2xl font-semibold text-indigo-600 mb-3">Why</h3>
+                    <h3 class="text-2xl font-semibold text-indigo-600 mb-3">Why (目的)</h3>
                     <ul class="list-disc list-inside space-y-2 text-gray-700 text-base">
                         <li>多様なゲートでの混雑が深刻 (イベント入退場、食堂清算、入国審査)</li>
                         <li>任意地点の通過記録は個人認証できない</li>
                     </ul>
                 </div>
 
+                <!-- Who -->
                 <div>
-                    <h3 class="text-2xl font-semibold text-indigo-600 mb-3">Who</h3>
+                    <h3 class="text-2xl font-semibold text-indigo-600 mb-3">Who (対象)</h3>
                     <ul class="list-disc list-inside space-y-2 text-gray-700 text-base">
                         <li>イベント参加者、食堂利用者、入国者</li>
                         <li>幼児 (幼稚園バス)、老人 (老人ホーム)</li>
                     </ul>
                 </div>
 
+                <!-- What -->
                 <div>
-                    <h3 class="text-2xl font-semibold text-indigo-600 mb-3">What</h3>
+                    <h3 class="text-2xl font-semibold text-indigo-600 mb-3">What (価値)</h3>
                     <p class="text-gray-700 text-base">疑似ゲートを作成。どこでも簡単にゲート化。RFIDを利用し、個人認証と通過情報を記録。必要であればカメラでも記録。</p>
                 </div>
 
+                <!-- How -->
                 <div>
-                    <h3 class="text-2xl font-semibold text-indigo-600 mb-3">How</h3>
-                    <p class="text-gray-700 text-base">マイクアレイで周囲音を収集、DSP＋FPGA、ANC処理＋指向性音波、指向性スピーカでリアルタイムに音のバリアを形成</p>
+                    <h3 class="text-2xl font-semibold text-indigo-600 mb-3">How (方法)</h3>
+                    <!-- 【内容修正済み】人間ETCに合わせた技術内容 -->
+                    <p class="text-gray-700 text-base">RFIDタグ/NFCチップを利用した個人認証、ゲートデバイスによる通過検知、クラウド上のID/通過情報データベースへのリアルタイム記録</p>
                 </div>
                 
+                <!-- 課題 -->
                 <div class="md:col-span-2">
                     <h3 class="text-2xl font-semibold text-red-600 mb-3">課題</h3>
                     <ul class="list-disc list-inside space-y-2 text-gray-700 text-base">
-                        <li>狭い空間とはいえ、人間の声を閉じ込める制御は可能か？</li>
-                        <li>半径1m程度なら可能だという回答がAI（ChatGPT-5）ではあるが、その効果は未知数</li>
+                        <!-- 【内容修正済み】人間ETCに合わせた課題内容 -->
+                        <li>プライバシー/個人情報保護への配慮とセキュリティ確保</li>
+                        <li>イベント会場など大規模導入時の初期コスト</li>
+                        <li>多数のタグが集中した際の読み取り干渉と安定性の確保</li>
                     </ul>
                 </div>
             </div>
         </section>
     </main>
 
+    <!-- フッター -->
     <footer class="bg-gray-800 text-white text-center p-6 mt-12">
         <p>&copy; 2025 プロダクト提案資料</p>
     </footer>
