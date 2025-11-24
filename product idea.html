@@ -3,99 +3,160 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Future Product Lab | メンバーアイデア＆研究ストック</title>
+    <title>Future Product Lab | メンバー別アイデア集</title>
     <style>
         :root {
             --bg: #F5F7FA;
             --surface: #FFFFFF;
-            --primary: #333;
-            --accent: #4A90E2;
-            --border: #E1E4E8;
-            --text-main: #2C3E50;
-            --text-sub: #7F8C8D;
-            --tag-bg: #EDF2F7;
+            --primary: #2C3E50;
+            --accent: #3182CE;
+            --accent-light: #EBF8FF;
+            --border: #E2E8F0;
+            --text-main: #2D3748;
+            --text-sub: #718096;
         }
 
         body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            font-family: "Hiragino Kaku Gothic ProN", "Hiragino Sans", Meiryo, sans-serif;
             background-color: var(--bg);
             color: var(--text-main);
             margin: 0;
             line-height: 1.6;
         }
 
-        /* Sticky Header */
-        header {
-            background: var(--surface);
-            padding: 1rem 2rem;
+        /* Sticky Header Area */
+        .header-container {
             position: sticky;
             top: 0;
-            z-index: 100;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            z-index: 1000;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
             border-bottom: 1px solid var(--border);
+            box-shadow: 0 2px 10px rgba(0,0,0,0.03);
+            padding: 1rem 2rem;
         }
 
-        .header-inner {
-            max-width: 1400px;
-            margin: 0 auto;
+        .header-top {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            flex-wrap: wrap;
-            gap: 1rem;
+            max-width: 1200px;
+            margin: 0 auto 1rem auto;
         }
 
         h1 {
-            font-size: 1.25rem;
+            font-size: 1.4rem;
             margin: 0;
-            font-weight: 700;
+            color: var(--primary);
             display: flex;
             align-items: center;
-            gap: 10px;
+            gap: 12px;
         }
 
         .count-badge {
             background: var(--primary);
-            color: white;
+            color: #fff;
             padding: 2px 10px;
-            border-radius: 12px;
-            font-size: 0.8rem;
+            border-radius: 99px;
+            font-size: 0.85rem;
             font-weight: normal;
         }
 
-        input[type="text"] {
-            padding: 10px 16px;
-            border-radius: 20px;
+        /* Search Input */
+        .search-wrapper {
+            position: relative;
+        }
+        .search-input {
+            padding: 8px 16px 8px 36px;
+            border-radius: 6px;
             border: 1px solid #CBD5E0;
-            background: #F8FAFC;
-            width: 300px;
+            background: #fff;
+            width: 250px;
             font-size: 0.9rem;
+        }
+        .search-icon {
+            position: absolute;
+            left: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #A0AEC0;
+            font-size: 14px;
+        }
+
+        /* Filter Section */
+        .filter-section {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            flex-direction: column;
+            gap: 0.8rem;
+        }
+
+        .filter-row {
+            display: flex;
+            align-items: baseline;
+            gap: 1rem;
+        }
+
+        .filter-label {
+            font-size: 0.75rem;
+            font-weight: bold;
+            color: #A0AEC0;
+            width: 60px;
+            flex-shrink: 0;
+            text-transform: uppercase;
+        }
+
+        .filter-buttons {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+        }
+
+        /* Filter Buttons */
+        .btn-filter {
+            border: 1px solid #E2E8F0;
+            background: #fff;
+            color: var(--text-sub);
+            padding: 4px 12px;
+            border-radius: 99px;
+            font-size: 0.85rem;
+            cursor: pointer;
             transition: all 0.2s;
         }
 
-        input[type="text"]:focus {
-            outline: none;
+        .btn-filter:hover {
             border-color: var(--accent);
-            background: white;
-            box-shadow: 0 0 0 3px rgba(74, 144, 226, 0.1);
+            color: var(--accent);
         }
 
-        /* Layout */
+        .btn-filter.active {
+            background: var(--primary);
+            color: #fff;
+            border-color: var(--primary);
+            font-weight: 600;
+        }
+        
+        /* Author specific color for active state */
+        .btn-filter[data-type="author"].active {
+            background: var(--accent);
+            border-color: var(--accent);
+        }
+
+        /* Main Content */
         .container {
-            max-width: 1400px;
+            max-width: 1200px;
             margin: 0 auto;
             padding: 2rem;
         }
 
-        h2 {
+        .section-header {
             font-size: 1.1rem;
             color: var(--text-sub);
             border-bottom: 2px solid var(--border);
             padding-bottom: 0.5rem;
-            margin-top: 2rem;
-            margin-bottom: 1.5rem;
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
+            margin: 2rem 0 1.5rem 0;
+            font-weight: 600;
         }
 
         .grid {
@@ -104,7 +165,7 @@
             gap: 1.5rem;
         }
 
-        /* Card Style */
+        /* Card Styles */
         .card {
             background: var(--surface);
             border-radius: 8px;
@@ -112,28 +173,42 @@
             display: flex;
             flex-direction: column;
             transition: transform 0.2s, box-shadow 0.2s;
-            position: relative;
             overflow: hidden;
         }
 
         .card:hover {
-            transform: translateY(-2px);
+            transform: translateY(-3px);
             box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
-            border-color: #CBD5E0;
         }
 
-        /* Card Header */
         .card-header {
             padding: 1rem;
-            background: #fcfcfc;
-            border-bottom: 1px solid #f0f0f0;
+            background: #f8fafc;
+            border-bottom: 1px solid #edf2f7;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
         }
 
-        .meta-tags {
+        .card-title {
+            font-size: 1.05rem;
+            font-weight: 700;
+            margin: 0.5rem 0 0 0;
+            line-height: 1.4;
+            color: #2D3748;
+        }
+
+        .card-meta {
             display: flex;
-            flex-wrap: wrap;
+            flex-direction: column;
+            align-items: flex-start;
+        }
+
+        .tag-row {
+            display: flex;
             gap: 6px;
-            margin-bottom: 8px;
+            margin-bottom: 4px;
+            flex-wrap: wrap;
         }
 
         .tag {
@@ -141,40 +216,21 @@
             padding: 2px 8px;
             border-radius: 4px;
             font-weight: 600;
-            background: var(--tag-bg);
-            color: #666;
+            background: #EDF2F7;
+            color: #718096;
         }
 
-        .tag.author {
-            background: #EBF8FF;
-            color: #2B6CB0;
-        }
+        .tag.author { background: #EBF8FF; color: #2B6CB0; }
+        .tag.cat { background: #F0FFF4; color: #2F855A; border: 1px solid #C6F6D5; }
+        .tag.draft { background: #FFF5F5; color: #C53030; }
 
-        .tag.draft {
-            background: #FFF5F5;
-            color: #C53030;
-            border: 1px solid #FED7D7;
-        }
-
-        .card-title {
-            font-weight: 700;
-            font-size: 1.1rem;
-            margin: 0;
-            line-height: 1.4;
-            color: #1a202c;
-        }
-
-        /* Card Body */
         .card-body {
-            padding: 1rem;
+            padding: 1.25rem;
             flex: 1;
             font-size: 0.9rem;
         }
 
-        .info-row {
-            margin-bottom: 0.8rem;
-        }
-
+        .info-group { margin-bottom: 0.8rem; }
         .info-label {
             font-size: 0.7rem;
             color: #A0AEC0;
@@ -183,227 +239,318 @@
             display: block;
             margin-bottom: 2px;
         }
+        .info-text { color: #4A5568; line-height: 1.5; }
 
-        .info-text {
-            color: #4A5568;
-        }
-
-        /* Special Sections */
-        .uvp {
-            background: #F0F9FF;
-            padding: 0.8rem;
-            border-radius: 6px;
-            color: #2C5282;
+        .uvp-box {
+            background: #ebf8ff;
+            border-left: 3px solid #4299e1;
+            padding: 0.75rem;
+            margin-top: 1rem;
             font-size: 0.9rem;
-            margin-top: 0.5rem;
-            border-left: 3px solid var(--accent);
-        }
-
-        /* Research Specific Style */
-        .research-card {
-            border-style: dashed;
+            color: #2b6cb0;
+            border-radius: 0 4px 4px 0;
         }
 
         .empty-state {
             grid-column: 1 / -1;
             text-align: center;
             padding: 4rem;
-            color: var(--text-sub);
+            color: #A0AEC0;
+            display: none;
         }
-
+        .empty-state.visible { display: block; }
         .hidden { display: none; }
+
+        /* Mobile Responsive */
+        @media (max-width: 768px) {
+            .header-top { flex-direction: column; align-items: stretch; gap: 1rem; }
+            .search-input { width: 100%; }
+            .filter-row { flex-direction: column; gap: 0.5rem; align-items: flex-start; }
+            .header-container { padding: 1rem; }
+            .container { padding: 1rem; }
+        }
     </style>
 </head>
 <body>
 
-<header>
-    <div class="header-inner">
+<div class="header-container">
+    <div class="header-top">
         <h1>
-            Product Idea Lab
-            <span class="count-badge" id="total-count">0 items</span>
+            Future Product Lab
+            <span class="count-badge" id="total-count">0</span>
         </h1>
-        <input type="text" id="search" placeholder="検索: キーワード, 名前, 技術..." onkeyup="filterGrid()">
+        <div class="search-wrapper">
+            <span class="search-icon">🔍</span>
+            <input type="text" class="search-input" id="search-input" placeholder="キーワード検索..." onkeyup="applyFilters()">
+        </div>
     </div>
-</header>
+
+    <div class="filter-section">
+        <div class="filter-row">
+            <span class="filter-label">MEMBER</span>
+            <div class="filter-buttons" id="author-filters">
+                <button class="btn-filter active" data-type="author" data-val="all" onclick="setFilter('author', 'all')">全員</button>
+                <button class="btn-filter" data-type="author" data-val="歌丸" onclick="setFilter('author', '歌丸')">歌丸</button>
+                <button class="btn-filter" data-type="author" data-val="中尾" onclick="setFilter('author', '中尾')">中尾</button>
+                <button class="btn-filter" data-type="author" data-val="真田" onclick="setFilter('author', '真田')">真田</button>
+                <button class="btn-filter" data-type="author" data-val="浜野" onclick="setFilter('author', '浜野')">浜野</button>
+                <button class="btn-filter" data-type="author" data-val="里平" onclick="setFilter('author', '里平')">里平</button>
+                <button class="btn-filter" data-type="author" data-val="伊達" onclick="setFilter('author', '伊達')">伊達</button>
+                <button class="btn-filter" data-type="author" data-val="others" onclick="setFilter('author', 'others')">その他/不明</button>
+            </div>
+        </div>
+
+        <div class="filter-row">
+            <span class="filter-label">GENRE</span>
+            <div class="filter-buttons" id="cat-filters">
+                <button class="btn-filter active" data-type="cat" data-val="all" onclick="setFilter('cat', 'all')">すべて</button>
+                </div>
+        </div>
+    </div>
+</div>
 
 <div class="container">
 
     <div id="section-member">
-        <h2>Member Ideas (具体案)</h2>
-        <div class="grid" id="grid-member">
-            </div>
+        <div class="section-header">💡 具体的なプロダクト提案 (Member Ideas)</div>
+        <div class="grid" id="grid-member"></div>
     </div>
 
     <div id="section-research">
-        <h2>Research & Drafts (研究段階・アイデアの種)</h2>
-        <div class="grid" id="grid-research">
-            </div>
+        <div class="section-header">🧪 研究・アイデアの種 (Research & Drafts)</div>
+        <div class="grid" id="grid-research"></div>
     </div>
 
-    <div id="no-results" class="empty-state hidden">
-        条件に一致するアイデアが見つかりませんでした。
+    <div id="empty-state" class="empty-state">
+        条件に一致するアイデアは見つかりませんでした。
     </div>
 
 </div>
 
 <script>
-    // CSVから抽出した全データ（先行事例を除く）
-    const data = [
-        // --- Numbered Member Ideas (No.1 - No.45) ---
-        { id: '1', type: 'member', author: '不明', cat: 'AI/IoT', title: '歯ブラシカメラ', target: '虫歯・口臭が気になる人', pain: '磨き残しが見えず不安。', solution: '歯をカラーコード化・可視化し、虫歯や磨き残しを判定。', uvp: '自分の歯を隅々まで可視化し健康サポート。' },
-        { id: '2', type: 'member', author: '歌丸', cat: 'AR/IoT', title: '寝ながらドーム型ディスプレイ', target: '育児中のゲーマー・映画ファン', pain: '夜しか時間がないが音漏れや寝姿勢が困る。', solution: '指向性スピーカーと暗視ディスプレイのドーム。', uvp: '寝落ちOK。子供を見守りつつ没入。' },
-        { id: '3', type: 'member', author: '歌丸', cat: 'AI/VR', title: 'VR/ARデバイス用検証デバイス', target: 'YouTuber/開発者', pain: 'VRの臨場感が2D画面では伝わらない。', solution: '2眼センサとAIで人間の見た感覚を1画面再現。', uvp: 'スペックと体験の「見える化」。' },
-        { id: '4', type: 'member', author: '中尾', cat: '記録', title: '（感情記録・タイトルなし）', target: '子持ちの親', pain: '当時の感情まで記録に残せない。', solution: '思い出を写真・動画以上にリアルに残す。', uvp: '' },
-        { id: '5', type: 'member', author: '中尾', cat: '記録', title: '人向けドライブレコーダー', target: '子持ちの親', pain: '子供に危険が生じた時の状況が不明。', solution: '人の移動や状況を記録するドラレコ的デバイス。', uvp: '' },
-        { id: '6', type: 'member', author: '真田', cat: 'Robo', title: '専属メイクアップマシーン', target: 'メイクする人', pain: '似合うメイクが不明、時間がない。', solution: '顔特徴を検知しロボットが最適メイクを施す。', uvp: 'プロ級メイクを短時間で自動化。' },
-        { id: '7', type: 'member', author: '浜野', cat: 'IoT/AI', title: '心と体のオーラ可視化', target: '健康管理したい人', pain: '不調の原因や気分の波が把握しづらい。', solution: 'イメージセンサでオーラを可視化、ゲーム感覚で管理。', uvp: '遊びながら最高の自分を引き出す。' },
-        { id: '8', type: 'member', author: '里平', cat: 'MaaS', title: 'HelpWork', target: 'すぐ人手が欲しい人', pain: '今すぐ草むしりや手伝いを頼みたい。', solution: '近隣の登録者と即マッチング。', uvp: '隙間時間の有効活用と相互扶助。' },
-        { id: '9', type: 'member', author: '里平', cat: 'AI/Robo', title: '香り自動発生', target: '環境を変えたい人', pain: '集中・リラックスの切り替えが難しい。', solution: '状況や人の動きに合わせて香りを自動選定。', uvp: '香りで作業効率とリラックスを制御。' },
-        { id: '10', type: 'member', author: '真田', cat: 'Sensor', title: '学校教育カスタマイズ支援', target: '教員・保護者', pain: '生徒の多様化で教員負担が増加。', solution: '生徒情報を一元化し、スマートグラス等で個別指導案を提示。', uvp: 'データに基づく教育の個別最適化。' },
-        { id: '12', type: 'member', author: '真田', cat: '-', title: '雷ガード（仮）', target: '雷が怖い人', pain: '音が怖い。', solution: '（詳細未記入）', uvp: '' },
-        { id: '13', type: 'member', author: '真田', cat: 'AR/VR', title: 'YUKIQUEST（ユキクエスト）', target: '雪国の人', pain: '雪かきがつらい。', solution: 'スマートグラスで排雪指示＆雪像作りゲーミフィケーション。', uvp: '雪かきをエンタメに変える。' },
-        { id: '14', type: 'member', author: '真田', cat: 'Display', title: '空もようカーテン', target: '一般', pain: '雨の日は気が滅入る。', solution: 'カーテン型LEDモニタで外の景色を変える。', uvp: '雨の日でもピクニック気分。' },
-        { id: '16', type: 'member', author: '里平', cat: 'Phone', title: 'スマホ背面ディスプレイ', target: '一般', pain: 'ケースに飽きる。', solution: '背面ディスプレイで柄を自由に変更。', uvp: 'ケースを選ぶ概念を捨てる。' },
-        { id: '17', type: 'member', author: '里平', cat: 'IoT', title: 'RFID 個人カスタマイズ', target: '一般', pain: '環境設定や商品選択が面倒。', solution: 'RFIDタグで個人認識し、部屋設定や商品提案を自動化。', uvp: '持つだけで世界が自分仕様に。' },
-        { id: '18', type: 'member', author: '里平', cat: 'IoT', title: 'SNS連携アクセ', target: '若者', pain: '自己紹介やSNS交換が手間。', solution: 'スマホをかざすとSNSが表示されるアクセ。', uvp: '名刺代わりのスマートアクセ。' },
-        { id: '19', type: 'member', author: '里平', cat: 'IoT', title: '秘密の交換タグ', target: '一般', pain: 'プレゼントにワクワクが欲しい。', solution: 'スマホで読み取るまで中身不明のメッセージタグ。', uvp: 'デジタルとアナログの融合したサプライズ。' },
-        { id: '20', type: 'member', author: '歌丸', cat: 'IoT', title: '人間ETC', target: 'テーマパーク', pain: '待ち時間が長い。', solution: '顔認証/RFIDでゲートレス入場・フリーアドレス着席。', uvp: '並ばない体験。' },
-        { id: '21', type: 'member', author: '歌丸', cat: 'IoT', title: 'P2Pレンタル (IoT連携)', target: '体験重視層', pain: '高額品は買いたくないが体験したい。', solution: 'IoTとブロックチェーンで管理する個人間レンタル。', uvp: 'モノ・体験の安全なシェア。' },
-        { id: '22', type: 'member', author: '浜野', cat: 'IoT', title: '空間ノイズキャンセル', target: '音に敏感な人', pain: '物音で起きる、イヤホンは嫌。', solution: '部屋全体で逆位相音を出し静寂を作る。', uvp: 'ウェアラブル不要の静寂空間。' },
-        { id: '23', type: 'member', author: '浜野', cat: 'IoT', title: '香りのタイムカプセル', target: '思い出重視', pain: '写真だけでは記憶が薄れる。', solution: '撮影時に香り情報も記録し、後で再生。', uvp: 'プルースト効果で記憶を鮮烈に再現。' },
-        { id: '24', type: 'member', author: '浜野', cat: 'IoT', title: '香りで以心伝心', target: '家族', pain: '言葉やメールでは伝わらない・見ない。', solution: '香りで「帰るよ」「ごめん」等の合図を送る。', uvp: '感情に直接届くメッセージ。' },
-        { id: '25', type: 'member', author: '浜野', cat: 'IoT', title: 'デジタル箱庭', target: 'クリエイティブ', pain: 'VRは酔うが仮想空間を作りたい。', solution: '多面ディスプレイと視点追跡で裸眼立体視。', uvp: '没入しすぎない気軽なバーチャル空間。' },
-        { id: '26', type: 'member', author: '中尾', cat: 'IoT', title: '雨天時洗濯物自動雨よけ', target: '主婦', pain: '急な雨が心配。', solution: '雨検知で自動展開するカバー。', uvp: '干していいか悩む時間をゼロに。' },
-        { id: '27', type: 'member', author: '中尾', cat: 'RFID', title: '落し物即時アラーム', target: '忘れ物多い人', pain: '落としたことに気づかない。', solution: '離れると即アラーム。シール型RFID。', uvp: '何にでも貼れる紛失防止。' },
-        { id: '29', type: 'member', author: '中尾', cat: 'Phone', title: 'スマホ着脱可能カメラ', target: '撮影者', pain: '人混みで撮影しにくい。', solution: 'カメラ部が分離するスマホ。', uvp: 'ハイアングル撮影も手元で確認。' },
-        { id: '30', type: 'member', author: '伊達', cat: 'Bio', title: '香りキー（生体認証）', target: '一般', pain: '指紋・顔認証がうまくいかない時がある。', solution: '体臭で個人認証。', uvp: 'タッチ不要、ノールック認証。' },
-        { id: '31', type: 'member', author: '伊達', cat: 'Health', title: 'アレルギー予防（匂い）', target: 'アレルギー持ち', pain: '成分表示がないと不安。', solution: '匂いでアレルゲン検知。', uvp: '食べる前にリスク回避。' },
-        { id: '33', type: 'member', author: '真田', cat: 'AI', title: 'ココミミ（心の声を聞く耳）', target: '心が疲れた人', pain: '誰とも話したくないが寄り添ってほしい。', solution: '表情から感情を読み取り、鏡が対話・共感。', uvp: '感情エモーションミラー。' },
-        { id: '34', type: 'member', author: '浜野', cat: 'AI', title: 'パーソナライズラジオ', target: 'ながら聞き層', pain: '興味ある情報だけ聞きたい。', solution: 'AIが情報をピックアップして編成。', uvp: '' },
-        { id: '36', type: 'member', author: '浜野', cat: 'Sensor', title: 'BackDodge', target: 'スポーツ/一般', pain: '背後の気配を感じたい。', solution: '背面センサで接近を検知し触覚フィードバック。', uvp: '「第六感」のテクノロジー化。' },
-        { id: '37', type: 'member', author: '浜野', cat: 'App', title: '食べモン（食育アプリ）', target: '偏食の子供', pain: '好き嫌いが多い。', solution: '食事でキャラ育成。栄養素をパラメータ化。', uvp: '食育×ゲーミフィケーション。' },
-        { id: '38', type: 'member', author: '歌丸', cat: 'AR', title: '白紙の本（メモリーブック）', target: '読書家', pain: '本は嵩張るが、めくる体験は大事。', solution: '白紙本＋RFID＋ARグラスで中身を表示。', uvp: 'アナログ体験とデジタル情報の融合。' },
-        { id: '41', type: 'member', author: '真田', cat: 'Camera', title: '透けるカメラ', target: '撮影者', pain: '障害物が邪魔。', solution: '障害物を透過処理して撮影。', uvp: '' },
-        { id: '42', type: 'member', author: '真田', cat: 'Haptics', title: '指さない将棋', target: '将棋ファン', pain: '準備が面倒、場所がない。', solution: 'ディスプレイと触覚技術で盤面再現。', uvp: '' },
-        { id: '43', type: 'member', author: '里平', cat: 'Energy', title: '遮光＋発光ハイブリッドカーテン', target: '家庭', pain: '夜暗い、停電不安。', solution: '昼は遮光蓄電、夜は照明。', uvp: '防災とインテリアの両立。' },
-        { id: '44', type: 'member', author: '伊達', cat: 'AI/Music', title: 'Behavior Synth', target: 'クリエイター', pain: '作曲は難しい。', solution: '行動や振る舞いを音楽に変換。', uvp: '「今の自分」が音になる。' },
-        { id: '45', type: 'member', author: '浜野', cat: 'IoT', title: 'ダストナビ（スマートゴミ箱）', target: '家庭', pain: '分別面倒、買い忘れ。', solution: 'バーコード管理で分別指示＆在庫リスト化。', uvp: 'ゴミ捨てを食育と管理のハブに。' },
+    // --- Data Definition ---
+    const ideas = [
+        // Numbered Member Ideas
+        { id: '1', type: 'member', author: '不明', cat: 'AI/IoT', title: '歯ブラシカメラ', target: '虫歯予防', pain: '磨き残しが見えない', solution: '歯をカラーコード化しスマホで可視化', uvp: '自宅で完璧なオーラルケア' },
+        { id: '2', type: 'member', author: '歌丸', cat: 'AR/IoT', title: '寝ながらドーム型ディスプレイ', target: '育児中の親', pain: '夜しか時間がない/音漏れ困る', solution: '指向性スピーカー付きドーム', uvp: '寝落ちOKの没入シアター' },
+        { id: '3', type: 'member', author: '歌丸', cat: 'VR/AR', title: 'VR検証デバイス', target: '開発者', pain: 'VR体験を2Dで伝えられない', solution: '両眼視覚を1画面に再現するAI', uvp: '体験の可視化' },
+        { id: '4', type: 'member', author: '中尾', cat: 'LifeLog', title: '感情レコーダー', target: '親', pain: '当時の感情まで記録できない', solution: '写真以上にリアルな記録媒体', uvp: '' },
+        { id: '5', type: 'member', author: '中尾', cat: 'LifeLog', title: '人向けドラレコ', target: '親', pain: '子供の危険状況が不明', solution: '常時録画デバイス', uvp: '安心の可視化' },
+        { id: '6', type: 'member', author: '真田', cat: 'Robotics', title: '専属メイクアップマシーン', target: '女性', pain: 'メイク時間がない/苦手', solution: '顔認識ロボットが自動メイク', uvp: '毎朝プロの仕上がり' },
+        { id: '7', type: 'member', author: '浜野', cat: 'Health', title: '心と体のオーラ可視化', target: '健康志向', pain: '不調の原因が不明', solution: 'センサーでバイタルをオーラ化', uvp: 'ゲーミフィケーション健康管理' },
+        { id: '8', type: 'member', author: '里平', cat: 'MaaS', title: 'HelpWork', target: '困っている人', pain: '今すぐ人手が欲しい', solution: '近隣即時マッチングアプリ', uvp: 'リアルタイム相互扶助' },
+        { id: '9', type: 'member', author: '里平', cat: 'AI/Robo', title: '香り自動発生機', target: 'ワーカー', pain: '集中・リラックス切り替え', solution: '状況に合わせ香りを自動生成', uvp: '香りで空間をハック' },
+        { id: '10', type: 'member', author: '真田', cat: 'EdTech', title: '教育カスタマイズ支援', target: '教員', pain: '生徒対応の負担増', solution: 'データ分析とグラスで指導支援', uvp: '教育の個別最適化' },
+        { id: '12', type: 'member', author: '真田', cat: 'Other', title: '雷ガード', target: '子供', pain: '雷音が怖い', solution: '遮音・安心デバイス', uvp: '' },
+        { id: '13', type: 'member', author: '真田', cat: 'AR', title: 'YUKIQUEST (除雪AR)', target: '雪国', pain: '雪かきが辛い', solution: 'ARで除雪指示＆ゲーム化', uvp: '労働をエンタメに' },
+        { id: '14', type: 'member', author: '真田', cat: 'Display', title: '空もようカーテン', target: '家庭', pain: '雨の日は憂鬱', solution: 'LEDカーテンで外景を変更', uvp: 'いつでも晴天の窓辺' },
+        { id: '16', type: 'member', author: '里平', cat: 'Smartphone', title: 'スマホ背面ディスプレイ', target: '一般', pain: 'ケースに飽きる', solution: '背面全体がディスプレイ', uvp: '無限に変わるデザイン' },
+        { id: '17', type: 'member', author: '里平', cat: 'IoT', title: 'RFID環境カスタマイズ', target: '一般', pain: '設定変更が面倒', solution: 'タグを持つだけで部屋が変形', uvp: '空間のパーソナライズ' },
+        { id: '18', type: 'member', author: '里平', cat: 'IoT', title: 'SNS連携アクセ', target: '若者', pain: '連絡先交換が手間', solution: 'かざすだけのスマートアクセ', uvp: 'デジタル名刺' },
+        { id: '19', type: 'member', author: '里平', cat: 'IoT', title: '秘密の交換タグ', target: '一般', pain: 'ギフトに驚きがない', solution: 'スマホをかざすまで中身不明', uvp: 'デジタル・サプライズ' },
+        { id: '20', type: 'member', author: '歌丸', cat: 'IoT', title: '人間ETC', target: 'テーマパーク', pain: '待ち時間が長い', solution: '顔パス入場・着席管理', uvp: 'ストレスフリー体験' },
+        { id: '21', type: 'member', author: '歌丸', cat: 'Blockchain', title: 'P2Pレンタル', target: '体験重視', pain: '高額品を買いたくない', solution: 'IoT管理の個人間レンタル', uvp: 'モノの所有から利用へ' },
+        { id: '22', type: 'member', author: '浜野', cat: 'Audio', title: '空間ノイズキャンセル', target: '敏感な人', pain: '静寂が欲しい', solution: '逆位相音で部屋ごと消音', uvp: 'ウェアラブル不要の静寂' },
+        { id: '23', type: 'member', author: '浜野', cat: 'Scent', title: '香りのタイムカプセル', target: '思い出', pain: '記憶が薄れる', solution: '写真＋香りの記録', uvp: 'プルースト効果の再現' },
+        { id: '24', type: 'member', author: '浜野', cat: 'Scent', title: '香りで以心伝心', target: '家族', pain: '連絡を見てくれない', solution: '香りで合図を送る', uvp: '感情に届く通知' },
+        { id: '25', type: 'member', author: '浜野', cat: 'Display', title: 'デジタル箱庭', target: 'クリエイター', pain: 'VRは酔う', solution: '裸眼立体の卓上ディスプレイ', uvp: '手の中の小宇宙' },
+        { id: '26', type: 'member', author: '中尾', cat: 'IoT', title: '自動雨よけ', target: '家庭', pain: '洗濯物が濡れる', solution: '雨検知で自動展開', uvp: '干したまま外出OK' },
+        { id: '27', type: 'member', author: '中尾', cat: 'RFID', title: '落し物即時アラーム', target: '忘れ物', pain: '気づかない', solution: '離れると即鳴るシール', uvp: 'シール型紛失防止' },
+        { id: '29', type: 'member', author: '中尾', cat: 'Camera', title: '分離型カメラスマホ', target: '撮影者', pain: '人混みで撮れない', solution: 'カメラ部が外れる', uvp: 'フリーアングル撮影' },
+        { id: '30', type: 'member', author: '伊達', cat: 'BioAuth', title: '香りキー（生体認証）', target: '一般', pain: '指紋/顔が効かない', solution: '体臭で認証', uvp: 'タッチレス・ルックレス' },
+        { id: '31', type: 'member', author: '伊達', cat: 'Health', title: 'アレルギー検知', target: 'アレルギー', pain: '成分が不安', solution: '匂いでアレルゲン特定', uvp: '食べる前の安全確認' },
+        { id: '33', type: 'member', author: '真田', cat: 'AI', title: 'ココミミ（AIミラー）', target: '疲れた人', pain: '誰とも話したくない', solution: '表情を読む鏡が共感', uvp: '感情のデトックス' },
+        { id: '34', type: 'member', author: '浜野', cat: 'AI', title: 'パーソナライズラジオ', target: 'ながら層', pain: '情報選別が面倒', solution: 'AI自動編成ラジオ', uvp: '自分専用放送局' },
+        { id: '36', type: 'member', author: '浜野', cat: 'Haptics', title: 'BackDodge', target: '一般', pain: '背後が怖い', solution: '背面センサと振動通知', uvp: '第六感の実装' },
+        { id: '37', type: 'member', author: '浜野', cat: 'App', title: '食べモン (食育)', target: '子供', pain: '好き嫌い多い', solution: '食事でキャラ育成', uvp: '完食をエンタメ化' },
+        { id: '38', type: 'member', author: '歌丸', cat: 'AR', title: '白紙の本', target: '読書家', pain: '本は嵩張る', solution: '白紙＋ARで中身表示', uvp: 'アナログとデジタルの融合' },
+        { id: '41', type: 'member', author: '真田', cat: 'Camera', title: '透けるカメラ', target: '撮影者', pain: '障害物が邪魔', solution: '障害物透過処理', uvp: '被写体だけを写す' },
+        { id: '42', type: 'member', author: '真田', cat: 'Haptics', title: '指さない将棋', target: '将棋', pain: '準備面倒', solution: '触覚盤面ディスプレイ', uvp: '手軽に本格対局' },
+        { id: '43', type: 'member', author: '里平', cat: 'Energy', title: 'ハイブリッドカーテン', target: '家庭', pain: '停電不安', solution: '遮光蓄電＋夜間照明', uvp: '防災インテリア' },
+        { id: '44', type: 'member', author: '伊達', cat: 'AI/Music', title: 'Behavior Synth', target: '作家', pain: '作曲難しい', solution: '行動を音楽に変換', uvp: '振る舞いが音になる' },
+        { id: '45', type: 'member', author: '浜野', cat: 'IoT', title: 'スマートゴミ箱', target: '家庭', pain: '分別/在庫管理', solution: 'バーコード管理', uvp: '捨てる＝管理する' },
 
-        // --- Research / Drafts / Ideas below line 53 ---
-        { type: 'research', author: '-', title: '虫ボーグ', pain: '害虫駆除', solution: '益虫コントロールで害虫駆除。' },
-        { type: 'research', author: '-', title: '大リーグ養成ギブス', pain: 'けん玉うまくなりたい', solution: '絶対できるギブス（IoT/3DP）。' },
-        { type: 'research', author: '-', title: 'だれでもできる念力', pain: '声出すのも面倒', solution: 'フォースの力。剣と魔法の世界へ。' },
-        { type: 'research', author: '-', title: '自動音調エアコン', pain: 'リモコン面倒', solution: '寒暖を感じ取って自動調整。' },
-        { type: 'research', author: '-', title: '第3の手', pain: '片付けできない', solution: 'わがままな自分をサポートするロボット手。' },
-        { type: 'research', author: '-', title: '3Dプリントミニ四駆SIM', pain: 'F1体験したい', solution: 'バーチャル体験。' },
-        { type: 'research', author: '-', title: '表情モニター', pain: '感情伝達苦手', solution: '喜怒哀楽の数値化。' },
-        { type: 'research', author: '里平', title: '遠隔通信医療', pain: '離島・高齢者', solution: '位置情報連動で空き医者と即マッチング。' },
-        { type: 'research', author: '-', title: '基礎体温 健康管理', pain: '病気不安', solution: '数値化して警告。' },
-        { type: 'research', author: '-', title: '睡眠改善VR', pain: '不眠', solution: 'リラックス映像で入眠。' },
-        { type: 'research', author: '浜野', title: '運動継続（可視化）', pain: '続かない', solution: '理想の姿へのロードマップを可視化。' },
-        { type: 'research', author: '-', title: 'マルチウォーター', pain: '水しか飲めない人', solution: '視覚・嗅覚で味覚を錯覚させる。' },
-        { type: 'research', author: '-', title: 'ホームセント', pain: '家族への連絡', solution: '香りで「ご飯できた」「寝る時間」を伝達。' },
-        { type: 'research', author: '伊達', title: '誰でもプロ体験', pain: '観戦だけじゃ不満', solution: 'プロの世界に入り込んでプレイ観戦。' },
-        { type: 'research', author: '伊達', title: '喪失感ゼロ', pain: 'ペットロス', solution: 'AIと素材で故人・ペットの存在感を再現。' },
-        { type: 'research', author: '伊達', title: 'あとどのくらい飲める？', pain: '限界不明', solution: '飲酒可能量の可視化。' },
-        { type: 'research', author: '伊達', title: '日々成長記録', pain: '進歩が見えない', solution: '動きを比較して点数化。' },
-        { type: 'research', author: '伊達', title: '映像名刺', pain: '顔覚えられない', solution: 'MRでデータ表示し失礼ゼロ。' },
-        { type: 'research', author: '-', title: '経営者向け顔認証', pain: '従業員把握不可', solution: 'カメラ/IoTで全社員把握。' },
-        { type: 'research', author: '伊達', title: 'それ危険（事故予防）', pain: '家庭内事故', solution: '危険ポイントを可視化。' },
-        { type: 'research', author: '-', title: '行けたら行く（確率）', pain: '計算面倒', solution: '統計データから瞬時に確率提示。' },
-        { type: 'research', author: '里平', title: '視覚障害者検知', pain: '点字だけでは不安', solution: 'センサーによる障害物検知。' },
-        { type: 'research', author: '-', title: 'ドライヤー自動温度', pain: '髪痛む', solution: '温度自動調整。' },
-        { type: 'research', author: '里平', title: '電池不要IoT', pain: '充電面倒', solution: '体温と外気温差で発電（熱電素子）。' },
-        { type: 'research', author: '里平', title: '香り再生メディア', pain: '五感体験不足', solution: '映像・音楽と同期して香りを再生。' },
-        { type: 'research', author: '里平', title: 'MemoriAroma', pain: '記憶喚起', solution: '写真から当時の香りをAI再現。' },
-        { type: 'research', author: '里平', title: 'AromaWalker', pain: '持ち運び', solution: '気分に合わせて香りを再生するウェアラブル。' },
-        { type: 'research', author: '里平', title: 'ScenTone', pain: '創作', solution: '香りを音楽のように作曲・演奏する楽器。' },
-        { type: 'research', author: '里平', title: 'スマートミラーxRFID', pain: '設定', solution: '個人設定の自動反映。' },
-        { type: 'research', author: '-', title: 'ラブブ分析メモ', pain: '-', solution: 'ブラックボックス、希少性、ハンドリング性が人気の鍵。' }
+        // Research / Drafts
+        { type: 'research', author: '-', cat: 'Bio', title: '虫ボーグ', solution: '益虫で害虫駆除' },
+        { type: 'research', author: '-', cat: 'IoT', title: 'けん玉ギブス', solution: '絶対できる矯正具' },
+        { type: 'research', author: '-', cat: 'Future', title: '誰でも念力', solution: '脳波/音声レス操作' },
+        { type: 'research', author: '-', cat: 'IoT', title: '自動音調', solution: '体感温度でエアコン制御' },
+        { type: 'research', author: '-', cat: 'Robo', title: '第3の手', solution: '作業補助アーム' },
+        { type: 'research', author: '里平', cat: 'Med', title: '遠隔通信医療', solution: '即時空き医者マッチング' },
+        { type: 'research', author: '-', cat: 'VR', title: '睡眠改善VR', solution: '入眠サポート映像' },
+        { type: 'research', author: '浜野', cat: 'Health', title: '運動継続可視化', solution: '理想体型へのロードマップ' },
+        { type: 'research', author: '-', cat: 'Bio', title: 'マルチウォーター', solution: '水に味覚錯覚を付与' },
+        { type: 'research', author: '伊達', cat: 'VR', title: '誰でもプロ体験', solution: '選手視点で観戦' },
+        { type: 'research', author: '伊達', cat: 'AI', title: '喪失感ゼロ', solution: '故人・ペット再現AI' },
+        { type: 'research', author: '伊達', cat: 'Health', title: '飲酒限界可視化', solution: 'あと何杯飲めるか表示' },
+        { type: 'research', author: '伊達', cat: 'AR', title: '映像名刺', solution: '顔横にプロフィール表示' },
+        { type: 'research', author: '伊達', cat: 'AR', title: '家庭内事故予防', solution: '危険箇所をAR表示' },
+        { type: 'research', author: '里平', cat: 'Energy', title: '電池不要IoT', solution: '温度差発電デバイス' },
+        { type: 'research', author: '里平', cat: 'Scent', title: '香り再生メディア', solution: '映像と香りの同期' },
+        { type: 'research', author: '里平', cat: 'Scent', title: 'MemoriAroma', solution: '思い出の香りを再現' },
+        { type: 'research', author: '里平', cat: 'Scent', title: 'ScenTone', solution: '香りの楽器' }
     ];
 
-    function renderCards(filterText = '') {
+    // State
+    let state = {
+        author: 'all',
+        cat: 'all',
+        search: ''
+    };
+
+    // --- Init ---
+    function init() {
+        generateCategoryButtons();
+        render();
+    }
+
+    // --- Generate Dynamic Category Buttons ---
+    function generateCategoryButtons() {
+        const cats = new Set();
+        ideas.forEach(item => {
+            if (item.cat && item.cat !== '-') {
+                // スラッシュ区切りの場合は分割して登録も可能だが、今回はそのまま単純化
+                cats.add(item.cat);
+            }
+        });
+        
+        const sortedCats = Array.from(cats).sort();
+        const container = document.getElementById('cat-filters');
+        
+        // よく使われるカテゴリを上位にしたい場合の手動並び替えロジックを入れるならここ
+        // 今回はアルファベット順
+        
+        sortedCats.forEach(cat => {
+            const btn = document.createElement('button');
+            btn.className = 'btn-filter';
+            btn.dataset.type = 'cat';
+            btn.dataset.val = cat;
+            btn.textContent = cat;
+            btn.onclick = () => setFilter('cat', cat);
+            container.appendChild(btn);
+        });
+    }
+
+    // --- Filtering Logic ---
+    function setFilter(type, value) {
+        // Update State
+        state[type] = value;
+
+        // Update UI (Buttons)
+        const buttons = document.querySelectorAll(`.btn-filter[data-type="${type}"]`);
+        buttons.forEach(btn => {
+            if (btn.dataset.val === value) btn.classList.add('active');
+            else btn.classList.remove('active');
+        });
+
+        render();
+    }
+
+    function applyFilters() {
+        state.search = document.getElementById('search-input').value.toLowerCase();
+        render();
+    }
+
+    function render() {
         const gridMember = document.getElementById('grid-member');
         const gridResearch = document.getElementById('grid-research');
-        const emptyState = document.getElementById('no-results');
-        
+        const sectionMember = document.getElementById('section-member');
+        const sectionResearch = document.getElementById('section-research');
+        const emptyState = document.getElementById('empty-state');
+        const totalCountSpan = document.getElementById('total-count');
+
         gridMember.innerHTML = '';
         gridResearch.innerHTML = '';
 
         let count = 0;
-        const lowerFilter = filterText.toLowerCase();
+        let memberCount = 0;
+        let researchCount = 0;
 
-        data.forEach(item => {
-            // 検索マッチング
-            const searchStr = `${item.title} ${item.author} ${item.solution} ${item.pain} ${item.cat} ${item.uvp || ''}`.toLowerCase();
-            if (filterText && !searchStr.includes(lowerFilter)) return;
+        const targetAuthors = ['歌丸', '中尾', '真田', '浜野', '里平', '伊達'];
 
-            count++;
+        ideas.forEach(item => {
+            // 1. Author Filter
+            let authMatch = true;
+            if (state.author !== 'all') {
+                if (state.author === 'others') {
+                    // 主要メンバー以外
+                    if (targetAuthors.includes(item.author)) authMatch = false;
+                } else {
+                    // 特定メンバー
+                    if (item.author !== state.author) authMatch = false;
+                }
+            }
 
-            // HTML生成
-            const isResearch = item.type === 'research';
-            const cardClass = isResearch ? 'card research-card' : 'card';
-            const badgeClass = isResearch ? 'tag draft' : 'tag author';
-            const noBadge = !isResearch && item.id ? `<span class="tag">No.${item.id}</span>` : '';
-            const catBadge = item.cat && item.cat !== '-' ? `<span class="tag" style="background:#edf2f7">${item.cat}</span>` : '';
-            const authorBadge = item.author && item.author !== '-' ? `<span class="${badgeClass}">${item.author}</span>` : '';
+            // 2. Category Filter
+            let catMatch = true;
+            if (state.cat !== 'all') {
+                if (item.cat !== state.cat) catMatch = false;
+            }
 
-            const html = `
-                <div class="${cardClass}">
+            // 3. Search Filter
+            let searchMatch = true;
+            if (state.search) {
+                const text = `${item.title} ${item.solution} ${item.pain} ${item.target} ${item.uvp}`.toLowerCase();
+                if (!text.includes(state.search)) searchMatch = false;
+            }
+
+            if (authMatch && catMatch && searchMatch) {
+                count++;
+                const isResearch = item.type === 'research';
+                
+                // カード生成
+                const card = document.createElement('div');
+                card.className = 'card';
+                
+                // タグ生成
+                let tagsHtml = '';
+                if(item.id) tagsHtml += `<span class="tag">#${item.id}</span>`;
+                if(item.author && item.author !== '-') tagsHtml += `<span class="tag author">${item.author}</span>`;
+                if(item.cat && item.cat !== '-') tagsHtml += `<span class="tag cat">${item.cat}</span>`;
+                if(isResearch) tagsHtml += `<span class="tag draft">Idea Seed</span>`;
+
+                card.innerHTML = `
                     <div class="card-header">
-                        <div class="meta-tags">
-                            ${noBadge}
-                            ${authorBadge}
-                            ${catBadge}
+                        <div class="card-meta">
+                            <div class="tag-row">${tagsHtml}</div>
+                            <h3 class="card-title">${item.title || 'No Title'}</h3>
                         </div>
-                        <h3 class="card-title">${item.title}</h3>
                     </div>
                     <div class="card-body">
-                        ${item.target ? `<div class="info-row"><span class="info-label">Target</span><div class="info-text">${item.target}</div></div>` : ''}
-                        
-                        <div class="info-row">
-                            <span class="info-label">Pain (課題)</span>
-                            <div class="info-text">${item.pain}</div>
-                        </div>
-                        
-                        <div class="info-row">
-                            <span class="info-label">Solution (解決策)</span>
-                            <div class="info-text">${item.solution}</div>
-                        </div>
-
-                        ${item.uvp ? `<div class="uvp">${item.uvp}</div>` : ''}
+                        ${item.target ? `<div class="info-group"><span class="info-label">Target</span><div class="info-text">${item.target}</div></div>` : ''}
+                        ${item.pain ? `<div class="info-group"><span class="info-label">Pain</span><div class="info-text">${item.pain}</div></div>` : ''}
+                        ${item.solution ? `<div class="info-group"><span class="info-label">Solution</span><div class="info-text">${item.solution}</div></div>` : ''}
+                        ${item.uvp ? `<div class="uvp-box">${item.uvp}</div>` : ''}
                     </div>
-                </div>
-            `;
+                `;
 
-            if (isResearch) {
-                gridResearch.innerHTML += html;
-            } else {
-                gridMember.innerHTML += html;
+                if (isResearch) {
+                    gridResearch.appendChild(card);
+                    researchCount++;
+                } else {
+                    gridMember.appendChild(card);
+                    memberCount++;
+                }
             }
         });
 
-        // 表示制御
-        document.getElementById('total-count').innerText = `${count} items`;
+        // カウント更新
+        totalCountSpan.textContent = count;
+
+        // セクション表示制御
+        sectionMember.style.display = memberCount > 0 ? 'block' : 'none';
+        sectionResearch.style.display = researchCount > 0 ? 'block' : 'none';
         
-        if (gridMember.innerHTML === '') document.getElementById('section-member').classList.add('hidden');
-        else document.getElementById('section-member').classList.remove('hidden');
-
-        if (gridResearch.innerHTML === '') document.getElementById('section-research').classList.add('hidden');
-        else document.getElementById('section-research').classList.remove('hidden');
-
-        if (count === 0) emptyState.classList.remove('hidden');
-        else emptyState.classList.add('hidden');
+        if (count === 0) {
+            emptyState.classList.add('visible');
+        } else {
+            emptyState.classList.remove('visible');
+        }
     }
 
-    // 初期表示
-    renderCards();
+    // Run
+    init();
 
-    function filterGrid() {
-        const val = document.getElementById('search').value;
-        renderCards(val);
-    }
 </script>
-
 </body>
 </html>
