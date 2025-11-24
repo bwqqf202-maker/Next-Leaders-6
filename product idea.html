@@ -1,0 +1,409 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Future Product Lab | メンバーアイデア＆研究ストック</title>
+    <style>
+        :root {
+            --bg: #F5F7FA;
+            --surface: #FFFFFF;
+            --primary: #333;
+            --accent: #4A90E2;
+            --border: #E1E4E8;
+            --text-main: #2C3E50;
+            --text-sub: #7F8C8D;
+            --tag-bg: #EDF2F7;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            background-color: var(--bg);
+            color: var(--text-main);
+            margin: 0;
+            line-height: 1.6;
+        }
+
+        /* Sticky Header */
+        header {
+            background: var(--surface);
+            padding: 1rem 2rem;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            border-bottom: 1px solid var(--border);
+        }
+
+        .header-inner {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+
+        h1 {
+            font-size: 1.25rem;
+            margin: 0;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .count-badge {
+            background: var(--primary);
+            color: white;
+            padding: 2px 10px;
+            border-radius: 12px;
+            font-size: 0.8rem;
+            font-weight: normal;
+        }
+
+        input[type="text"] {
+            padding: 10px 16px;
+            border-radius: 20px;
+            border: 1px solid #CBD5E0;
+            background: #F8FAFC;
+            width: 300px;
+            font-size: 0.9rem;
+            transition: all 0.2s;
+        }
+
+        input[type="text"]:focus {
+            outline: none;
+            border-color: var(--accent);
+            background: white;
+            box-shadow: 0 0 0 3px rgba(74, 144, 226, 0.1);
+        }
+
+        /* Layout */
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        h2 {
+            font-size: 1.1rem;
+            color: var(--text-sub);
+            border-bottom: 2px solid var(--border);
+            padding-bottom: 0.5rem;
+            margin-top: 2rem;
+            margin-bottom: 1.5rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+            gap: 1.5rem;
+        }
+
+        /* Card Style */
+        .card {
+            background: var(--surface);
+            border-radius: 8px;
+            border: 1px solid var(--border);
+            display: flex;
+            flex-direction: column;
+            transition: transform 0.2s, box-shadow 0.2s;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+            border-color: #CBD5E0;
+        }
+
+        /* Card Header */
+        .card-header {
+            padding: 1rem;
+            background: #fcfcfc;
+            border-bottom: 1px solid #f0f0f0;
+        }
+
+        .meta-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            margin-bottom: 8px;
+        }
+
+        .tag {
+            font-size: 0.7rem;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-weight: 600;
+            background: var(--tag-bg);
+            color: #666;
+        }
+
+        .tag.author {
+            background: #EBF8FF;
+            color: #2B6CB0;
+        }
+
+        .tag.draft {
+            background: #FFF5F5;
+            color: #C53030;
+            border: 1px solid #FED7D7;
+        }
+
+        .card-title {
+            font-weight: 700;
+            font-size: 1.1rem;
+            margin: 0;
+            line-height: 1.4;
+            color: #1a202c;
+        }
+
+        /* Card Body */
+        .card-body {
+            padding: 1rem;
+            flex: 1;
+            font-size: 0.9rem;
+        }
+
+        .info-row {
+            margin-bottom: 0.8rem;
+        }
+
+        .info-label {
+            font-size: 0.7rem;
+            color: #A0AEC0;
+            font-weight: 700;
+            text-transform: uppercase;
+            display: block;
+            margin-bottom: 2px;
+        }
+
+        .info-text {
+            color: #4A5568;
+        }
+
+        /* Special Sections */
+        .uvp {
+            background: #F0F9FF;
+            padding: 0.8rem;
+            border-radius: 6px;
+            color: #2C5282;
+            font-size: 0.9rem;
+            margin-top: 0.5rem;
+            border-left: 3px solid var(--accent);
+        }
+
+        /* Research Specific Style */
+        .research-card {
+            border-style: dashed;
+        }
+
+        .empty-state {
+            grid-column: 1 / -1;
+            text-align: center;
+            padding: 4rem;
+            color: var(--text-sub);
+        }
+
+        .hidden { display: none; }
+    </style>
+</head>
+<body>
+
+<header>
+    <div class="header-inner">
+        <h1>
+            Product Idea Lab
+            <span class="count-badge" id="total-count">0 items</span>
+        </h1>
+        <input type="text" id="search" placeholder="検索: キーワード, 名前, 技術..." onkeyup="filterGrid()">
+    </div>
+</header>
+
+<div class="container">
+
+    <div id="section-member">
+        <h2>Member Ideas (具体案)</h2>
+        <div class="grid" id="grid-member">
+            </div>
+    </div>
+
+    <div id="section-research">
+        <h2>Research & Drafts (研究段階・アイデアの種)</h2>
+        <div class="grid" id="grid-research">
+            </div>
+    </div>
+
+    <div id="no-results" class="empty-state hidden">
+        条件に一致するアイデアが見つかりませんでした。
+    </div>
+
+</div>
+
+<script>
+    // CSVから抽出した全データ（先行事例を除く）
+    const data = [
+        // --- Numbered Member Ideas (No.1 - No.45) ---
+        { id: '1', type: 'member', author: '不明', cat: 'AI/IoT', title: '歯ブラシカメラ', target: '虫歯・口臭が気になる人', pain: '磨き残しが見えず不安。', solution: '歯をカラーコード化・可視化し、虫歯や磨き残しを判定。', uvp: '自分の歯を隅々まで可視化し健康サポート。' },
+        { id: '2', type: 'member', author: '歌丸', cat: 'AR/IoT', title: '寝ながらドーム型ディスプレイ', target: '育児中のゲーマー・映画ファン', pain: '夜しか時間がないが音漏れや寝姿勢が困る。', solution: '指向性スピーカーと暗視ディスプレイのドーム。', uvp: '寝落ちOK。子供を見守りつつ没入。' },
+        { id: '3', type: 'member', author: '歌丸', cat: 'AI/VR', title: 'VR/ARデバイス用検証デバイス', target: 'YouTuber/開発者', pain: 'VRの臨場感が2D画面では伝わらない。', solution: '2眼センサとAIで人間の見た感覚を1画面再現。', uvp: 'スペックと体験の「見える化」。' },
+        { id: '4', type: 'member', author: '中尾', cat: '記録', title: '（感情記録・タイトルなし）', target: '子持ちの親', pain: '当時の感情まで記録に残せない。', solution: '思い出を写真・動画以上にリアルに残す。', uvp: '' },
+        { id: '5', type: 'member', author: '中尾', cat: '記録', title: '人向けドライブレコーダー', target: '子持ちの親', pain: '子供に危険が生じた時の状況が不明。', solution: '人の移動や状況を記録するドラレコ的デバイス。', uvp: '' },
+        { id: '6', type: 'member', author: '真田', cat: 'Robo', title: '専属メイクアップマシーン', target: 'メイクする人', pain: '似合うメイクが不明、時間がない。', solution: '顔特徴を検知しロボットが最適メイクを施す。', uvp: 'プロ級メイクを短時間で自動化。' },
+        { id: '7', type: 'member', author: '浜野', cat: 'IoT/AI', title: '心と体のオーラ可視化', target: '健康管理したい人', pain: '不調の原因や気分の波が把握しづらい。', solution: 'イメージセンサでオーラを可視化、ゲーム感覚で管理。', uvp: '遊びながら最高の自分を引き出す。' },
+        { id: '8', type: 'member', author: '里平', cat: 'MaaS', title: 'HelpWork', target: 'すぐ人手が欲しい人', pain: '今すぐ草むしりや手伝いを頼みたい。', solution: '近隣の登録者と即マッチング。', uvp: '隙間時間の有効活用と相互扶助。' },
+        { id: '9', type: 'member', author: '里平', cat: 'AI/Robo', title: '香り自動発生', target: '環境を変えたい人', pain: '集中・リラックスの切り替えが難しい。', solution: '状況や人の動きに合わせて香りを自動選定。', uvp: '香りで作業効率とリラックスを制御。' },
+        { id: '10', type: 'member', author: '真田', cat: 'Sensor', title: '学校教育カスタマイズ支援', target: '教員・保護者', pain: '生徒の多様化で教員負担が増加。', solution: '生徒情報を一元化し、スマートグラス等で個別指導案を提示。', uvp: 'データに基づく教育の個別最適化。' },
+        { id: '12', type: 'member', author: '真田', cat: '-', title: '雷ガード（仮）', target: '雷が怖い人', pain: '音が怖い。', solution: '（詳細未記入）', uvp: '' },
+        { id: '13', type: 'member', author: '真田', cat: 'AR/VR', title: 'YUKIQUEST（ユキクエスト）', target: '雪国の人', pain: '雪かきがつらい。', solution: 'スマートグラスで排雪指示＆雪像作りゲーミフィケーション。', uvp: '雪かきをエンタメに変える。' },
+        { id: '14', type: 'member', author: '真田', cat: 'Display', title: '空もようカーテン', target: '一般', pain: '雨の日は気が滅入る。', solution: 'カーテン型LEDモニタで外の景色を変える。', uvp: '雨の日でもピクニック気分。' },
+        { id: '16', type: 'member', author: '里平', cat: 'Phone', title: 'スマホ背面ディスプレイ', target: '一般', pain: 'ケースに飽きる。', solution: '背面ディスプレイで柄を自由に変更。', uvp: 'ケースを選ぶ概念を捨てる。' },
+        { id: '17', type: 'member', author: '里平', cat: 'IoT', title: 'RFID 個人カスタマイズ', target: '一般', pain: '環境設定や商品選択が面倒。', solution: 'RFIDタグで個人認識し、部屋設定や商品提案を自動化。', uvp: '持つだけで世界が自分仕様に。' },
+        { id: '18', type: 'member', author: '里平', cat: 'IoT', title: 'SNS連携アクセ', target: '若者', pain: '自己紹介やSNS交換が手間。', solution: 'スマホをかざすとSNSが表示されるアクセ。', uvp: '名刺代わりのスマートアクセ。' },
+        { id: '19', type: 'member', author: '里平', cat: 'IoT', title: '秘密の交換タグ', target: '一般', pain: 'プレゼントにワクワクが欲しい。', solution: 'スマホで読み取るまで中身不明のメッセージタグ。', uvp: 'デジタルとアナログの融合したサプライズ。' },
+        { id: '20', type: 'member', author: '歌丸', cat: 'IoT', title: '人間ETC', target: 'テーマパーク', pain: '待ち時間が長い。', solution: '顔認証/RFIDでゲートレス入場・フリーアドレス着席。', uvp: '並ばない体験。' },
+        { id: '21', type: 'member', author: '歌丸', cat: 'IoT', title: 'P2Pレンタル (IoT連携)', target: '体験重視層', pain: '高額品は買いたくないが体験したい。', solution: 'IoTとブロックチェーンで管理する個人間レンタル。', uvp: 'モノ・体験の安全なシェア。' },
+        { id: '22', type: 'member', author: '浜野', cat: 'IoT', title: '空間ノイズキャンセル', target: '音に敏感な人', pain: '物音で起きる、イヤホンは嫌。', solution: '部屋全体で逆位相音を出し静寂を作る。', uvp: 'ウェアラブル不要の静寂空間。' },
+        { id: '23', type: 'member', author: '浜野', cat: 'IoT', title: '香りのタイムカプセル', target: '思い出重視', pain: '写真だけでは記憶が薄れる。', solution: '撮影時に香り情報も記録し、後で再生。', uvp: 'プルースト効果で記憶を鮮烈に再現。' },
+        { id: '24', type: 'member', author: '浜野', cat: 'IoT', title: '香りで以心伝心', target: '家族', pain: '言葉やメールでは伝わらない・見ない。', solution: '香りで「帰るよ」「ごめん」等の合図を送る。', uvp: '感情に直接届くメッセージ。' },
+        { id: '25', type: 'member', author: '浜野', cat: 'IoT', title: 'デジタル箱庭', target: 'クリエイティブ', pain: 'VRは酔うが仮想空間を作りたい。', solution: '多面ディスプレイと視点追跡で裸眼立体視。', uvp: '没入しすぎない気軽なバーチャル空間。' },
+        { id: '26', type: 'member', author: '中尾', cat: 'IoT', title: '雨天時洗濯物自動雨よけ', target: '主婦', pain: '急な雨が心配。', solution: '雨検知で自動展開するカバー。', uvp: '干していいか悩む時間をゼロに。' },
+        { id: '27', type: 'member', author: '中尾', cat: 'RFID', title: '落し物即時アラーム', target: '忘れ物多い人', pain: '落としたことに気づかない。', solution: '離れると即アラーム。シール型RFID。', uvp: '何にでも貼れる紛失防止。' },
+        { id: '29', type: 'member', author: '中尾', cat: 'Phone', title: 'スマホ着脱可能カメラ', target: '撮影者', pain: '人混みで撮影しにくい。', solution: 'カメラ部が分離するスマホ。', uvp: 'ハイアングル撮影も手元で確認。' },
+        { id: '30', type: 'member', author: '伊達', cat: 'Bio', title: '香りキー（生体認証）', target: '一般', pain: '指紋・顔認証がうまくいかない時がある。', solution: '体臭で個人認証。', uvp: 'タッチ不要、ノールック認証。' },
+        { id: '31', type: 'member', author: '伊達', cat: 'Health', title: 'アレルギー予防（匂い）', target: 'アレルギー持ち', pain: '成分表示がないと不安。', solution: '匂いでアレルゲン検知。', uvp: '食べる前にリスク回避。' },
+        { id: '33', type: 'member', author: '真田', cat: 'AI', title: 'ココミミ（心の声を聞く耳）', target: '心が疲れた人', pain: '誰とも話したくないが寄り添ってほしい。', solution: '表情から感情を読み取り、鏡が対話・共感。', uvp: '感情エモーションミラー。' },
+        { id: '34', type: 'member', author: '浜野', cat: 'AI', title: 'パーソナライズラジオ', target: 'ながら聞き層', pain: '興味ある情報だけ聞きたい。', solution: 'AIが情報をピックアップして編成。', uvp: '' },
+        { id: '36', type: 'member', author: '浜野', cat: 'Sensor', title: 'BackDodge', target: 'スポーツ/一般', pain: '背後の気配を感じたい。', solution: '背面センサで接近を検知し触覚フィードバック。', uvp: '「第六感」のテクノロジー化。' },
+        { id: '37', type: 'member', author: '浜野', cat: 'App', title: '食べモン（食育アプリ）', target: '偏食の子供', pain: '好き嫌いが多い。', solution: '食事でキャラ育成。栄養素をパラメータ化。', uvp: '食育×ゲーミフィケーション。' },
+        { id: '38', type: 'member', author: '歌丸', cat: 'AR', title: '白紙の本（メモリーブック）', target: '読書家', pain: '本は嵩張るが、めくる体験は大事。', solution: '白紙本＋RFID＋ARグラスで中身を表示。', uvp: 'アナログ体験とデジタル情報の融合。' },
+        { id: '41', type: 'member', author: '真田', cat: 'Camera', title: '透けるカメラ', target: '撮影者', pain: '障害物が邪魔。', solution: '障害物を透過処理して撮影。', uvp: '' },
+        { id: '42', type: 'member', author: '真田', cat: 'Haptics', title: '指さない将棋', target: '将棋ファン', pain: '準備が面倒、場所がない。', solution: 'ディスプレイと触覚技術で盤面再現。', uvp: '' },
+        { id: '43', type: 'member', author: '里平', cat: 'Energy', title: '遮光＋発光ハイブリッドカーテン', target: '家庭', pain: '夜暗い、停電不安。', solution: '昼は遮光蓄電、夜は照明。', uvp: '防災とインテリアの両立。' },
+        { id: '44', type: 'member', author: '伊達', cat: 'AI/Music', title: 'Behavior Synth', target: 'クリエイター', pain: '作曲は難しい。', solution: '行動や振る舞いを音楽に変換。', uvp: '「今の自分」が音になる。' },
+        { id: '45', type: 'member', author: '浜野', cat: 'IoT', title: 'ダストナビ（スマートゴミ箱）', target: '家庭', pain: '分別面倒、買い忘れ。', solution: 'バーコード管理で分別指示＆在庫リスト化。', uvp: 'ゴミ捨てを食育と管理のハブに。' },
+
+        // --- Research / Drafts / Ideas below line 53 ---
+        { type: 'research', author: '-', title: '虫ボーグ', pain: '害虫駆除', solution: '益虫コントロールで害虫駆除。' },
+        { type: 'research', author: '-', title: '大リーグ養成ギブス', pain: 'けん玉うまくなりたい', solution: '絶対できるギブス（IoT/3DP）。' },
+        { type: 'research', author: '-', title: 'だれでもできる念力', pain: '声出すのも面倒', solution: 'フォースの力。剣と魔法の世界へ。' },
+        { type: 'research', author: '-', title: '自動音調エアコン', pain: 'リモコン面倒', solution: '寒暖を感じ取って自動調整。' },
+        { type: 'research', author: '-', title: '第3の手', pain: '片付けできない', solution: 'わがままな自分をサポートするロボット手。' },
+        { type: 'research', author: '-', title: '3Dプリントミニ四駆SIM', pain: 'F1体験したい', solution: 'バーチャル体験。' },
+        { type: 'research', author: '-', title: '表情モニター', pain: '感情伝達苦手', solution: '喜怒哀楽の数値化。' },
+        { type: 'research', author: '里平', title: '遠隔通信医療', pain: '離島・高齢者', solution: '位置情報連動で空き医者と即マッチング。' },
+        { type: 'research', author: '-', title: '基礎体温 健康管理', pain: '病気不安', solution: '数値化して警告。' },
+        { type: 'research', author: '-', title: '睡眠改善VR', pain: '不眠', solution: 'リラックス映像で入眠。' },
+        { type: 'research', author: '浜野', title: '運動継続（可視化）', pain: '続かない', solution: '理想の姿へのロードマップを可視化。' },
+        { type: 'research', author: '-', title: 'マルチウォーター', pain: '水しか飲めない人', solution: '視覚・嗅覚で味覚を錯覚させる。' },
+        { type: 'research', author: '-', title: 'ホームセント', pain: '家族への連絡', solution: '香りで「ご飯できた」「寝る時間」を伝達。' },
+        { type: 'research', author: '伊達', title: '誰でもプロ体験', pain: '観戦だけじゃ不満', solution: 'プロの世界に入り込んでプレイ観戦。' },
+        { type: 'research', author: '伊達', title: '喪失感ゼロ', pain: 'ペットロス', solution: 'AIと素材で故人・ペットの存在感を再現。' },
+        { type: 'research', author: '伊達', title: 'あとどのくらい飲める？', pain: '限界不明', solution: '飲酒可能量の可視化。' },
+        { type: 'research', author: '伊達', title: '日々成長記録', pain: '進歩が見えない', solution: '動きを比較して点数化。' },
+        { type: 'research', author: '伊達', title: '映像名刺', pain: '顔覚えられない', solution: 'MRでデータ表示し失礼ゼロ。' },
+        { type: 'research', author: '-', title: '経営者向け顔認証', pain: '従業員把握不可', solution: 'カメラ/IoTで全社員把握。' },
+        { type: 'research', author: '伊達', title: 'それ危険（事故予防）', pain: '家庭内事故', solution: '危険ポイントを可視化。' },
+        { type: 'research', author: '-', title: '行けたら行く（確率）', pain: '計算面倒', solution: '統計データから瞬時に確率提示。' },
+        { type: 'research', author: '里平', title: '視覚障害者検知', pain: '点字だけでは不安', solution: 'センサーによる障害物検知。' },
+        { type: 'research', author: '-', title: 'ドライヤー自動温度', pain: '髪痛む', solution: '温度自動調整。' },
+        { type: 'research', author: '里平', title: '電池不要IoT', pain: '充電面倒', solution: '体温と外気温差で発電（熱電素子）。' },
+        { type: 'research', author: '里平', title: '香り再生メディア', pain: '五感体験不足', solution: '映像・音楽と同期して香りを再生。' },
+        { type: 'research', author: '里平', title: 'MemoriAroma', pain: '記憶喚起', solution: '写真から当時の香りをAI再現。' },
+        { type: 'research', author: '里平', title: 'AromaWalker', pain: '持ち運び', solution: '気分に合わせて香りを再生するウェアラブル。' },
+        { type: 'research', author: '里平', title: 'ScenTone', pain: '創作', solution: '香りを音楽のように作曲・演奏する楽器。' },
+        { type: 'research', author: '里平', title: 'スマートミラーxRFID', pain: '設定', solution: '個人設定の自動反映。' },
+        { type: 'research', author: '-', title: 'ラブブ分析メモ', pain: '-', solution: 'ブラックボックス、希少性、ハンドリング性が人気の鍵。' }
+    ];
+
+    function renderCards(filterText = '') {
+        const gridMember = document.getElementById('grid-member');
+        const gridResearch = document.getElementById('grid-research');
+        const emptyState = document.getElementById('no-results');
+        
+        gridMember.innerHTML = '';
+        gridResearch.innerHTML = '';
+
+        let count = 0;
+        const lowerFilter = filterText.toLowerCase();
+
+        data.forEach(item => {
+            // 検索マッチング
+            const searchStr = `${item.title} ${item.author} ${item.solution} ${item.pain} ${item.cat} ${item.uvp || ''}`.toLowerCase();
+            if (filterText && !searchStr.includes(lowerFilter)) return;
+
+            count++;
+
+            // HTML生成
+            const isResearch = item.type === 'research';
+            const cardClass = isResearch ? 'card research-card' : 'card';
+            const badgeClass = isResearch ? 'tag draft' : 'tag author';
+            const noBadge = !isResearch && item.id ? `<span class="tag">No.${item.id}</span>` : '';
+            const catBadge = item.cat && item.cat !== '-' ? `<span class="tag" style="background:#edf2f7">${item.cat}</span>` : '';
+            const authorBadge = item.author && item.author !== '-' ? `<span class="${badgeClass}">${item.author}</span>` : '';
+
+            const html = `
+                <div class="${cardClass}">
+                    <div class="card-header">
+                        <div class="meta-tags">
+                            ${noBadge}
+                            ${authorBadge}
+                            ${catBadge}
+                        </div>
+                        <h3 class="card-title">${item.title}</h3>
+                    </div>
+                    <div class="card-body">
+                        ${item.target ? `<div class="info-row"><span class="info-label">Target</span><div class="info-text">${item.target}</div></div>` : ''}
+                        
+                        <div class="info-row">
+                            <span class="info-label">Pain (課題)</span>
+                            <div class="info-text">${item.pain}</div>
+                        </div>
+                        
+                        <div class="info-row">
+                            <span class="info-label">Solution (解決策)</span>
+                            <div class="info-text">${item.solution}</div>
+                        </div>
+
+                        ${item.uvp ? `<div class="uvp">${item.uvp}</div>` : ''}
+                    </div>
+                </div>
+            `;
+
+            if (isResearch) {
+                gridResearch.innerHTML += html;
+            } else {
+                gridMember.innerHTML += html;
+            }
+        });
+
+        // 表示制御
+        document.getElementById('total-count').innerText = `${count} items`;
+        
+        if (gridMember.innerHTML === '') document.getElementById('section-member').classList.add('hidden');
+        else document.getElementById('section-member').classList.remove('hidden');
+
+        if (gridResearch.innerHTML === '') document.getElementById('section-research').classList.add('hidden');
+        else document.getElementById('section-research').classList.remove('hidden');
+
+        if (count === 0) emptyState.classList.remove('hidden');
+        else emptyState.classList.add('hidden');
+    }
+
+    // 初期表示
+    renderCards();
+
+    function filterGrid() {
+        const val = document.getElementById('search').value;
+        renderCards(val);
+    }
+</script>
+
+</body>
+</html>
