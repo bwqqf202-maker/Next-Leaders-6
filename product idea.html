@@ -484,7 +484,7 @@ document.addEventListener('DOMContentLoaded', function() {
         author: 'all',
         cat: 'all',
         search: '',
-        isFiltersOpen: true
+        isFiltersOpen: true 
     };
 
     // --- DOM Elements ---
@@ -526,6 +526,7 @@ document.addEventListener('DOMContentLoaded', function() {
         updateSummary();
     }
 
+    // Active Summary Tags
     function updateSummary() {
         dom.activeSummary.innerHTML = '';
         
@@ -552,18 +553,20 @@ document.addEventListener('DOMContentLoaded', function() {
         dom.activeSummary.appendChild(catTag);
     }
 
-    // Init Category Buttons
+    // Init Category Buttons (動的に生成されるジャンルボタンの処理)
     function initCats() {
         const cats = new Set();
         ideas.forEach(i => { if (i.cat && i.cat !== '-') cats.add(i.cat); });
         const sortedCats = Array.from(cats).sort();
 
+        // 既存の「すべて」ボタンをクリアしないように、動的ボタンのみ追加
         sortedCats.forEach(cat => {
             const btn = document.createElement('button');
             btn.className = 'btn-filter';
             btn.dataset.type = 'cat';
             btn.dataset.val = cat;
             btn.textContent = cat;
+            // 動的ボタンには生成時にリスナーを追加
             btn.addEventListener('click', () => setFilter('cat', cat));
             dom.catFilters.appendChild(btn);
         });
@@ -602,7 +605,9 @@ document.addEventListener('DOMContentLoaded', function() {
             // Filter Logic
             if (state.author !== 'all') {
                 if (state.author === 'others') {
-                    if (targetAuthors.includes(item.author)) return;
+                    // 'others' に該当するのは targetAuthors に含まれない、または '不明' のアイデア
+                    // item.author === '不明' も 'others' フィルタで表示する
+                    if (targetAuthors.includes(item.author) && item.author !== '不明') return; 
                 } else {
                     if (item.author !== state.author) return;
                 }
@@ -613,7 +618,7 @@ document.addEventListener('DOMContentLoaded', function() {
             }
 
             if (state.search) {
-                const text = `${item.title} ${item.solution} ${item.pain} ${item.uvp} ${item.target}`.toLowerCase();
+                const text = `${item.title} ${item.solution} ${item.pain} ${item.uvp} ${item.target} ${item.author || ''} ${item.cat || ''}`.toLowerCase();
                 if (!text.includes(state.search)) return;
             }
 
@@ -635,10 +640,10 @@ document.addEventListener('DOMContentLoaded', function() {
                     <h3 class="card-title">${item.title || 'No Title'}</h3>
                 </div>
                 <div class="card-body">
-                    ${item.target ? `<div><span class="info-label">Target</span><div class="info-text">${item.target}</div></div>` : ''}
-                    ${item.pain ? `<div><span class="info-label">Pain (課題)</span><div class="info-text">${item.pain}</div></div>` : ''}
+                    ${!isResearch && item.target ? `<div><span class="info-label">Target</span><div class="info-text">${item.target}</div></div>` : ''}
+                    ${!isResearch && item.pain ? `<div><span class="info-label">Pain (課題)</span><div class="info-text">${item.pain}</div></div>` : ''}
                     ${item.solution ? `<div><span class="info-label">Solution (解決策)</span><div class="info-text">${item.solution}</div></div>` : ''}
-                    ${item.uvp ? `<div class="uvp-box">${item.uvp}</div>` : ''}
+                    ${!isResearch && item.uvp ? `<div class="uvp-box">${item.uvp}</div>` : ''}
                 </div>
             `;
 
@@ -668,15 +673,21 @@ document.addEventListener('DOMContentLoaded', function() {
         render();
     });
 
-    // Author Buttons
-    document.querySelectorAll('#author-filters .btn-filter').forEach(btn => {
-        btn.addEventListener('click', () => setFilter('author', btn.dataset.val));
+    // ★ 最終修正: 静的に記述されているボタンにイベントリスナーを確実に追加 (担当者とジャンルすべて)
+    // #cat-filters の中の data-val="all" のボタンを明示的にターゲットにしています。
+    document.querySelectorAll('#author-filters .btn-filter, #cat-filters .btn-filter[data-val="all"]').forEach(btn => {
+        btn.addEventListener('click', () => {
+            const type = btn.dataset.type;
+            const value = btn.dataset.val;
+            setFilter(type, value);
+        });
     });
 
     // Initialize
     initCats();
+    // 初期状態を正しく表示し、フィルターエリアを開いた状態で始める
     render();
-    toggleFilter(true); // Default Open
+    toggleFilter(true); 
 });
 </script>
 </body>
