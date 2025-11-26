@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Future Product Lab | インタラクティブ評価版 (Ver. 27 - with Count)</title>
+    <title>Future Product Lab | インタラクティブ評価版 (Ver. 29)</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
     <style>
         :root {
@@ -13,10 +13,6 @@
             --primary-dark: #0056b3;
             --personal: #009688;
             --personal-bg: #E0F2F1;
-            
-            --bar-emotional: #E53E3E; 
-            --bar-execution: #38A169;
-            
             --text-main: #333;
             --text-sub: #666;
             --rank-s: #FFD700;
@@ -28,376 +24,227 @@
             background-color: var(--bg);
             color: var(--text-main);
             margin: 0;
-            line-height: 1.6;
+            line-height: 1.5;
+            font-size: 14px;
         }
 
-        /* Header Structure */
+        /* Header */
         header {
             background: var(--surface);
             position: sticky;
             top: 0;
             z-index: 1000;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+            padding-bottom: 0.5rem;
         }
         .header-inner {
             max-width: 1200px;
             margin: 0 auto;
-            padding: 1rem 1.5rem;
+            padding: 0.8rem 1rem;
         }
 
-        /* Row 1: Title & File Actions */
+        /* Top Row */
         .header-top-row {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 1.2rem;
+            margin-bottom: 0.8rem;
+            padding-bottom: 8px;
             border-bottom: 1px solid #eee;
-            padding-bottom: 10px;
         }
         .header-top-row h1 {
             margin: 0;
-            font-size: 1.4rem;
+            font-size: 1.3rem;
             color: var(--primary-dark);
         }
         .file-actions {
             display: flex;
-            gap: 10px;
+            gap: 8px;
         }
         .btn-file {
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            padding: 6px 16px;
-            border-radius: 6px;
-            border: 1px solid #ccc;
-            font-size: 0.9rem;
-            font-weight: bold;
-            cursor: pointer;
-            background: white;
-            transition: all 0.2s;
+            display: flex; align-items: center; gap: 4px;
+            padding: 5px 12px; border-radius: 6px; border: 1px solid #ccc;
+            font-size: 0.85rem; font-weight: bold; cursor: pointer; background: white;
+            white-space: nowrap;
         }
         .btn-file.save { background: #2D3748; color: white; border-color: #2D3748; }
         .btn-file.load { background: #fff; color: #333; border-color: #ccc; }
-        .btn-file:hover { opacity: 0.8; transform: translateY(-1px); }
 
-        /* Row 2: Tabs & Controls */
+        /* Controls */
         .controls-row {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            flex-wrap: wrap;
-            gap: 10px;
-            margin-bottom: 10px;
+            display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; margin-bottom: 5px;
         }
-        
         .page-tabs {
-            display: flex;
-            gap: 5px;
-            background: #f0f2f5;
-            padding: 4px;
-            border-radius: 8px;
-            align-items: center;
+            display: flex; gap: 4px; background: #f0f2f5; padding: 3px; border-radius: 6px; align-items: center;
         }
         .page-tab-btn {
-            padding: 6px 16px;
-            border: none;
-            background: none;
-            cursor: pointer;
-            font-size: 0.9rem;
-            font-weight: bold;
-            color: #666;
-            border-radius: 6px;
-            transition: all 0.2s;
+            padding: 6px 14px; border: none; background: none; cursor: pointer;
+            font-size: 0.9rem; font-weight: bold; color: #666; border-radius: 4px;
         }
         .page-tab-btn.active {
-            background: white;
-            color: var(--primary);
-            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            background: white; color: var(--primary); box-shadow: 0 1px 3px rgba(0,0,0,0.1);
         }
-        
-        /* Count Badge */
         .count-badge {
-            margin-left: 10px;
-            margin-right: 5px;
-            background: #CBD5E0;
-            color: #2D3748;
-            padding: 4px 12px;
-            border-radius: 20px;
-            font-size: 0.85rem;
-            font-weight: bold;
+            margin-left: 8px; margin-right: 4px; background: #CBD5E0; color: #2D3748;
+            padding: 3px 10px; border-radius: 12px; font-size: 0.8rem; font-weight: bold; white-space: nowrap;
         }
 
         .control-group-right {
-            display: flex;
-            gap: 12px;
-            align-items: center;
+            display: flex; gap: 10px; align-items: center; flex-wrap: wrap;
         }
         .toggle-section {
-            display: flex;
-            align-items: center;
-            font-size: 0.85rem;
-            color: #666;
-            background: #fff;
-            padding: 4px 10px;
-            border-radius: 20px;
-            border: 1px solid #eee;
+            display: flex; align-items: center; font-size: 0.8rem; color: #666;
+            background: #fff; padding: 2px 8px; border-radius: 15px; border: 1px solid #eee; white-space: nowrap;
         }
         .switch-label {
-            position: relative;
-            display: inline-block;
-            width: 32px;
-            height: 18px;
-            margin-left: 8px;
+            position: relative; display: inline-block; width: 28px; height: 16px; margin-left: 6px;
         }
         .switch-label input { opacity: 0; width: 0; height: 0; }
         .slider {
-            position: absolute;
-            cursor: pointer;
-            top: 0; left: 0; right: 0; bottom: 0;
-            background-color: #ccc;
-            transition: .4s;
-            border-radius: 20px;
+            position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #ccc; transition: .4s; border-radius: 20px;
         }
         .slider:before {
-            position: absolute;
-            content: "";
-            height: 14px; width: 14px;
-            left: 2px; bottom: 2px;
-            background-color: white;
-            transition: .4s;
-            border-radius: 50%;
+            position: absolute; content: ""; height: 12px; width: 12px; left: 2px; bottom: 2px; background-color: white; transition: .4s; border-radius: 50%;
         }
         input:checked + .slider { background-color: #F56565; }
-        input:checked + .slider:before { transform: translateX(14px); }
+        input:checked + .slider:before { transform: translateX(12px); }
 
+        .controls-selectors { display: flex; gap: 5px; }
         .controls-selectors select {
-            padding: 6px 10px;
-            border-radius: 6px;
-            border: 1px solid #ddd;
-            font-size: 0.85rem;
-            background: #fff;
+            padding: 5px 8px; border-radius: 4px; border: 1px solid #ddd; font-size: 0.8rem; background: #fff; max-width: 140px;
         }
 
         .filter-tabs {
-            display: flex;
-            gap: 0.5rem;
-            overflow-x: auto;
-            padding-bottom: 5px;
-            -webkit-overflow-scrolling: touch;
-            margin-top: 5px;
+            display: flex; gap: 6px; overflow-x: auto; padding-bottom: 5px; margin-top: 5px; scrollbar-width: none;
         }
+        .filter-tabs::-webkit-scrollbar { display: none; }
         .tab-btn {
-            white-space: nowrap;
-            padding: 5px 14px;
-            border-radius: 20px;
-            border: 1px solid #ddd;
-            background: #fff;
-            color: #666;
-            font-size: 0.8rem;
-            cursor: pointer;
-            transition: all 0.2s;
+            white-space: nowrap; padding: 4px 12px; border-radius: 20px; border: 1px solid #ddd;
+            background: #fff; color: #666; font-size: 0.8rem; cursor: pointer; transition: all 0.2s;
         }
         .tab-btn.active {
-            background: var(--primary);
-            color: #fff;
-            border-color: var(--primary);
-            font-weight: bold;
+            background: var(--primary); color: #fff; border-color: var(--primary); font-weight: bold;
         }
 
         /* Grid & Card */
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 2rem 1.5rem;
-        }
+        .container { max-width: 1200px; margin: 0 auto; padding: 1.5rem 1rem; }
         .grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
-            gap: 1.5rem;
+            display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 1.2rem;
         }
         .card {
-            background: var(--surface);
-            border-radius: 12px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.04);
-            border: 1px solid #e0e0e0;
-            display: flex;
-            flex-direction: column;
-            overflow: hidden;
-            transition: transform 0.2s, box-shadow 0.2s;
-            position: relative;
-            cursor: pointer;
+            background: var(--surface); border-radius: 12px;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.04); border: 1px solid #e0e0e0;
+            display: flex; flex-direction: column; overflow: hidden;
+            transition: transform 0.2s; position: relative; cursor: pointer;
         }
-        .card:hover {
-            transform: translateY(-4px);
-            box-shadow: 0 12px 24px rgba(0,0,0,0.1);
-        }
+        .card:active { transform: scale(0.98); }
 
         .rank-badge {
-            position: absolute;
-            top: 0; right: 0;
-            padding: 4px 12px;
-            font-weight: bold;
-            font-size: 0.8rem;
-            color: #000;
-            border-radius: 0 0 0 12px;
-            z-index: 10;
+            position: absolute; top: 0; right: 0; padding: 3px 10px;
+            font-weight: bold; font-size: 0.75rem; color: #000;
+            border-radius: 0 0 0 10px; z-index: 10;
         }
-        .rank-s { background: var(--rank-s); color: #000; box-shadow: 0 2px 5px rgba(0,0,0,0.2); }
+        .rank-s { background: var(--rank-s); box-shadow: 0 2px 4px rgba(0,0,0,0.15); }
         .rank-a { background: var(--rank-a); color: #fff; }
         
-        .card-header {
-            padding: 1.2rem;
-            background: #fff;
-            border-bottom: 1px solid #f0f0f0;
-        }
-        .meta-row {
-            display: flex;
-            gap: 8px;
-            margin-bottom: 8px;
-            flex-wrap: wrap;
-        }
-        .tag {
-            font-size: 0.7rem;
-            padding: 2px 8px;
-            border-radius: 4px;
-            background: #f0f0f0;
-            color: #555;
-        }
+        .card-header { padding: 1rem; background: #fff; border-bottom: 1px solid #f5f5f5; }
+        .meta-row { display: flex; gap: 6px; margin-bottom: 6px; flex-wrap: wrap; }
+        .tag { font-size: 0.7rem; padding: 2px 6px; border-radius: 4px; background: #f0f0f0; color: #555; }
         .tag.cat { background: #E3F2FD; color: var(--primary); }
         .tag.author { background: #ffebee; color: #C53030; }
-        .card-title {
-            font-size: 1.15rem;
-            font-weight: bold;
-            margin: 0;
-            line-height: 1.4;
-        }
+        .card-title { font-size: 1.1rem; font-weight: bold; margin: 0; line-height: 1.35; }
         
+        /* Bar Styles - Direct Colors */
         .score-bar-container {
-            margin-top: 6px;
-            height: 8px;
-            background: #EDF2F7;
-            border-radius: 4px;
-            display: flex;
-            overflow: hidden;
+            margin-top: 4px; height: 8px; background: #EDF2F7; border-radius: 4px; display: flex; overflow: hidden;
         }
-        .bar-segment-emotional { height: 100%; background-color: var(--bar-emotional); }
-        .bar-segment-execution { height: 100%; background-color: var(--bar-execution); }
+        .bar-segment-emotional { height: 100%; background-color: #E53E3E; } /* Red */
+        .bar-segment-execution { height: 100%; background-color: #38A169; } /* Green */
 
-        .ai-total-score-text {
-            margin-top: 8px;
-            font-size: 0.75rem;
-            color: #888;
-            font-weight: bold;
+        .score-detail-text {
+            font-size: 0.7rem; color: #555; margin-top: 8px; display: flex; justify-content: space-between;
         }
+        .score-label-personal { color: var(--personal); font-weight: bold; }
+        .score-label-ai { color: #888; font-weight: bold; margin-top: 12px; }
 
         .ai-comment-box {
-            margin-top: 12px;
-            padding: 10px;
-            background: #F7FAFC;
-            border-radius: 6px;
-            border: 1px solid #E2E8F0;
-            font-size: 0.85rem;
+            margin-top: 10px; padding: 8px; background: #F8FAFC; border-radius: 6px; border: 1px solid #EDF2F7; font-size: 0.8rem;
         }
-        .ai-comment-row {
-            display: flex;
-            align-items: flex-start;
-            margin-bottom: 6px;
-            line-height: 1.4;
-        }
+        .ai-comment-row { display: flex; align-items: flex-start; margin-bottom: 4px; line-height: 1.4; }
         .ai-comment-row:last-child { margin-bottom: 0; }
-        .ai-comment-icon {
-            margin-right: 8px;
-            font-size: 1rem;
-            min-width: 20px;
-            text-align: center;
-        }
+        .ai-comment-icon { margin-right: 6px; font-size: 0.9rem; min-width: 18px; text-align: center; }
 
-        .card-body {
-            padding: 1.2rem;
-            flex: 1;
-            font-size: 0.9rem;
-            color: #444;
-        }
+        .card-body { padding: 1rem; flex: 1; font-size: 0.85rem; color: #444; }
         .uvp-box {
-            margin-top: auto;
-            padding: 10px;
-            background: #f8fbff;
-            border-left: 3px solid var(--primary);
-            color: var(--primary);
-            font-size: 0.85rem;
-            border-radius: 0 4px 4px 0;
+            margin-top: auto; padding: 8px; background: #f8fbff; border-left: 3px solid var(--primary); color: var(--primary); font-size: 0.8rem; border-radius: 0 4px 4px 0;
         }
 
         /* Modal */
         .modal {
-            display: none;
-            position: fixed;
-            z-index: 2000;
-            left: 0; top: 0;
-            width: 100%; height: 100%;
-            overflow: auto;
-            background-color: rgba(0,0,0,0.5);
-            justify-content: center;
-            align-items: center;
+            display: none; position: fixed; z-index: 2000; left: 0; top: 0; width: 100%; height: 100%;
+            overflow: auto; background-color: rgba(0,0,0,0.5); justify-content: center; align-items: center;
         }
         .modal-content {
-            background-color: #fefefe;
-            margin: auto;
-            padding: 30px;
-            border-radius: 12px;
-            width: 90%;
-            max-width: 800px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
-            position: relative;
+            background-color: #fefefe; margin: auto; padding: 20px; border-radius: 12px;
+            width: 95%; max-width: 600px; box-shadow: 0 10px 30px rgba(0,0,0,0.3); position: relative;
         }
-        .close-btn { color: #aaa; float: right; font-size: 28px; font-weight: bold; cursor: pointer; }
+        .close-btn { float: right; font-size: 24px; font-weight: bold; color: #aaa; padding: 0 5px; cursor: pointer; }
         .modal-score-section h3 {
-            border-bottom: 2px solid #eee;
-            padding-bottom: 5px; margin-top: 20px; color: var(--primary);
+            border-bottom: 2px solid #eee; padding-bottom: 5px; margin-top: 15px; font-size: 1.1rem; color: var(--primary);
         }
         .modal-score-section.personal-score h3 { color: var(--personal); }
-        .score-input-group {
-            display: flex; align-items: center; margin-bottom: 15px;
-        }
-        .score-input-group label { width: 100px; font-weight: bold; color: #555; }
+        .score-input-group { display: flex; align-items: center; margin-bottom: 10px; }
+        .score-input-group label { width: 90px; font-weight: bold; color: #555; font-size: 0.9rem; }
         .score-input-group input[type="number"] {
-            width: 60px; padding: 8px; border: 1px solid #ddd; border-radius: 4px; text-align: center; margin-right: 10px;
+            width: 50px; padding: 6px; border: 1px solid #ddd; border-radius: 4px; text-align: center; margin-right: 8px;
         }
         textarea {
-            width: calc(100% - 20px); min-height: 100px; padding: 10px; border: 1px solid #ddd; border-radius: 4px; resize: vertical;
+            width: calc(100% - 16px); min-height: 80px; padding: 8px; border: 1px solid #ddd; border-radius: 4px; resize: vertical;
         }
         .modal-save-btn {
-            background-color: var(--personal); color: white; padding: 10px 20px; border: none; border-radius: 6px; cursor: pointer; font-size: 1rem; margin-top: 20px;
+            background-color: var(--personal); color: white; padding: 10px 20px; border: none; border-radius: 6px; cursor: pointer; font-size: 1rem; margin-top: 15px; width: 100%;
         }
         .personal-score-summary {
-            padding: 10px; background: var(--personal-bg); border-radius: 4px; margin-top: 10px; font-weight: bold; color: var(--personal); text-align: center;
+            padding: 8px; background: var(--personal-bg); border-radius: 4px; margin-top: 8px; font-weight: bold; color: var(--personal); text-align: center;
         }
-        .score-input-section-divider { margin-top: 20px; padding-top: 15px; border-top: 1px solid #ddd; }
+        .score-input-section-divider { margin-top: 15px; padding-top: 10px; border-top: 1px solid #ddd; }
 
+        /* Hiding logic */
         body.hide-ai-scores .rank-badge,
         body.hide-ai-scores .score-bar-container.ai-total-score-container,
-        body.hide-ai-scores .ai-total-score-text,
+        body.hide-ai-scores .score-label-ai,
         body.hide-ai-scores .ai-comment-box { display: none !important; }
-        .personal-score-container { display: block; }
-
-        #summaryPage { padding: 2rem 1.5rem; }
+        
+        /* Summary Page */
+        #summaryPage { padding: 1.5rem 1rem; }
         .summary-header { text-align: center; margin-bottom: 2rem; border-bottom: 2px solid #ddd; padding-bottom: 1rem; }
         .chart-container-grid {
-            display: grid; grid-template-columns: repeat(auto-fit, minmax(400px, 1fr)); gap: 2rem; margin-top: 2rem;
+            display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1.5rem; margin-top: 1rem;
         }
         .chart-box {
-            background: var(--surface); padding: 20px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+            background: var(--surface); padding: 15px; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.05);
         }
-        .chart-box h3 { margin-top: 0; color: var(--primary-dark); border-bottom: 1px solid #eee; padding-bottom: 10px; }
+        .chart-box h3 { margin-top: 0; font-size:1rem; color: var(--primary-dark); border-bottom: 1px solid #eee; padding-bottom: 8px; }
         .chart-box.full-width { grid-column: 1 / -1; }
+        .analysis-text-box {
+            background: #E0F2F1; border-left: 5px solid var(--personal); padding: 15px; border-radius: 4px; margin-bottom: 20px;
+        }
+        .analysis-text-box h3 { color: var(--personal); margin-top: 0; }
 
         @media (max-width: 768px) {
-            .header-top-row { flex-direction: column; align-items: flex-start; gap: 10px; }
+            .header-inner { padding: 0.8rem; }
+            .header-top-row { flex-wrap: wrap; gap: 10px; }
+            .header-top-row h1 { font-size: 1.1rem; width: 100%; }
             .file-actions { width: 100%; justify-content: flex-start; }
-            .controls-row { flex-direction: column; align-items: flex-start; }
-            .control-group-right { width: 100%; justify-content: space-between; flex-wrap: wrap; }
-            .controls-selectors { width: 100%; display: flex; gap: 5px; }
-            .controls-selectors select { flex-grow: 1; }
+            .controls-row { flex-direction: column; align-items: flex-start; gap: 8px; }
+            .page-tabs { width: 100%; justify-content: space-between; }
+            .page-tab-btn { flex-grow: 1; text-align: center; padding: 6px 4px; font-size: 0.85rem; }
+            .count-badge { position: absolute; top: 55px; right: 15px; background: transparent; color: #666; padding: 0; font-size: 0.8rem; }
+            .control-group-right { width: 100%; justify-content: space-between; }
+            .controls-selectors { flex-grow: 1; justify-content: flex-end; }
+            .controls-selectors select { width: 100%; max-width: none; }
+            .grid { grid-template-columns: 1fr; }
+            .modal-content { width: 92%; padding: 15px; max-height: 90vh; overflow-y: auto; }
         }
     </style>
 </head>
@@ -417,13 +264,13 @@
         <div class="controls-row">
             <div class="page-tabs">
                 <button class="page-tab-btn active" id="tabGrid" onclick="changePage('grid')">一覧ボード</button>
-                <button class="page-tab-btn" id="tabSummary" onclick="changePage('summary')">評価サマリー</button>
-                <div class="count-badge" id="displayCount">全 0 件</div>
+                <button class="page-tab-btn" id="tabSummary" onclick="changePage('summary')">自己分析</button>
             </div>
+            <div class="count-badge" id="displayCount">全 0 件</div>
             
             <div class="control-group-right">
                 <div class="toggle-section">
-                    <span>AI情報を隠す</span>
+                    <span>AI隠す</span>
                     <label class="switch-label">
                         <input type="checkbox" id="aiScoreToggle" onchange="toggleAIScores()">
                         <span class="slider"></span>
@@ -431,15 +278,12 @@
                 </div>
                 <div class="controls-selectors">
                     <select class="author-select" id="authorSelect" onchange="render()">
-                        <option value="all">すべて（作成者）</option>
+                        <option value="all">作成者: 全員</option>
                     </select>
                     <select class="sort-select" id="sortSelect" onchange="render()">
-                        <option value="personal_score">個人スコア順 (総合)</option>
-                        <option value="personal_kando">個人スコア順 (情緒)</option>
-                        <option value="personal_exec">個人スコア順 (実行)</option>
+                        <option value="personal_score">あなた評価順</option>
+                        <option value="total_ai_score">AI評価順</option>
                         <option value="id">ID順</option>
-                        <option value="author">作成者順</option>
-                        <option value="total_ai_score">AIスコア順</option>
                     </select>
                 </div>
             </div>
@@ -448,11 +292,11 @@
         <div id="filterSection">
             <div class="filter-tabs" id="categoryTabs">
                 <button class="tab-btn active" onclick="setCategory('all', this)">すべて</button>
-                <button class="tab-btn" onclick="setCategory('AV/Immersive', this)">AV/没入体験</button>
-                <button class="tab-btn" onclick="setCategory('AI/Robotics', this)">AI/ロボット</button>
-                <button class="tab-btn" onclick="setCategory('Life/Health', this)">生活/ヘルスケア</button>
+                <button class="tab-btn" onclick="setCategory('AV/Immersive', this)">AV/没入</button>
+                <button class="tab-btn" onclick="setCategory('AI/Robotics', this)">AI/ロボ</button>
+                <button class="tab-btn" onclick="setCategory('Life/Health', this)">生活/ヘルス</button>
                 <button class="tab-btn" onclick="setCategory('Communication', this)">通信/交流</button>
-                <button class="tab-btn" onclick="setCategory('Creative', this)">クリエイティブ</button>
+                <button class="tab-btn" onclick="setCategory('Creative', this)">創造</button>
                 <button class="tab-btn" onclick="setCategory('Other', this)">その他</button>
             </div>
         </div>
@@ -465,36 +309,31 @@
 
 <div class="container" id="summaryPage" style="display:none;">
     <div class="summary-header">
-        <h2>アイデア評価傾向サマリー</h2>
-        <p>AI評価とメンバー評価（自己採点）の平均値を比較し、傾向を分析します。</p>
-        <div style="margin-top: 10px; font-weight: bold; color: var(--personal);">
-            ※あなたの採点データ数: <span id="personalScoreCount">0</span>
+        <h2>自己評価分析レポート</h2>
+        <p>あなたが採点したデータに基づき、興味・関心の傾向を分析します。</p>
+    </div>
+
+    <div class="analysis-text-box">
+        <h3>📊 あなたの興味プロファイル</h3>
+        <div id="userAnalysisText">
+            データが不足しています。まずは一覧ボードで気になるアイデアをいくつか評価（採点）してください。
         </div>
     </div>
 
     <div class="chart-container-grid">
         <div class="chart-box full-width">
-            <h3>💡 アイデア・ポートフォリオ (AI評価分布)</h3>
-            <p style="font-size:0.85rem; color:#666;">縦軸: 情緒的価値 (Kando) / 横軸: 実行価値 (Feasibility)</p>
-            <div style="height: 400px;">
-                <canvas id="portfolioChart"></canvas>
-            </div>
+            <h3>カテゴリー別 平均評価点 (あなたの関心度)</h3>
+            <canvas id="categoryBarChart"></canvas>
         </div>
         <div class="chart-box">
-            <h3>AI vs メンバー 総合レーダーチャート</h3>
+            <h3>評価軸の傾向 (AI vs あなた)</h3>
             <canvas id="radarChart"></canvas>
         </div>
         <div class="chart-box">
-            <h3>情緒的価値 (AI vs メンバー)</h3>
-            <canvas id="emotionalBarChart"></canvas>
-        </div>
-        <div class="chart-box">
-            <h3>実行価値 (AI vs メンバー)</h3>
-            <canvas id="executionBarChart"></canvas>
-        </div>
-        <div class="chart-box">
-            <h3>AI総合スコア (カテゴリー別)</h3>
-            <canvas id="categoryBarChart"></canvas>
+            <h3>アイデア分布 (あなたの評価)</h3>
+            <div style="height: 300px;">
+                <canvas id="portfolioChart"></canvas>
+            </div>
         </div>
     </div>
 </div>
@@ -504,12 +343,10 @@
         <span class="close-btn" onclick="closeModal()">&times;</span>
         <h2 id="modalTitle"></h2>
         <p id="modalMeta"></p>
-
         <div class="modal-uvp-box">
             <h4>独自の価値提案 (UVP)</h4>
             <p id="modalUVP"></p>
         </div>
-
         <div class="modal-score-section personal-score">
             <h3>📝 メンバー評価 (あなたの採点)</h3>
             <form id="personalScoreForm">
@@ -532,7 +369,6 @@
                 <button type="button" class="modal-save-btn" onclick="savePersonalScore()">評価を保存</button>
             </form>
         </div>
-        
         <div class="modal-score-section">
             <h3>詳細情報</h3>
             <p><strong>🎯 ターゲット:</strong> <span id="modalWho"></span></p>
@@ -543,20 +379,19 @@
             <p><strong>⚠️ リスク:</strong> <span id="modalRisk"></span></p>
             <p><strong>🕰️ タイミング:</strong> <span id="modalTiming"></span></p>
         </div>
-
         <div class="modal-score-section">
-            <h3 style="color:var(--bar-emotional);">【AI簡易評価】情緒的価値</h3>
+            <h3 style="color:#E53E3E;">【AI簡易評価】情緒的価値</h3>
             <p id="modalAIScoreKando"></p>
         </div>
         <div class="modal-score-section">
-            <h3 style="color:var(--bar-execution);">【AIプロダクト評価】実行価値</h3>
+            <h3 style="color:#38A169;">【AIプロダクト評価】実行価値</h3>
             <p id="modalAIScoreExec"></p>
         </div>
     </div>
 </div>
 
 <script>
-    // --- データ定義 ---
+    // 56件分のフルデータ
     const rawData = [
         {id:1,author:"中尾",cat:"Life/Health",title:"歯ブラシカメラ",who:"口腔ケア意識の高い人",pain:"歯の磨き残しが見えず、虫歯や口臭の原因になってしまう",solution:"歯ブラシの先端にイメージセンサーを搭載し、磨き残しをAIがカラーコードで表示。",uvp:"イメージセンサで歯を可視化。高度なセンシング技術の日常化。",kgi:"プラーク付着率の低下",tech:"AI(画像解析)、イメージセンサ技術",risk:"衛生面、医療機器としての規制",timing:"ヘルスケア意識の向上、小型センサーの進化",score_kando:{k:3,s:5,n:3},score_exec:{feat:5,test:5,strat:3}},
         {id:2,author:"歌丸",cat:"AV/Immersive",title:"寝ながらドーム型ディスプレイ",who:"夜しか時間がない親",pain:"夜子供を寝かしつけた後に、大迫力の映像コンテンツを体験したい",solution:"寝室の天井に取り付ける超短焦点プロジェクターと音漏れしない指向性スピーカー、遮光ドーム。",uvp:"指向性スピーカー＋暗視ドーム。寝落ちOKの完全没入シアター。",kgi:"平均視聴時間",tech:"指向性スピーカー、プロジェクション技術",risk:"設置の手間、寝室環境への配慮",timing:"共働き世帯の増加、ホームエンタメ需要の拡大",score_kando:{k:5,s:5,n:4},score_exec:{feat:4,test:5,strat:4}},
@@ -622,39 +457,28 @@
     const AI_SCORE_TOGGLE_KEY = 'aiScoreHidden';
     let personalScores = {};
 
-    // --- マッピング用カテゴリ変換 ---
+    // マッピング
     function normalizeCategory(cat) {
         const map = {
-            "生活/ヘルスケア": "Life/Health",
-            "AV/没入体験": "AV/Immersive",
-            "AI/ロボット": "AI/Robotics",
-            "通信/交流": "Communication",
-            "クリエイティブ": "Creative",
-            "その他": "Other"
+            "生活/ヘルスケア": "Life/Health", "AV/没入体験": "AV/Immersive", "AI/ロボット": "AI/Robotics",
+            "通信/交流": "Communication", "クリエイティブ": "Creative", "その他": "Other"
         };
         return map[cat] || cat;
     }
 
     function init() {
         loadPersonalScores();
-
         rawData.forEach(item => {
             item.cat = normalizeCategory(item.cat);
             item.totalKandoScore = item.score_kando.k + item.score_kando.s + item.score_kando.n;
             item.totalExecScore = item.score_exec.feat + item.score_exec.test + item.score_exec.strat;
             item.totalScore = item.totalKandoScore + item.totalExecScore;
 
-            if(item.totalScore >= 26) item.rank = 'S'; 
-            else if(item.totalScore >= 22) item.rank = 'A'; 
-            else item.rank = 'B';
+            if(item.totalScore >= 26) item.rank = 'S'; else if(item.totalScore >= 22) item.rank = 'A'; else item.rank = 'B';
 
             const personal = personalScores[item.id] || {};
-            personal.kando = Number(personal.kando) || 0;
-            personal.sony = Number(personal.sony) || 0;
-            personal.newness = Number(personal.newness) || 0;
-            personal.feat = Number(personal.feat) || 0;
-            personal.test = Number(personal.test) || 0;
-            personal.strat = Number(personal.strat) || 0;
+            personal.kando = Number(personal.kando) || 0; personal.sony = Number(personal.sony) || 0; personal.newness = Number(personal.newness) || 0;
+            personal.feat = Number(personal.feat) || 0; personal.test = Number(personal.test) || 0; personal.strat = Number(personal.strat) || 0;
             personal.note = personal.note || '';
 
             item.personalScore = personal;
@@ -668,31 +492,21 @@
         document.body.classList.toggle('hide-ai-scores', isHidden);
 
         const activeTab = document.querySelector('.page-tab-btn.active');
-        if (activeTab) {
-            changePage(activeTab.id.replace('tab', '').toLowerCase());
-        } else {
-             changePage('grid');
-        }
+        if (activeTab) changePage(activeTab.id.replace('tab', '').toLowerCase());
+        else changePage('grid');
 
         populateAuthorFilter();
     }
 
     function loadPersonalScores() {
         const stored = localStorage.getItem(LOCAL_STORAGE_KEY);
-        if (stored) {
-            try { personalScores = JSON.parse(stored); } catch(e) { personalScores = {}; }
-        }
+        if (stored) { try { personalScores = JSON.parse(stored); } catch(e) { personalScores = {}; } }
     }
 
     function savePersonalScores(id, kando, sony, newness, feat, test, strat, note) {
         personalScores[id] = { 
-            kando: Number(kando) || 0, 
-            sony: Number(sony) || 0, 
-            newness: Number(newness) || 0, 
-            feat: Number(feat) || 0, 
-            test: Number(test) || 0, 
-            strat: Number(strat) || 0, 
-            note: note || '' 
+            kando: Number(kando)||0, sony: Number(sony)||0, newness: Number(newness)||0, 
+            feat: Number(feat)||0, test: Number(test)||0, strat: Number(strat)||0, note: note||'' 
         };
         localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(personalScores));
         init(); 
@@ -706,32 +520,24 @@
 
     function populateAuthorFilter() {
         const authorSelect = document.getElementById('authorSelect');
-        authorSelect.innerHTML = '<option value="all">すべて（作成者）</option>';
+        authorSelect.innerHTML = '<option value="all">作成者: 全員</option>';
         const allAuthors = [...new Set(rawData.map(item => item.author))].filter(a => a !== 'all');
         
-        let hamanoAuthor = [];
-        let unknownAuthorArray = [];
-        let others = [];
-
+        let hamanoAuthor = [], unknownAuthorArray = [], others = [];
         allAuthors.forEach(author => {
             if (author === '浜野') hamanoAuthor.push(author);
             else if (author === '-') unknownAuthorArray.push(author);
             else others.push(author);
         });
         others.sort((a, b) => a.localeCompare(b, 'ja'));
-        const sortedAuthors = others.concat(hamanoAuthor).concat(unknownAuthorArray);
-
-        sortedAuthors.forEach(author => {
+        others.concat(hamanoAuthor).concat(unknownAuthorArray).forEach(author => {
             const option = document.createElement('option');
             option.value = author;
             option.textContent = author === '-' ? '不明' : author;
             authorSelect.appendChild(option);
         });
-        if (authorSelect.querySelector(`option[value="${currentAuthor}"]`)) {
-            authorSelect.value = currentAuthor;
-        } else {
-            currentAuthor = 'all';
-        }
+        if (authorSelect.querySelector(`option[value="${currentAuthor}"]`)) authorSelect.value = currentAuthor;
+        else currentAuthor = 'all';
     }
 
     function setCategory(cat, element) {
@@ -766,14 +572,11 @@
             { key: 'Sonyらしさ', val: item.score_kando.s, advice: 'Sonyならではの要素が希薄です。映像・音響・AIなど、技術資産をどう活かすか具体化が必要です。' },
             { key: '新奇性', val: item.score_kando.n, advice: '新奇性が低く、既存の解決策と差別化できていません。ターゲットや利用シーンをずらしてみましょう。' }
         ];
-        let minItem = scores[0];
-        scores.forEach(s => { if (s.val < minItem.val) minItem = s; });
-        let maxItem = scores[0];
-        scores.forEach(s => { if (s.val >= maxItem.val) maxItem = s; });
+        let minItem = scores[0], maxItem = scores[0];
+        scores.forEach(s => { if (s.val < minItem.val) minItem = s; if (s.val >= maxItem.val) maxItem = s; });
 
         let good = `「${maxItem.key}」が高評価です。`;
         if (maxItem.val === 5) good = `卓越した「${maxItem.key}」があり、非常に魅力的です。`;
-        
         let bad = `課題は「${minItem.key}」です。${minItem.advice}<br><span style="font-size:0.8rem; color:#666;">(リスク: ${item.risk})</span>`;
         return { good, bad };
     }
@@ -796,13 +599,8 @@
 
         filtered.sort((a, b) => {
             if (sortType === 'personal_score') return b.personalTotal - a.personalTotal;
-            if (sortType === 'personal_kando') return b.personalTotalKando - a.personalTotalKando;
-            if (sortType === 'personal_exec') return b.personalTotalExec - a.personalTotalExec;
-            if (sortType === 'id') return (parseInt(String(a.id))||999) - (parseInt(String(b.id))||999);
-            if (sortType === 'author') return a.author.localeCompare(b.author, 'ja');
             if (sortType === 'total_ai_score') return b.totalScore - a.totalScore;
-            if (sortType === 'score_kando') return b.totalKandoScore - a.totalKandoScore;
-            if (sortType === 'score_exec') return b.totalExecScore - a.totalExecScore;
+            if (sortType === 'id') return (parseInt(String(a.id))||999) - (parseInt(String(b.id))||999);
             return 0;
         });
 
@@ -812,8 +610,8 @@
             card.setAttribute('onclick', `openModal('${item.id}')`);
 
             let rankHtml = '';
-            if (item.rank === 'S') rankHtml = `<div class="rank-badge rank-s">S Rank (AI総合)</div>`;
-            else if (item.rank === 'A') rankHtml = `<div class="rank-badge rank-a">A Rank (AI総合)</div>`;
+            if (item.rank === 'S') rankHtml = `<div class="rank-badge rank-s">S Rank</div>`;
+            else if (item.rank === 'A') rankHtml = `<div class="rank-badge rank-a">A Rank</div>`;
 
             const wPersonalKando = (item.personalTotalKando / 30) * 100;
             const wPersonalExec = (item.personalTotalExec / 30) * 100;
@@ -822,14 +620,14 @@
 
             let commentHtml = '';
             if (item.personalScore.note && item.personalScore.note.trim() !== '') {
-                const noteText = item.personalScore.note.length > 50 ? item.personalScore.note.substring(0, 50) + '...' : item.personalScore.note;
-                commentHtml = `<div style="margin-top:6px; font-size:0.8rem; color:#444; background:#E0F2F1; padding:6px; border-radius:4px;">📝 ${noteText}</div>`;
+                const noteText = item.personalScore.note.length > 40 ? item.personalScore.note.substring(0, 40) + '...' : item.personalScore.note;
+                commentHtml = `<div style="margin-top:6px; font-size:0.8rem; color:#444; background:#E0F2F1; padding:4px 6px; border-radius:4px;">📝 ${noteText}</div>`;
             }
 
             const personalScoreSection = `
-                <div style="margin-top:10px; font-size:0.8rem; color:var(--personal); font-weight:bold;">
-                    あなたの評価: ${item.personalTotal}点
-                    ${item.personalTotal > 0 ? '' : '(未)'}
+                <div class="score-detail-text">
+                    <span class="score-label-personal">あなた: ${item.personalTotal}点</span>
+                    ${item.personalTotal > 0 ? `<span style="font-size:0.7rem;">(情:${item.personalTotalKando}/実:${item.personalTotalExec})</span>` : '<span style="color:#999;">(未評価)</span>'}
                 </div>
                 <div class="score-bar-container personal-score-container">
                     <div class="bar-segment-emotional" style="width:${wPersonalKando}%"></div>
@@ -838,8 +636,8 @@
             `;
             
             const aiScoreSection = `
-                <div class="ai-total-score-text">
-                    AI評価: ${item.totalScore}点
+                <div class="score-detail-text score-label-ai">
+                    <span>AI評価: ${item.totalScore}点</span>
                 </div>
                 <div class="score-bar-container ai-total-score-container">
                     <div class="bar-segment-emotional" style="width:${wAIKando}%"></div>
@@ -870,12 +668,8 @@
                     ${aiCommentHtml}
                 </div>
                 <div class="card-body">
-                    <div style="font-size:0.85rem; color:#666; margin-bottom:5px;">
-                        <strong>ターゲット:</strong> ${item.who || '-'}
-                    </div>
-                    <div class="uvp-box">
-                        <strong>価値:</strong> ${item.uvp}
-                    </div>
+                    <div style="font-size:0.8rem; color:#666; margin-bottom:5px;"><strong>ターゲット:</strong> ${item.who || '-'}</div>
+                    <div class="uvp-box"><strong>価値:</strong> ${item.uvp}</div>
                 </div>
             `;
             grid.appendChild(card);
@@ -976,12 +770,12 @@
     }
 
     // Summary Charts
-    let radarChartInstance, emotionalBarChartInstance, executionBarChartInstance, categoryBarChartInstance, portfolioChartInstance;
+    let radarChartInstance, categoryBarChartInstance, portfolioChartInstance;
 
     function renderSummary() {
         let aiSums = {k:0, s:0, n:0, f:0, t:0, st:0, count:0};
         let pSums = {k:0, s:0, n:0, f:0, t:0, st:0, count:0};
-        let cats = {};
+        let cats = {}; let userCats = {};
         let scatterData = [];
 
         rawData.forEach(d => {
@@ -993,105 +787,112 @@
                 pSums.k += d.personalScore.kando; pSums.s += d.personalScore.sony; pSums.n += d.personalScore.newness;
                 pSums.f += d.personalScore.feat; pSums.t += d.personalScore.test; pSums.st += d.personalScore.strat;
                 pSums.count++;
+                
+                if(!userCats[d.cat]) userCats[d.cat] = {sum:0, count:0};
+                userCats[d.cat].sum += d.personalTotal;
+                userCats[d.cat].count++;
+                
+                scatterData.push({
+                    x: d.personalTotalExec,
+                    y: d.personalTotalKando,
+                    title: d.title,
+                    id: d.id
+                });
             }
 
             if(!cats[d.cat]) cats[d.cat] = {sum:0, count:0};
             cats[d.cat].sum += d.totalScore;
             cats[d.cat].count++;
-
-            scatterData.push({
-                x: d.totalExecScore,
-                y: d.totalKandoScore,
-                title: d.title,
-                id: d.id
-            });
         });
 
         const aiAvg = [aiSums.k, aiSums.s, aiSums.n, aiSums.f, aiSums.t, aiSums.st].map(v => v/aiSums.count);
         const pAvg = pSums.count ? [pSums.k, pSums.s, pSums.n, pSums.f, pSums.t, pSums.st].map(v => v/pSums.count) : [0,0,0,0,0,0];
         document.getElementById('personalScoreCount').innerText = pSums.count;
 
-        if(portfolioChartInstance) portfolioChartInstance.destroy();
-        portfolioChartInstance = new Chart(document.getElementById('portfolioChart'), {
-            type: 'scatter',
-            data: {
-                datasets: [{
-                    label: 'アイデア分布',
-                    data: scatterData,
-                    backgroundColor: 'rgba(0, 102, 204, 0.6)',
-                    borderColor: 'rgba(0, 102, 204, 1)',
-                    pointRadius: 6,
-                    pointHoverRadius: 8
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                scales: {
-                    x: { title: { display: true, text: '実行価値 (15点満点)' }, min: 0, max: 16 },
-                    y: { title: { display: true, text: '情緒的価値 (15点満点)' }, min: 0, max: 16 }
-                },
-                plugins: {
-                    tooltip: {
-                        callbacks: {
-                            label: function(context) {
-                                const pt = context.raw;
-                                return `${pt.title} (ID:${pt.id}) - 情緒:${pt.y}, 実行:${pt.x}`;
-                            }
-                        }
-                    }
-                }
+        // Analysis Text
+        const analysisEl = document.getElementById('userAnalysisText');
+        if (pSums.count === 0) {
+            analysisEl.innerHTML = "まだ採点データがありません。気になるアイデアを評価すると、ここに分析結果が表示されます。";
+        } else {
+            let maxCatName = ""; let maxCatScore = -1;
+            for (let c in userCats) {
+                let avg = userCats[c].sum / userCats[c].count;
+                if (avg > maxCatScore) { maxCatScore = avg; maxCatName = c; }
             }
+            let kandoAvg = (pSums.k + pSums.s + pSums.n) / pSums.count;
+            let execAvg = (pSums.f + pSums.t + pSums.st) / pSums.count;
+            let tendency = kandoAvg > execAvg ? "「情緒的価値（感動・ユニークさ）」" : "「実行価値（実現性・ビジネス）」";
+
+            analysisEl.innerHTML = `
+                <p>あなたは現在 <strong>${pSums.count}</strong> 件のアイデアを評価しています。</p>
+                <ul style="margin-top:8px; padding-left:20px;">
+                    <li>最も高く評価しているジャンルは <strong>「${maxCatName}」</strong> です。</li>
+                    <li>評価の傾向として、${tendency} を重視する傾向が見られます。</li>
+                </ul>
+            `;
+        }
+
+        // 1. Category Bar Chart
+        if(categoryBarChartInstance) categoryBarChartInstance.destroy();
+        const catKeys = Object.keys(cats).sort((a,b) => (cats[b].sum/cats[b].count) - (cats[a].sum/cats[a].count));
+        const userCatData = catKeys.map(k => userCats[k] ? (userCats[k].sum/userCats[k].count) : 0);
+        
+        categoryBarChartInstance = new Chart(document.getElementById('categoryBarChart'), {
+            type: 'bar',
+            data: {
+                labels: catKeys,
+                datasets: [
+                    { label:'あなたの平均', data:userCatData, backgroundColor:'#009688' },
+                    { label:'AI平均(参考)', data:catKeys.map(k=>cats[k].sum/cats[k].count), backgroundColor:'#E0E0E0' }
+                ]
+            },
+            options: { scales:{y:{min:0, max:30}} }
         });
 
+        // 2. Radar
         if(radarChartInstance) radarChartInstance.destroy();
         radarChartInstance = new Chart(document.getElementById('radarChart'), {
             type: 'radar',
             data: {
                 labels: ['感動', 'Sony', '新奇', '実現', '検証', '戦略'],
                 datasets: [
-                    { label:'AI平均', data:aiAvg, borderColor:'#0066CC', backgroundColor:'rgba(0,102,204,0.2)' },
-                    { label:'あなた平均', data:pAvg, borderColor:'#009688', backgroundColor:'rgba(0,150,136,0.2)' }
+                    { label:'あなた平均', data:pAvg, borderColor:'#009688', backgroundColor:'rgba(0,150,136,0.2)' },
+                    { label:'AI平均', data:aiAvg, borderColor:'#ccc', backgroundColor:'transparent', borderDash:[5,5] }
                 ]
             },
             options: { scales: { r: { min:0, max:5, ticks:{stepSize:1} } } }
         });
 
-        if(emotionalBarChartInstance) emotionalBarChartInstance.destroy();
-        emotionalBarChartInstance = new Chart(document.getElementById('emotionalBarChart'), {
-            type: 'bar',
+        // 3. Portfolio Chart
+        if(portfolioChartInstance) portfolioChartInstance.destroy();
+        portfolioChartInstance = new Chart(document.getElementById('portfolioChart'), {
+            type: 'scatter',
             data: {
-                labels: ['感動', 'Sony', '新奇'],
-                datasets: [
-                    { label:'AI', data:aiAvg.slice(0,3), backgroundColor:'#E53E3E' },
-                    { label:'あなた', data:pAvg.slice(0,3), backgroundColor:'#009688' }
-                ]
+                datasets: [{
+                    label: 'あなたの評価済みアイデア',
+                    data: scatterData,
+                    backgroundColor: 'rgba(0, 150, 136, 0.6)',
+                    borderColor: 'rgba(0, 150, 136, 1)',
+                    pointRadius: 6
+                }]
             },
-            options: { indexAxis:'y', scales:{x:{max:5}} }
-        });
-
-        if(executionBarChartInstance) executionBarChartInstance.destroy();
-        executionBarChartInstance = new Chart(document.getElementById('executionBarChart'), {
-            type: 'bar',
-            data: {
-                labels: ['実現', '検証', '戦略'],
-                datasets: [
-                    { label:'AI', data:aiAvg.slice(3,6), backgroundColor:'#38A169' },
-                    { label:'あなた', data:pAvg.slice(3,6), backgroundColor:'#009688' }
-                ]
-            },
-            options: { indexAxis:'y', scales:{x:{max:5}} }
-        });
-
-        if(categoryBarChartInstance) categoryBarChartInstance.destroy();
-        const catKeys = Object.keys(cats).sort((a,b) => (cats[b].sum/cats[b].count) - (cats[a].sum/cats[a].count));
-        categoryBarChartInstance = new Chart(document.getElementById('categoryBarChart'), {
-            type: 'bar',
-            data: {
-                labels: catKeys,
-                datasets: [{ label:'AI総合平均', data:catKeys.map(k=>cats[k].sum/cats[k].count), backgroundColor:'#0066CC' }]
-            },
-            options: { scales:{y:{min:10, max:30}} }
+            options: {
+                responsive: true, maintainAspectRatio: false,
+                scales: {
+                    x: { title: { display: true, text: '実行価値' }, min: 0, max: 16 },
+                    y: { title: { display: true, text: '情緒的価値' }, min: 0, max: 16 }
+                },
+                plugins: {
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                const pt = context.raw;
+                                return `${pt.title} - 情緒:${pt.y}, 実行:${pt.x}`;
+                            }
+                        }
+                    }
+                }
+            }
         });
     }
 
