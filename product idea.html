@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Future Product Lab | インタラクティブ評価版 (Ver. 13)</title>
+    <title>Future Product Lab | インタラクティブ評価版 (Ver. 15)</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
     <style>
         :root {
@@ -429,7 +429,7 @@
             border-top: 1px solid #ddd;
         }
 
-        /* Mobile Optimizations */
+        /* --- モバイル最適化 (768px以下) V15 強化 --- */
         @media (max-width: 768px) {
             .header-inner {
                 padding: 1rem;
@@ -441,11 +441,26 @@
                 grid-template-columns: 1fr;
                 gap: 1rem;
             }
+            
+            /* ヘッダーコントロールの整理 */
             .controls-row {
                 flex-direction: column;
                 align-items: flex-start;
                 gap: 0.5rem;
             }
+            .controls-row h1 {
+                font-size: 1.5rem;
+                margin-bottom: 0.5rem;
+            }
+            
+            /* 共有ボタンとトグルを横並びでまとめる */
+            .controls-row > div:nth-child(2) {
+                display: flex;
+                flex-wrap: wrap; /* ボタンが多すぎる場合に折り返す */
+                gap: 8px;
+                width: 100%;
+            }
+
             .controls-selectors {
                 width: 100%;
                 justify-content: space-between;
@@ -453,10 +468,10 @@
             }
             .sort-select, .author-select {
                 flex-grow: 1;
+                font-size: 0.8rem;
             }
-            h1 {
-                font-size: 1.5rem;
-            }
+            
+            /* モーダル入力フォームの改善 */
             .modal-content {
                 width: 95%;
                 max-width: 95%;
@@ -465,17 +480,30 @@
             .score-input-group {
                 flex-direction: column;
                 align-items: flex-start;
+                padding: 5px 0; /* 縦の間隔を調整 */
             }
             .score-input-group label {
                 width: 100%;
-                margin-bottom: 5px;
+                margin-bottom: 3px;
+                font-size: 0.9rem;
             }
-            .score-input-group input {
-                width: calc(100% - 100px);
+            .score-input-group input[type="number"] {
+                width: 40px; /* 入力を小さく */
+                padding: 6px;
             }
             .score-value {
                 width: auto;
+                margin-left: 10px;
+                font-size: 0.9rem;
             }
+            .score-input-group > * {
+                margin-right: 0 !important; /* 横並びのgapを削除 */
+            }
+            .score-input-group > input[type="number"] + .score-value {
+                 margin-left: 10px; /* スコア表示を数字の右に */
+            }
+            
+            /* サマリーページ */
             .chart-container-grid {
                 grid-template-columns: 1fr;
                 gap: 1.5rem;
@@ -489,6 +517,7 @@
     <div class="header-inner">
         <div class="controls-row">
             <h1>プロダクトアイデア評価ボード</h1>
+            
             <div style="display: flex; align-items:center; flex-wrap: wrap; gap: 10px;">
                 <div class="toggle-section">
                     <span style="color:#A00;">AIスコアを隠す</span>
@@ -497,19 +526,23 @@
                         <span class="slider"></span>
                     </label>
                 </div>
-                <div class="controls-selectors">
-                    <select class="author-select" id="authorSelect" onchange="render()">
-                        <option value="all">すべて（作成者）</option>
-                    </select>
-                    <select class="sort-select" id="sortSelect" onchange="render()">
-                        <option value="personal_score">個人スコア順 (総合評価)</option>
-                        <option value="total_ai_score">AI総合スコア順</option>
-                        <option value="score_kando">AI簡易評価順 (情緒)</option>
-                        <option value="score_exec">AI実行評価順 (実行)</option>
-                        <option value="id">ID順 (入力順)</option>
-                        <option value="author">作成者順</option>
-                    </select>
-                </div>
+                <button onclick="exportPersonalScores()" class="tab-btn" style="background:#4A5568; color:white; border:none; padding: 8px 16px;">エクスポート 💾</button>
+                <button onclick="document.getElementById('importInput').click();" class="tab-btn" style="background:#38A169; color:white; border:none; padding: 8px 16px;">インポート 📥</button>
+                <input type="file" id="importInput" accept="application/json" onchange="importPersonalScoresFromFile(this.files[0])" style="display:none;">
+            </div>
+
+            <div class="controls-selectors">
+                <select class="author-select" id="authorSelect" onchange="render()">
+                    <option value="all">すべて（作成者）</option>
+                </select>
+                <select class="sort-select" id="sortSelect" onchange="render()">
+                    <option value="personal_score">個人スコア順 (総合評価)</option>
+                    <option value="total_ai_score">AI総合スコア順</option>
+                    <option value="score_kando">AI簡易評価順 (情緒)</option>
+                    <option value="score_exec">AI実行評価順 (実行)</option>
+                    <option value="id">ID順 (入力順)</option>
+                    <option value="author">作成者順</option>
+                </select>
             </div>
         </div>
 
@@ -541,7 +574,7 @@
         <h2>アイデア評価傾向サマリー</h2>
         <p>全アイデアのAI評価とメンバー評価（自己採点）の平均値を比較し、傾向を分析します。</p>
         <div style="margin-top: 15px; font-weight: bold; color: var(--personal);">
-            ※メンバー評価は、あなたの採点（${Object.keys(personalScores).length}件）の平均値です。
+            ※メンバー評価は、あなたの採点（<span id="personalScoreCount">0</span>件）の平均値です。
         </div>
     </div>
 
@@ -746,7 +779,6 @@
     let currentCategory = 'all';
     let currentAuthor = 'all';
     // 内部データ構造を変更: personalScores[id] = { kando: k, sony: s, newness: n, feat: f, test: t, strat: st, note: note }
-    // V13からは全6項目を保存する
     const LOCAL_STORAGE_KEY = 'personalScores_v13'; 
     const AI_SCORE_TOGGLE_KEY = 'aiScoreHidden';
     let personalScores = {};
@@ -777,10 +809,15 @@
         document.body.classList.toggle('hide-ai-scores', isHidden);
 
         // 現在のページ状態をセット (デフォルトはgrid)
-        changePage(document.querySelector('.page-tab-btn.active').id.replace('tab', '').toLowerCase());
+        const activeTab = document.querySelector('.page-tab-btn.active');
+        if (activeTab) {
+            changePage(activeTab.id.replace('tab', '').toLowerCase());
+        } else {
+             changePage('grid');
+        }
 
         populateAuthorFilter();
-        render();
+        // 最初のレンダリングはchangePageの中で行われる
     }
 
     function loadPersonalScores() {
@@ -813,6 +850,8 @@
 
     function populateAuthorFilter() {
         const authorSelect = document.getElementById('authorSelect');
+        authorSelect.innerHTML = '<option value="all">すべて（作成者）</option>';
+
         const authors = [...new Set(rawData.map(item => item.author))].filter(a => a !== '-').sort((a, b) => a.localeCompare(b, 'ja'));
 
         if (rawData.some(item => item.author === '-')) {
@@ -826,10 +865,11 @@
             option.textContent = displayAuthor;
             authorSelect.appendChild(option);
         });
-        authorSelect.onchange = (e) => {
-            currentAuthor = e.target.value;
-            render();
-        };
+        if (authorSelect.querySelector(`option[value="${currentAuthor}"]`)) {
+            authorSelect.value = currentAuthor;
+        } else {
+            currentAuthor = 'all';
+        }
     }
 
     function setCategory(cat, element) {
@@ -874,6 +914,7 @@
         const grid = document.getElementById('grid');
         grid.innerHTML = '';
 
+        currentAuthor = document.getElementById('authorSelect').value;
         const sortType = document.getElementById('sortSelect').value;
 
         let filtered = rawData.filter(item => {
@@ -1059,7 +1100,7 @@
         }
     }
 
-    // --- サマリーページ描画機能 (Chart.js利用) ---
+    // --- サマリーページ描画機能 (Chart.js利用) V15 ---
 
     let radarChartInstance = null;
     let emotionalBarChartInstance = null;
@@ -1094,30 +1135,31 @@
             }
 
             // Category Totals
-            if (!categories[item.cat]) {
-                categories[item.cat] = { total: 0, count: 0 };
+            const catKey = item.cat || 'Other';
+            if (!categories[catKey]) {
+                categories[catKey] = { total: 0, count: 0 };
             }
-            categories[item.cat].total += item.totalScore;
-            categories[item.cat].count++;
+            categories[catKey].total += item.totalScore;
+            categories[catKey].count++;
         });
 
         const aiAvg = {};
         for (const key in aiTotals) {
             if (key !== 'count') {
-                aiAvg[key] = (aiTotals[key] / aiTotals.count).toFixed(2);
+                aiAvg[key] = (aiTotals[key] / aiTotals.count);
             }
         }
 
         const personalAvg = {};
         for (const key in personalTotals) {
             if (key !== 'count') {
-                personalAvg[key] = (personalTotals.count > 0 ? (personalTotals[key] / personalTotals.count) : 0).toFixed(2);
+                personalAvg[key] = (personalTotals.count > 0 ? (personalTotals[key] / personalTotals.count) : 0);
             }
         }
         
         const categoryAvg = {};
         for (const cat in categories) {
-            categoryAvg[cat] = (categories[cat].total / categories[cat].count).toFixed(2);
+            categoryAvg[cat] = (categories[cat].total / categories[cat].count);
         }
 
         return { aiAvg, personalAvg, personalCount: personalTotals.count, categoryAvg };
@@ -1127,157 +1169,206 @@
         const { aiAvg, personalAvg, personalCount, categoryAvg } = calculateAverages();
         
         // 採点件数を更新
-        const summaryHeader = document.querySelector('.summary-header p:last-of-type');
-        summaryHeader.innerHTML = `※メンバー評価は、あなたの採点（${personalCount}件）の平均値です。`;
+        document.getElementById('personalScoreCount').textContent = personalCount;
 
         // 1. 総合レーダーチャート
         if (radarChartInstance) radarChartInstance.destroy();
-        const ctxRadar = document.getElementById('radarChart').getContext('2d');
-        radarChartInstance = new Chart(ctxRadar, {
-            type: 'radar',
-            data: {
-                labels: ['感動', 'ソニーらしさ', '新奇性', '実現可能性', '検証容易性', '戦略的適合性'],
-                datasets: [
-                    {
-                        label: 'AI評価 平均',
-                        data: [aiAvg.kando, aiAvg.sony, aiAvg.newness, aiAvg.feat, aiAvg.test, aiAvg.strat],
-                        backgroundColor: 'rgba(0, 102, 204, 0.2)',
-                        borderColor: 'var(--primary)',
-                        pointBackgroundColor: 'var(--primary)',
-                        pointBorderColor: '#fff',
-                        pointHoverBackgroundColor: '#fff',
-                        pointHoverBorderColor: 'var(--primary)'
-                    },
-                    {
-                        label: 'メンバー評価 平均',
-                        data: [personalAvg.kando, personalAvg.sony, personalAvg.newness, personalAvg.feat, personalAvg.test, personalAvg.strat],
-                        backgroundColor: 'rgba(0, 150, 136, 0.2)',
-                        borderColor: 'var(--personal)',
-                        pointBackgroundColor: 'var(--personal)',
-                        pointBorderColor: '#fff',
-                        pointHoverBackgroundColor: '#fff',
-                        pointHoverBorderColor: 'var(--personal)'
-                    }
-                ]
-            },
-            options: {
-                responsive: true,
-                scales: {
-                    r: {
-                        angleLines: { display: false },
-                        suggestedMin: 1,
-                        suggestedMax: 5,
-                        pointLabels: { font: { size: 12 } },
-                        ticks: { stepSize: 1 }
-                    }
+        const ctxRadar = document.getElementById('radarChart')?.getContext('2d');
+        if (ctxRadar) {
+            radarChartInstance = new Chart(ctxRadar, {
+                type: 'radar',
+                data: {
+                    labels: ['感動 (A)', 'ソニーらしさ (B)', '新奇性 (C)', '実現可能性 (D)', '検証容易性 (E)', '戦略的適合性 (F)'],
+                    datasets: [
+                        {
+                            label: 'AI評価 平均',
+                            data: [aiAvg.kando, aiAvg.sony, aiAvg.newness, aiAvg.feat, aiAvg.test, aiAvg.strat],
+                            backgroundColor: 'rgba(0, 102, 204, 0.2)',
+                            borderColor: 'var(--primary)',
+                            pointBackgroundColor: 'var(--primary)',
+                            pointBorderColor: '#fff',
+                        },
+                        {
+                            label: 'メンバー評価 平均 (あなたの採点)',
+                            data: [personalAvg.kando, personalAvg.sony, personalAvg.newness, personalAvg.feat, personalAvg.test, personalAvg.strat],
+                            backgroundColor: 'rgba(0, 150, 136, 0.2)',
+                            borderColor: 'var(--personal)',
+                            pointBackgroundColor: 'var(--personal)',
+                            pointBorderColor: '#fff',
+                        }
+                    ]
                 },
-                plugins: {
-                    legend: { position: 'top' },
-                    tooltip: { callbacks: { label: (context) => `${context.dataset.label}: ${context.parsed.r}点` } }
+                options: {
+                    responsive: true,
+                    scales: {
+                        r: {
+                            angleLines: { display: false },
+                            suggestedMin: 1,
+                            suggestedMax: 5,
+                            pointLabels: { font: { size: 12 } },
+                            ticks: { stepSize: 1 }
+                        }
+                    },
+                    plugins: {
+                        legend: { position: 'top' },
+                        tooltip: { callbacks: { label: (context) => `${context.dataset.label}: ${context.parsed.r.toFixed(2)}点` } }
+                    }
                 }
-            }
-        });
+            });
+        }
 
         // 2. 情緒的価値 棒グラフ
         if (emotionalBarChartInstance) emotionalBarChartInstance.destroy();
-        const ctxEmotional = document.getElementById('emotionalBarChart').getContext('2d');
-        emotionalBarChartInstance = new Chart(ctxEmotional, {
-            type: 'bar',
-            data: {
-                labels: ['感動', 'ソニーらしさ', '新奇性'],
-                datasets: [
-                    {
-                        label: 'AI評価 平均',
-                        data: [aiAvg.kando, aiAvg.sony, aiAvg.newness],
-                        backgroundColor: 'var(--emotional-score)',
-                    },
-                    {
-                        label: 'メンバー評価 平均',
-                        data: [personalAvg.kando, personalAvg.sony, personalAvg.newness],
-                        backgroundColor: 'rgba(0, 150, 136, 0.6)',
-                    }
-                ]
-            },
-            options: {
-                responsive: true,
-                indexAxis: 'y',
-                scales: {
-                    x: { suggestedMin: 0, suggestedMax: 5, ticks: { stepSize: 1 } }
+        const ctxEmotional = document.getElementById('emotionalBarChart')?.getContext('2d');
+        if (ctxEmotional) {
+            emotionalBarChartInstance = new Chart(ctxEmotional, {
+                type: 'bar',
+                data: {
+                    labels: ['感動 (A)', 'ソニーらしさ (B)', '新奇性 (C)'],
+                    datasets: [
+                        {
+                            label: 'AI評価 平均',
+                            data: [aiAvg.kando, aiAvg.sony, aiAvg.newness],
+                            backgroundColor: 'var(--emotional-score)',
+                        },
+                        {
+                            label: 'メンバー評価 平均',
+                            data: [personalAvg.kando, personalAvg.sony, personalAvg.newness],
+                            backgroundColor: 'rgba(0, 150, 136, 0.6)',
+                        }
+                    ]
                 },
-                plugins: {
-                    legend: { position: 'top' },
-                    tooltip: { callbacks: { label: (context) => `${context.dataset.label}: ${context.parsed.x}点` } }
+                options: {
+                    responsive: true,
+                    indexAxis: 'y',
+                    scales: {
+                        x: { suggestedMin: 0, suggestedMax: 5, ticks: { stepSize: 1 } }
+                    },
+                    plugins: {
+                        legend: { position: 'top' },
+                        tooltip: { callbacks: { label: (context) => `${context.dataset.label}: ${context.parsed.x.toFixed(2)}点` } }
+                    }
                 }
-            }
-        });
+            });
+        }
 
         // 3. 実行価値 棒グラフ
         if (executionBarChartInstance) executionBarChartInstance.destroy();
-        const ctxExecution = document.getElementById('executionBarChart').getContext('2d');
-        executionBarChartInstance = new Chart(ctxExecution, {
-            type: 'bar',
-            data: {
-                labels: ['実現可能性', '検証容易性', '戦略的適合性'],
-                datasets: [
-                    {
-                        label: 'AI評価 平均',
-                        data: [aiAvg.feat, aiAvg.test, aiAvg.strat],
-                        backgroundColor: 'var(--execution-score)',
-                    },
-                    {
-                        label: 'メンバー評価 平均',
-                        data: [personalAvg.feat, personalAvg.test, personalAvg.strat],
-                        backgroundColor: 'rgba(0, 150, 136, 0.6)',
-                    }
-                ]
-            },
-            options: {
-                responsive: true,
-                indexAxis: 'y',
-                scales: {
-                    x: { suggestedMin: 0, suggestedMax: 5, ticks: { stepSize: 1 } }
+        const ctxExecution = document.getElementById('executionBarChart')?.getContext('2d');
+        if (ctxExecution) {
+            executionBarChartInstance = new Chart(ctxExecution, {
+                type: 'bar',
+                data: {
+                    labels: ['実現可能性 (D)', '検証容易性 (E)', '戦略的適合性 (F)'],
+                    datasets: [
+                        {
+                            label: 'AI評価 平均',
+                            data: [aiAvg.feat, aiAvg.test, aiAvg.strat],
+                            backgroundColor: 'var(--execution-score)',
+                        },
+                        {
+                            label: 'メンバー評価 平均',
+                            data: [personalAvg.feat, personalAvg.test, personalAvg.strat],
+                            backgroundColor: 'rgba(0, 150, 136, 0.6)',
+                        }
+                    ]
                 },
-                plugins: {
-                    legend: { position: 'top' },
-                    tooltip: { callbacks: { label: (context) => `${context.dataset.label}: ${context.parsed.x}点` } }
+                options: {
+                    responsive: true,
+                    indexAxis: 'y',
+                    scales: {
+                        x: { suggestedMin: 0, suggestedMax: 5, ticks: { stepSize: 1 } }
+                    },
+                    plugins: {
+                        legend: { position: 'top' },
+                        tooltip: { callbacks: { label: (context) => `${context.dataset.label}: ${context.parsed.x.toFixed(2)}点` } }
+                    }
                 }
-            }
-        });
+            });
+        }
 
         // 4. カテゴリー別AI総合スコア棒グラフ
         if (categoryBarChartInstance) categoryBarChartInstance.destroy();
-        const ctxCategory = document.getElementById('categoryBarChart').getContext('2d');
-        const categoriesLabels = Object.keys(categoryAvg).sort();
-        const categoriesData = categoriesLabels.map(cat => categoryAvg[cat]);
+        const ctxCategory = document.getElementById('categoryBarChart')?.getContext('2d');
+        if (ctxCategory) {
+            const categoriesLabels = Object.keys(categoryAvg).sort((a, b) => categoryAvg[b] - categoryAvg[a]); // スコアの高い順にソート
+            const categoriesData = categoriesLabels.map(cat => categoryAvg[cat]);
 
-        categoryBarChartInstance = new Chart(ctxCategory, {
-            type: 'bar',
-            data: {
-                labels: categoriesLabels,
-                datasets: [
-                    {
-                        label: 'AI総合スコア 平均',
-                        data: categoriesData,
-                        backgroundColor: 'var(--primary)',
-                        borderColor: 'var(--primary-dark)',
-                        borderWidth: 1
-                    }
-                ]
-            },
-            options: {
-                responsive: true,
-                scales: {
-                    y: { suggestedMin: 15, suggestedMax: 30, ticks: { stepSize: 5 } }
+            categoryBarChartInstance = new Chart(ctxCategory, {
+                type: 'bar',
+                data: {
+                    labels: categoriesLabels,
+                    datasets: [
+                        {
+                            label: 'AI総合スコア 平均',
+                            data: categoriesData,
+                            backgroundColor: 'var(--primary)',
+                            borderColor: 'var(--primary-dark)',
+                            borderWidth: 1
+                        }
+                    ]
                 },
-                plugins: {
-                    legend: { position: 'top' },
-                    tooltip: { callbacks: { label: (context) => `${context.dataset.label}: ${context.parsed.y}点` } }
+                options: {
+                    responsive: true,
+                    scales: {
+                        y: { suggestedMin: 15, suggestedMax: 30, ticks: { stepSize: 5 } }
+                    },
+                    plugins: {
+                        legend: { position: 'top' },
+                        tooltip: { callbacks: { label: (context) => `${context.dataset.label}: ${context.parsed.y.toFixed(2)}点` } }
+                    }
                 }
-            }
-        });
+            });
+        }
+    }
+    
+    // --- データ共有機能 (エクスポート/インポート) ---
 
+    function exportPersonalScores() {
+        const dataStr = JSON.stringify(personalScores, null, 2);
+        const dataUri = 'data:application/json;charset=utf-8,' + encodeURIComponent(dataStr);
+
+        const exportFileName = `FutureProductLab_PersonalScores_${new Date().toISOString().slice(0, 10).replace(/-/g, '')}.json`;
+
+        const linkElement = document.createElement('a');
+        linkElement.setAttribute('href', dataUri);
+        linkElement.setAttribute('download', exportFileName);
+        linkElement.click();
+
+        alert("採点データがJSONファイルとしてダウンロードされました。\n他の端末でこのファイルを「インポート」してください。");
     }
 
+    function importPersonalScoresFromFile(file) {
+        if (!file) {
+            return;
+        }
+
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            try {
+                const importedData = JSON.parse(e.target.result);
+                if (confirm("既存の採点データは上書きされますが、よろしいですか？\nファイル名: " + file.name)) {
+                    if (typeof importedData === 'object' && importedData !== null) {
+                        personalScores = importedData;
+                        localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(personalScores));
+                        alert("採点データが正常にインポートされ、画面が更新されました。");
+                        document.getElementById('importInput').value = ''; 
+                        init(); 
+                    } else {
+                        alert("インポートされたファイルの形式が正しくありません。");
+                    }
+                } else {
+                     document.getElementById('importInput').value = ''; 
+                }
+            } catch (error) {
+                console.error("Import Error:", error);
+                alert("ファイルの読み込みまたは解析に失敗しました。ファイルが破損していないか確認してください。");
+                document.getElementById('importInput').value = ''; 
+            }
+        };
+        reader.readAsText(file);
+    }
+    
     // 実行
     init();
 
