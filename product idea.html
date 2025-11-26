@@ -3,692 +3,666 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Future Product Lab | アイデアリスト</title>
+    <title>Future Product Lab | インタラクティブ評価版 (Ver. 4 - 採点基準追加)</title>
     <style>
         :root {
-            --bg: #F5F7FA;
+            --bg: #F0F2F5;
             --surface: #FFFFFF;
-            --primary: #2C3E50;
-            --accent: #3182CE;
-            --border: #E2E8F0;
-            --text-main: #2D3748;
-            --text-sub: #718096;
+            --primary: #0066CC;
+            --primary-dark: #0056b3;
+            --text-main: #333;
+            --text-sub: #666;
+            --rank-s: #FFD700;
+            --rank-a: #A0AEC0;
         }
 
         body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            font-family: "Helvetica Neue", Arial, sans-serif;
             background-color: var(--bg);
             color: var(--text-main);
             margin: 0;
             line-height: 1.6;
         }
 
-        /* --- Header Area (Sticky) --- */
-        .header-container {
+        /* Header & Controls */
+        header {
+            background: var(--surface);
             position: sticky;
             top: 0;
-            z-index: 9999; /* 最前面に固定 */
-            background: rgba(255, 255, 255, 0.98);
-            border-bottom: 1px solid var(--border);
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            z-index: 1000;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            padding-bottom: 0.5rem;
         }
-
-        .header-top {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
+        .header-inner {
             max-width: 1200px;
             margin: 0 auto;
             padding: 1rem 1.5rem;
         }
-
-        h1 {
-            font-size: 1.2rem;
-            margin: 0;
-            color: var(--primary);
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            white-space: nowrap;
-        }
-
-        .count-badge {
-            background: var(--primary);
-            color: #fff;
-            padding: 2px 10px;
-            border-radius: 99px;
-            font-size: 0.8rem;
-            font-weight: normal;
-        }
-
-        /* Search Box */
-        .search-wrapper {
-            position: relative;
-            width: 100%;
-            max-width: 300px;
-        }
-        .search-input {
-            width: 100%;
-            padding: 8px 12px 8px 36px;
-            border-radius: 20px;
-            border: 1px solid #CBD5E0;
-            background: #f8fafc;
-            font-size: 0.9rem;
-            box-sizing: border-box; /* 崩れ防止 */
-        }
-        .search-input:focus {
-            outline: none;
-            border-color: var(--accent);
-            background: #fff;
-        }
-        .search-icon {
-            position: absolute;
-            left: 12px;
-            top: 50%;
-            transform: translateY(-50%);
-            color: #A0AEC0;
-            pointer-events: none;
-        }
-
-        /* --- Toggle Bar (Clickable Area) --- */
-        #filter-toggle-bar {
-            background: #f1f5f9;
-            border-top: 1px solid #e2e8f0;
-            padding: 0.75rem 1.5rem;
+        .controls-row {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            cursor: pointer; /* 指マークにする */
-            user-select: none;
-            transition: background 0.2s;
+            margin-bottom: 1rem;
         }
-
-        #filter-toggle-bar:hover {
-            background: #e2e8f0;
+        .sort-select, .author-select {
+            padding: 8px 12px;
+            border-radius: 6px;
+            border: 1px solid #ddd;
+            font-size: 0.9rem;
+            background: #f9f9f9;
         }
-
-        .toggle-label {
+        .filter-tabs {
             display: flex;
-            align-items: center;
-            gap: 10px;
-            font-size: 0.85rem;
-            color: var(--text-sub);
-            font-weight: bold;
-        }
-
-        .toggle-icon {
-            font-size: 0.8rem;
-            transition: transform 0.3s ease;
-            color: var(--text-sub);
-        }
-        .toggle-icon.open {
-            transform: rotate(180deg);
-        }
-
-        /* Active Summary Tags */
-        .active-summary {
-            display: flex;
-            gap: 6px;
-            flex-wrap: wrap;
-        }
-        .summary-tag {
-            font-size: 0.7rem;
-            padding: 2px 8px;
-            border-radius: 4px;
-            color: white;
-            background: var(--text-sub);
-        }
-        .summary-tag.active-highlight {
-            background: var(--accent);
-        }
-
-        /* --- Collapsible Filter Content --- */
-        .filter-content {
-            background: #fff;
-            max-height: 0;
-            overflow: hidden;
-            transition: max-height 0.4s ease-in-out, opacity 0.3s;
-            opacity: 0;
-            border-bottom: 1px solid var(--border);
-        }
-
-        .filter-content.open {
-            max-height: 80vh; /* 十分な高さを確保 */
-            opacity: 1;
-            overflow-y: auto; /* コンテンツが多い場合はスクロール */
-        }
-
-        .filter-inner {
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 1.5rem;
-            display: flex;
-            flex-direction: column;
-            gap: 1.2rem;
-        }
-
-        .filter-group {
-            display: flex;
-            flex-direction: column;
             gap: 0.5rem;
+            overflow-x: auto;
+            padding-bottom: 5px;
+            -webkit-overflow-scrolling: touch;
         }
-
-        .filter-group-label {
-            font-size: 0.75rem;
-            font-weight: bold;
-            color: #A0AEC0;
-            letter-spacing: 0.05em;
-        }
-
-        .filter-buttons {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 0.6rem;
-        }
-
-        /* Filter Buttons */
-        .btn-filter {
-            appearance: none;
-            border: 1px solid #CBD5E0;
-            background: #fff;
-            color: var(--text-sub);
-            padding: 6px 14px;
+        .tab-btn {
+            white-space: nowrap;
+            padding: 6px 16px;
             border-radius: 20px;
+            border: 1px solid #ddd;
+            background: #fff;
+            color: #666;
             font-size: 0.85rem;
             cursor: pointer;
             transition: all 0.2s;
-            font-family: inherit;
         }
-
-        .btn-filter:hover {
-            border-color: var(--accent);
-            color: var(--accent);
-            background: #f0f7ff;
-        }
-
-        .btn-filter.active {
+        .tab-btn.active {
             background: var(--primary);
             color: #fff;
             border-color: var(--primary);
-            font-weight: 600;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-        }
-        
-        .btn-filter[data-type="author"].active {
-            background: var(--accent);
-            border-color: var(--accent);
+            font-weight: bold;
         }
 
-        /* --- Main Content --- */
+        /* Grid & Card */
         .container {
             max-width: 1200px;
             margin: 0 auto;
             padding: 2rem 1.5rem;
         }
-
-        .section-header {
-            font-size: 1.1rem;
-            color: var(--text-sub);
-            border-bottom: 2px solid var(--border);
-            padding-bottom: 0.5rem;
-            margin: 1.5rem 0;
-            font-weight: 600;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
         .grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
             gap: 1.5rem;
         }
-
-        /* Card Design */
         .card {
             background: var(--surface);
             border-radius: 12px;
-            border: 1px solid var(--border);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+            border: 1px solid #e0e0e0;
             display: flex;
             flex-direction: column;
-            transition: transform 0.2s, box-shadow 0.2s;
             overflow: hidden;
+            transition: transform 0.2s, box-shadow 0.2s;
+            position: relative;
+            cursor: pointer;
         }
-
         .card:hover {
             transform: translateY(-4px);
-            box-shadow: 0 12px 20px -5px rgba(0, 0, 0, 0.1);
-            border-color: #cbd5e0;
+            box-shadow: 0 12px 24px rgba(0,0,0,0.1);
         }
 
+        /* Card Content */
+        .rank-badge {
+            position: absolute;
+            top: 0;
+            right: 0;
+            padding: 4px 12px;
+            font-weight: bold;
+            font-size: 0.8rem;
+            color: #000;
+            border-radius: 0 0 0 12px;
+            z-index: 10;
+        }
+        .rank-s { background: var(--rank-s); color: #000; box-shadow: 0 2px 5px rgba(0,0,0,0.2); }
+        .rank-a { background: var(--rank-a); color: #fff; }
         .card-header {
-            padding: 1rem;
-            background: #f8fafc;
-            border-bottom: 1px solid #edf2f7;
+            padding: 1.2rem;
+            background: #fff;
+            border-bottom: 1px solid #f0f0f0;
         }
-
-        .card-meta {
+        .meta-row {
             display: flex;
-            flex-wrap: wrap;
-            gap: 6px;
+            gap: 8px;
             margin-bottom: 8px;
+            flex-wrap: wrap;
         }
-
         .tag {
             font-size: 0.7rem;
             padding: 2px 8px;
             border-radius: 4px;
-            font-weight: 600;
-            background: #EDF2F7;
-            color: #718096;
+            background: #f0f0f0;
+            color: #555;
         }
-
-        .tag.author { background: #EBF8FF; color: #2B6CB0; }
-        .tag.cat { background: #F0FFF4; color: #2F855A; border: 1px solid #C6F6D5; }
-        .tag.draft { background: #FFF5F5; color: #C53030; border: 1px solid #FED7D7; }
-
+        .tag.cat { background: #E3F2FD; color: var(--primary); }
+        .tag.author { background: #ffebee; color: #C53030; }
         .card-title {
-            font-size: 1.1rem;
-            font-weight: 700;
+            font-size: 1.15rem;
+            font-weight: bold;
             margin: 0;
             line-height: 1.4;
-            color: #2D3748;
         }
-
+        .score-bar-container {
+            display: flex;
+            gap: 4px;
+            margin-top: 8px;
+        }
+        .score-item {
+            flex: 1;
+            height: 4px;
+            background: #eee;
+            border-radius: 2px;
+            position: relative;
+        }
+        .score-fill {
+            height: 100%;
+            border-radius: 2px;
+        }
+        .fill-kando { background: #E53E3E; }
+        .fill-sony { background: #3182CE; }
+        .fill-new { background: #38A169; }
+        .score-labels {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.65rem;
+            color: #999;
+            margin-top: 2px;
+        }
         .card-body {
-            padding: 1.25rem;
+            padding: 1.2rem;
             flex: 1;
             font-size: 0.9rem;
-            display: flex;
-            flex-direction: column;
-            gap: 0.8rem;
+            color: #444;
         }
-
-        .info-label {
-            font-size: 0.7rem;
-            color: #A0AEC0;
-            font-weight: 700;
-            text-transform: uppercase;
-            display: block;
-            margin-bottom: 2px;
-        }
-        .info-text {
-            color: #4A5568;
-            line-height: 1.5;
-        }
-
         .uvp-box {
-            background: #ebf8ff;
-            border-left: 3px solid #4299e1;
-            padding: 0.8rem;
-            border-radius: 0 6px 6px 0;
-            color: #2b6cb0;
-            font-size: 0.9rem;
-            margin-top: auto; /* 下部に寄せる */
+            margin-top: auto;
+            padding: 10px;
+            background: #f8fbff;
+            border-left: 3px solid var(--primary);
+            color: var(--primary);
+            font-size: 0.85rem;
+            border-radius: 0 4px 4px 0;
         }
 
-        .empty-state {
-            grid-column: 1 / -1;
-            text-align: center;
-            padding: 4rem 1rem;
-            color: #A0AEC0;
-            background: #fff;
-            border-radius: 8px;
-            border: 2px dashed #E2E8F0;
+        /* Modal */
+        .modal {
             display: none;
+            position: fixed;
+            z-index: 2000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0,0,0,0.5);
+            justify-content: center;
+            align-items: center;
         }
-        .empty-state.visible { display: block; }
-        .hidden { display: none !important; }
+        .modal-content {
+            background-color: #fefefe;
+            margin: auto;
+            padding: 30px;
+            border-radius: 12px;
+            width: 90%;
+            max-width: 800px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            position: relative;
+        }
+        .close-btn {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: color 0.2s;
+        }
+        .close-btn:hover,
+        .close-btn:focus {
+            color: var(--primary);
+            text-decoration: none;
+        }
 
-        /* Mobile Adjustments */
-        @media (max-width: 768px) {
-            .header-top {
-                flex-direction: column;
-                gap: 1rem;
-                align-items: stretch;
-            }
-            .search-wrapper { max-width: 100%; }
-            .filter-inner { padding: 1rem; }
-            .container { padding: 1rem; }
+        .modal-score-section h3 {
+            border-bottom: 2px solid #eee;
+            padding-bottom: 5px;
+            margin-top: 20px;
+            color: var(--primary);
+        }
+        .modal-score-section p {
+            margin-bottom: 5px;
+            padding-left: 10px;
+        }
+        .modal-score-section strong {
+            display: inline-block;
+            width: 140px;
+            color: var(--text-main);
+        }
+        
+        .score-input-group {
+            display: flex;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+        .score-input-group label {
+            width: 100px;
+            font-weight: bold;
+            color: #555;
+        }
+        .score-input-group input[type="number"] {
+            width: 60px;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            text-align: center;
+            margin-right: 10px;
+        }
+        .score-value {
+            font-weight: bold;
+            color: var(--primary-dark);
+        }
+        textarea {
+            width: calc(100% - 20px);
+            min-height: 100px;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            resize: vertical;
+        }
+        .modal-save-btn {
+            background-color: var(--primary);
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 1rem;
+            margin-top: 20px;
+            transition: background-color 0.2s;
+        }
+        .modal-save-btn:hover {
+            background-color: var(--primary-dark);
+        }
+        .modal-uvp-box {
+            padding: 15px;
+            background: #f8fbff;
+            border-left: 5px solid #00c3ff;
+            margin-top: 15px;
+            font-style: italic;
+        }
+        .modal-uvp-box h4 {
+            margin-top: 0;
+            color: #00c3ff;
+            font-weight: bold;
         }
     </style>
 </head>
 <body>
 
-<div class="header-container">
-    <div class="header-top">
-        <h1>Future Product Lab <span class="count-badge" id="total-count">0</span></h1>
-        <div class="search-wrapper">
-            <span class="search-icon">🔍</span>
-            <input type="text" class="search-input" id="search-input" placeholder="キーワード検索...">
-        </div>
-    </div>
-
-    <div id="filter-toggle-bar">
-        <div class="toggle-label">
-            <span id="toggle-text">条件を変更する</span>
-            <div class="active-summary" id="active-summary"></div>
-        </div>
-        <span class="toggle-icon" id="toggle-icon">▼</span>
-    </div>
-
-    <div class="filter-content" id="filter-content">
-        <div class="filter-inner">
-            <div class="filter-group">
-                <span class="filter-group-label">担当者 (MEMBER)</span>
-                <div class="filter-buttons" id="author-filters">
-                    <button class="btn-filter active" data-type="author" data-val="all">全員</button>
-                    <button class="btn-filter" data-type="author" data-val="歌丸">歌丸</button>
-                    <button class="btn-filter" data-type="author" data-val="中尾">中尾</button>
-                    <button class="btn-filter" data-type="author" data-val="真田">真田</button>
-                    <button class="btn-filter" data-type="author" data-val="浜野">浜野</button>
-                    <button class="btn-filter" data-type="author" data-val="里平">里平</button>
-                    <button class="btn-filter" data-type="author" data-val="伊達">伊達</button>
-                    <button class="btn-filter" data-type="author" data-val="others">その他/不明</button>
-                </div>
-            </div>
-            <div class="filter-group">
-                <span class="filter-group-label">ジャンル (CATEGORY)</span>
-                <div class="filter-buttons" id="cat-filters">
-                    <button class="btn-filter active" data-type="cat" data-val="all">すべて</button>
-                    </div>
+<header>
+    <div class="header-inner">
+        <div class="controls-row">
+            <h1>プロダクトアイデア評価ボード</h1>
+            <div>
+                <select class="author-select" id="authorSelect" onchange="render()">
+                    <option value="all">すべて（作成者）</option>
+                </select>
+                <select class="sort-select" id="sortSelect" onchange="render()">
+                    <option value="score">おすすめ順 (AI評価)</option>
+                    <option value="id">ID順 (入力順)</option>
+                    <option value="author">作成者順</option>
+                    <option value="kando">感動スコア順</option>
+                    <option value="sony">Sonyらしさ順</option>
+                    <option value="new">新奇性順</option>
+                    <option value="personal_score">個人スコア順</option>
+                </select>
             </div>
         </div>
+
+        <div class="filter-tabs" id="categoryTabs">
+            <button class="tab-btn active" onclick="setCategory('all', this)">すべて</button>
+            <button class="tab-btn" onclick="setCategory('AV/Immersive', this)">AV/没入体験</button>
+            <button class="tab-btn" onclick="setCategory('AI/Robotics', this)">AI/ロボット</button>
+            <button class="tab-btn" onclick="setCategory('Life/Health', this)">生活/ヘルスケア</button>
+            <button class="tab-btn" onclick="setCategory('Communication', this)">通信/交流</button>
+            <button class="tab-btn" onclick="setCategory('Creative', this)">クリエイティブ</button>
+            <button class="tab-btn" onclick="setCategory('Other', this)">その他</button>
+        </div>
     </div>
-</div>
+</header>
 
 <div class="container">
-    
-    <div id="section-member">
-        <div class="section-header">💡 具体案 (Member Ideas)</div>
-        <div class="grid" id="grid-member"></div>
-    </div>
+    <div class="grid" id="grid"></div>
+</div>
 
-    <div id="section-research">
-        <div class="section-header">🧪 研究・メモ (Research & Drafts)</div>
-        <div class="grid" id="grid-research"></div>
-    </div>
+<div id="evaluationModal" class="modal">
+    <div class="modal-content">
+        <span class="close-btn" onclick="closeModal()">&times;</span>
+        <h2 id="modalTitle"></h2>
+        <p id="modalMeta"></p>
 
-    <div id="empty-state" class="empty-state">
-        条件に一致するアイデアが見つかりませんでした。<br>
-        フィルター条件を変更してみてください。
-    </div>
+        <div class="modal-uvp-box">
+            <h4>独自の価値提案 (UVP)</h4>
+            <p id="modalUVP"></p>
+        </div>
 
+        <div class="modal-score-section">
+            <h3>詳細情報 (Excelシート内容)</h3>
+            <p><strong>🎯 ターゲット顧客 (Who):</strong> <span id="modalWho"></span></p>
+            <p><strong>💔 根深い課題 (Why):</strong> <span id="modalPain"></span></p>
+            <p><strong>💡 具体的なソリューション (How):</strong> <span id="modalSolution"></span></p>
+            <p><strong>📈 主要指標 (KGI):</strong> <span id="modalKGI"></span></p>
+            <p><strong>🌟 Sonyらしさ/技術:</strong> <span id="modalTech"></span></p>
+            <p><strong>⚠️ 最大のリスク:</strong> <span id="modalRisk"></span></p>
+            <p><strong>🕰️ タイミング (今):</strong> <span id="modalTiming"></span></p>
+        </div>
+        
+        <div class="modal-score-section">
+            <h3>AI評価 (参考)</h3>
+            <p id="modalAIScore"></p>
+            <div style="padding: 10px; border: 1px dashed #ccc; border-radius: 6px; background: #fafafa;">
+                <h4>採点基準 (5点満点)</h4>
+                <p style="margin: 5px 0;"><strong>🔥 感動（Kando）:</strong> ユーザーの心を動かし、期待を超える**情緒的な価値**を提供できるか。</p>
+                <p style="margin: 5px 0;"><strong>🌟 Sonyらしさ:</strong> Sonyの**技術的優位性**（イメージセンサー、音響、AI/ロボティクスなど）を活用しているか。</p>
+                <p style="margin: 5px 0;"><strong>✨ 新奇性:</strong> 既存の市場にない、**新しい課題解決策や技術の組み合わせ**を提供しているか。</p>
+            </div>
+        </div>
+
+        <div class="modal-score-section">
+            <h3>📝 メンバーによる個人評価</h3>
+            <form id="personalScoreForm">
+                <input type="hidden" id="modalIdeaId">
+                <div class="score-input-group">
+                    <label for="personalKando">感動</label>
+                    <input type="number" id="personalKando" min="1" max="5">
+                    <span class="score-value">/ 5</span>
+                </div>
+                <div class="score-input-group">
+                    <label for="personalSony">Sonyらしさ</label>
+                    <input type="number" id="personalSony" min="1" max="5">
+                    <span class="score-value">/ 5</span>
+                </div>
+                <div class="score-input-group">
+                    <label for="personalNew">新奇性</label>
+                    <input type="number" id="personalNew" min="1" max="5">
+                    <span class="score-value">/ 5</span>
+                </div>
+                
+                <h4>メモ・コメント</h4>
+                <textarea id="personalNote" placeholder="このアイデアについてのあなたの考えや、懸念点などを記入してください..."></textarea>
+                
+                <button type="button" class="modal-save-btn" onclick="savePersonalScore()">評価を保存</button>
+            </form>
+            <p style="font-size:0.8rem; margin-top:10px; color:#999;">※評価とメモはブラウザに保存され、他者とは共有されません。</p>
+        </div>
+    </div>
 </div>
 
 <script>
-document.addEventListener('DOMContentLoaded', function() {
-    
-    // --- Data Definition ---
-    const ideas = [
-        { id: '1', type: 'member', author: '不明', cat: 'AI/IoT', title: '歯ブラシカメラ', target: '虫歯予防', pain: '磨き残しが見えない', solution: '歯をカラーコード化しスマホで可視化', uvp: '自宅で完璧なオーラルケア' },
-        { id: '2', type: 'member', author: '歌丸', cat: 'AR/IoT', title: '寝ながらドーム型ディスプレイ', target: '育児中の親', pain: '夜しか時間がない/音漏れ困る', solution: '指向性スピーカー付きドーム', uvp: '寝落ちOKの没入シアター' },
-        { id: '3', type: 'member', author: '歌丸', cat: 'VR/AR', title: 'VR検証デバイス', target: '開発者', pain: 'VR体験を2Dで伝えられない', solution: '両眼視覚を1画面に再現するAI', uvp: '体験の可視化' },
-        { id: '4', type: 'member', author: '中尾', cat: 'LifeLog', title: '感情レコーダー', target: '親', pain: '当時の感情まで記録できない', solution: '写真以上にリアルな記録媒体', uvp: '' },
-        { id: '5', type: 'member', author: '中尾', cat: 'LifeLog', title: '人向けドラレコ', target: '親', pain: '子供の危険状況が不明', solution: '常時録画デバイス', uvp: '安心の可視化' },
-        { id: '6', type: 'member', author: '真田', cat: 'Robotics', title: '専属メイクアップマシーン', target: '女性', pain: 'メイク時間がない/苦手', solution: '顔認識ロボットが自動メイク', uvp: '毎朝プロの仕上がり' },
-        { id: '7', type: 'member', author: '浜野', cat: 'Health', title: '心と体のオーラ可視化', target: '健康志向', pain: '不調の原因が不明', solution: 'センサーでバイタルをオーラ化', uvp: 'ゲーミフィケーション健康管理' },
-        { id: '8', type: 'member', author: '里平', cat: 'MaaS', title: 'HelpWork', target: '困っている人', pain: '今すぐ人手が欲しい', solution: '近隣即時マッチングアプリ', uvp: 'リアルタイム相互扶助' },
-        { id: '9', type: 'member', author: '里平', cat: 'AI/Robo', title: '香り自動発生機', target: 'ワーカー', pain: '集中・リラックス切り替え', solution: '状況に合わせ香りを自動生成', uvp: '香りで空間をハック' },
-        { id: '10', type: 'member', author: '真田', cat: 'EdTech', title: '教育カスタマイズ支援', target: '教員', pain: '生徒対応の負担増', solution: 'データ分析とグラスで指導支援', uvp: '教育の個別最適化' },
-        { id: '12', type: 'member', author: '真田', cat: 'Other', title: '雷ガード', target: '子供', pain: '雷音が怖い', solution: '遮音・安心デバイス', uvp: '' },
-        { id: '13', type: 'member', author: '真田', cat: 'AR', title: 'YUKIQUEST (除雪AR)', target: '雪国', pain: '雪かきが辛い', solution: 'ARで除雪指示＆ゲーム化', uvp: '労働をエンタメに' },
-        { id: '14', type: 'member', author: '真田', cat: 'Display', title: '空もようカーテン', target: '家庭', pain: '雨の日は憂鬱', solution: 'LEDカーテンで外景を変更', uvp: 'いつでも晴天の窓辺' },
-        { id: '16', type: 'member', author: '里平', cat: 'Smartphone', title: 'スマホ背面ディスプレイ', target: '一般', pain: 'ケースに飽きる', solution: '背面全体がディスプレイ', uvp: '無限に変わるデザイン' },
-        { id: '17', type: 'member', author: '里平', cat: 'IoT', title: 'RFID環境カスタマイズ', target: '一般', pain: '設定変更が面倒', solution: 'タグを持つだけで部屋が変形', uvp: '空間のパーソナライズ' },
-        { id: '18', type: 'member', author: '里平', cat: 'IoT', title: 'SNS連携アクセ', target: '若者', pain: '連絡先交換が手間', solution: 'かざすだけのスマートアクセ', uvp: 'デジタル名刺' },
-        { id: '19', type: 'member', author: '里平', cat: 'IoT', title: '秘密の交換タグ', target: '一般', pain: 'ギフトに驚きがない', solution: 'スマホをかざすまで中身不明', uvp: 'デジタル・サプライズ' },
-        { id: '20', type: 'member', author: '歌丸', cat: 'IoT', title: '人間ETC', target: 'テーマパーク', pain: '待ち時間が長い', solution: '顔パス入場・着席管理', uvp: 'ストレスフリー体験' },
-        { id: '21', type: 'member', author: '歌丸', cat: 'Blockchain', title: 'P2Pレンタル', target: '体験重視', pain: '高額品を買いたくない', solution: 'IoT管理の個人間レンタル', uvp: 'モノの所有から利用へ' },
-        { id: '22', type: 'member', author: '浜野', cat: 'Audio', title: '空間ノイズキャンセル', target: '敏感な人', pain: '静寂が欲しい', solution: '逆位相音で部屋ごと消音', uvp: 'ウェアラブル不要の静寂' },
-        { id: '23', type: 'member', author: '浜野', cat: 'Scent', title: '香りのタイムカプセル', target: '思い出', pain: '記憶が薄れる', solution: '写真＋香りの記録', uvp: 'プルースト効果の再現' },
-        { id: '24', type: 'member', author: '浜野', cat: 'Scent', title: '香りで以心伝心', target: '家族', pain: '連絡を見てくれない', solution: '香りで合図を送る', uvp: '感情に届く通知' },
-        { id: '25', type: 'member', author: '浜野', cat: 'Display', title: 'デジタル箱庭', target: 'クリエイター', pain: 'VRは酔う', solution: '裸眼立体の卓上ディスプレイ', uvp: '手の中の小宇宙' },
-        { id: '26', type: 'member', author: '中尾', cat: 'IoT', title: '自動雨よけ', target: '家庭', pain: '洗濯物が濡れる', solution: '雨検知で自動展開', uvp: '干したまま外出OK' },
-        { id: '27', type: 'member', author: '中尾', cat: 'RFID', title: '落し物即時アラーム', target: '忘れ物', pain: '気づかない', solution: '離れると即鳴るシール', uvp: 'シール型紛失防止' },
-        { id: '29', type: 'member', author: '中尾', cat: 'Camera', title: '分離型カメラスマホ', target: '撮影者', pain: '人混みで撮れない', solution: 'カメラ部が外れる', uvp: 'フリーアングル撮影' },
-        { id: '30', type: 'member', author: '伊達', cat: 'BioAuth', title: '香りキー（生体認証）', target: '一般', pain: '指紋/顔が効かない', solution: '体臭で認証', uvp: 'タッチレス・ルックレス' },
-        { id: '31', type: 'member', author: '伊達', cat: 'Health', title: 'アレルギー検知', target: 'アレルギー', pain: '成分が不安', solution: '匂いでアレルゲン特定', uvp: '食べる前の安全確認' },
-        { id: '33', type: 'member', author: '真田', cat: 'AI', title: 'ココミミ（AIミラー）', target: '疲れた人', pain: '誰とも話したくない', solution: '表情を読む鏡が共感', uvp: '感情のデトックス' },
-        { id: '34', type: 'member', author: '浜野', cat: 'AI', title: 'パーソナライズラジオ', target: 'ながら層', pain: '情報選別が面倒', solution: 'AI自動編成ラジオ', uvp: '自分専用放送局' },
-        { id: '36', type: 'member', author: '浜野', cat: 'Haptics', title: 'BackDodge', target: '一般', pain: '背後が怖い', solution: '背面センサと振動通知', uvp: '第六感の実装' },
-        { id: '37', type: 'member', author: '浜野', cat: 'App', title: '食べモン (食育)', target: '子供', pain: '好き嫌い多い', solution: '食事でキャラ育成', uvp: '完食をエンタメ化' },
-        { id: '38', type: 'member', author: '歌丸', cat: 'AR', title: '白紙の本', target: '読書家', pain: '本は嵩張る', solution: '白紙＋ARで中身表示', uvp: 'アナログとデジタルの融合' },
-        { id: '41', type: 'member', author: '真田', cat: 'Camera', title: '透けるカメラ', target: '撮影者', pain: '障害物が邪魔', solution: '障害物透過処理', uvp: '被写体だけを写す' },
-        { id: '42', type: 'member', author: '真田', cat: 'Haptics', title: '指さない将棋', target: '将棋', pain: '準備面倒', solution: '触覚盤面ディスプレイ', uvp: '手軽に本格対局' },
-        { id: '43', type: 'member', author: '里平', cat: 'Energy', title: 'ハイブリッドカーテン', target: '家庭', pain: '停電不安', solution: '遮光蓄電＋夜間照明', uvp: '防災インテリア' },
-        { id: '44', type: 'member', author: '伊達', cat: 'AI/Music', title: 'Behavior Synth', target: '作家', pain: '作曲難しい', solution: '行動を音楽に変換', uvp: '振る舞いが音になる' },
-        { id: '45', type: 'member', author: '浜野', cat: 'IoT', title: 'スマートゴミ箱', target: '家庭', pain: '分別/在庫管理', solution: 'バーコード管理', uvp: '捨てる＝管理する' },
-        { type: 'research', author: '-', cat: 'Bio', title: '虫ボーグ', solution: '益虫で害虫駆除' },
-        { type: 'research', author: '-', cat: 'IoT', title: 'けん玉ギブス', solution: '絶対できる矯正具' },
-        { type: 'research', author: '-', cat: 'Future', title: '誰でも念力', solution: '脳波/音声レス操作' },
-        { type: 'research', author: '-', cat: 'IoT', title: '自動音調', solution: '体感温度でエアコン制御' },
-        { type: 'research', author: '-', cat: 'Robo', title: '第3の手', solution: '作業補助アーム' },
-        { type: 'research', author: '里平', cat: 'Med', title: '遠隔通信医療', solution: '即時空き医者マッチング' },
-        { type: 'research', author: '-', cat: 'VR', title: '睡眠改善VR', solution: '入眠サポート映像' },
-        { type: 'research', author: '浜野', cat: 'Health', title: '運動継続可視化', solution: '理想体型へのロードマップ' },
-        { type: 'research', author: '-', cat: 'Bio', title: 'マルチウォーター', solution: '水に味覚錯覚を付与' },
-        { type: 'research', author: '伊達', cat: 'VR', title: '誰でもプロ体験', solution: '選手視点で観戦' },
-        { type: 'research', author: '伊達', cat: 'AI', title: '喪失感ゼロ', solution: '故人・ペット再現AI' },
-        { type: 'research', author: '伊達', cat: 'Health', title: '飲酒限界可視化', solution: 'あと何杯飲めるか表示' },
-        { type: 'research', author: '伊達', cat: 'AR', title: '映像名刺', solution: '顔横にプロフィール表示' },
-        { type: 'research', author: '伊達', cat: 'AR', title: '家庭内事故予防', solution: '危険箇所をAR表示' },
-        { type: 'research', author: '里平', cat: 'Energy', title: '電池不要IoT', solution: '温度差発電デバイス' },
-        { type: 'research', author: '里平', cat: 'Scent', title: '香り再生メディア', solution: '映像と香りの同期' },
-        { type: 'research', author: '里平', cat: 'Scent', title: 'MemoriAroma', solution: '思い出の香りを再現' },
-        { type: 'research', author: '里平', cat: 'Scent', title: 'ScenTone', solution: '香りの楽器' }
+    // --- データ定義 (Excelシートの全主要情報を含む) ---
+    // AI Score: { k:感動, s:Sony, n:新奇 } 5点満点
+    const rawData = [
+        { id:53, author:'伊達', title:'Behavior Soundscape', cat:'Creative', score:{k:5, s:5, n:5}, who:'ありのままの自分を表現したい人', pain:'自身の感情や行動を言葉以外で表現する手段がない', uvp:'心拍・表情・行動を音楽に変換。「私が音になる」体験。', solution:'バイタルセンサーとAIを搭載したウェアラブルデバイスで行動パターンをリアルタイム解析し、音楽として出力。', kgi:'音楽共有プラットフォーム上での楽曲利用数', tech:'AI(行動解析)、センサー技術', risk:'プライバシー、データの倫理的な使用', timing:'個の表現欲求の高まり、ウェアラブル技術の成熟'},
+        { id:2, author:'歌丸', title:'寝ながらドーム型ディスプレイ', cat:'AV/Immersive', score:{k:5, s:5, n:4}, who:'夜しか時間がない親', pain:'夜子供を寝かしつけた後に、大迫力の映像コンテンツを体験したい', uvp:'指向性スピーカー＋暗視ドーム。寝落ちOKの完全没入シアター。', solution:'寝室の天井に取り付ける超短焦点プロジェクターと音漏れしない指向性スピーカー、遮光ドーム。', kgi:'平均視聴時間', tech:'指向性スピーカー、プロジェクション技術', risk:'設置の手間、寝室環境への配慮', timing:'共働き世帯の増加、ホームエンタメ需要の拡大'},
+        { id:48, author:'里平', title:'MEMORY SEED', cat:'Life/Health', score:{k:5, s:4, n:5}, who:'思い出を大切にする人', pain:'デジタル思い出は膨大で、見返すことなく埋もれていく', uvp:'水をあげて思い出を「育てる」デバイス。記憶が花開く体験。', solution:'写真や動画を「種」に見立て、水（インタラクション）を与えると、美しいディスプレイの中で「花」として再生されるIoTデバイス。', kgi:'月間再生頻度', tech:'AI(画像解析)、IoTデバイス', risk:'デバイスのデザイン性とインテリア性', timing:'デジタルデトックス、アナログ回帰のトレンド'},
+        { id:56, author:'歌丸', title:'SilentSphere', cat:'AV/Immersive', score:{k:3, s:5, n:5}, who:'集中したいワーカー', pain:'オフィスやカフェの雑音、オンライン会議のノイズ', uvp:'見えない音のバリアを作るポータブル空間ノイズキャンセラ。', solution:'超音波とノイズキャンセリング技術を組み合わせ、特定の空間・人物にだけ静寂を提供するポータブルデバイス。', kgi:'会議中の集中度向上率', tech:'超指向性音響、ノイズキャンセリング技術', risk:'効果範囲の限定、他の利用者への影響', timing:'リモートワークの定着、オープンオフィス化'},
+        { id:6, author:'真田', title:'専属メイクアップマシーン', cat:'AI/Robotics', score:{k:4, s:5, n:4}, who:'メイク時間がない/苦手な人', pain:'毎朝のメイクにかかる時間が勿体ない、プロのような仕上がりにしたい', uvp:'顔認識とロボットアームで、毎朝プロ級のメイクを自動化。', solution:'AIが顔の輪郭や肌の調子を解析し、最適なメイクをロボットアームで高速かつ精密に施す。', kgi:'朝の準備時間短縮率', tech:'AI(画像認識)、ロボティクス(精密動作)', risk:'安全性の懸念、肌への接触', timing:'AIとロボット技術の進化、時短ニーズの増加'},
+        { id:29, author:'真田', title:'ココミミ (AIミラー)', cat:'AI/Robotics', score:{k:5, s:4, n:3}, who:'心のケアを必要とする人', pain:'誰とも話したくないが、心のどこかで寂しさを感じている', uvp:'表情を読み取り、鏡が静かに寄り添い共感してくれる。', solution:'AIが表情や声のトーンを解析し、鏡のディスプレイ上に感情に合った抽象的な視覚表現（色、光など）を投影。', kgi:'ユーザーの自己肯定感スコア', tech:'AI(感情認識)、ディスプレイ技術', risk:'依存性、プライバシーの侵害', timing:'メンタルヘルス意識の高まり、AI技術の日常浸透'},
+        { id:9, author:'里平', title:'香り自動発生 (Smart Scent)', cat:'AV/Immersive', score:{k:4, s:4, n:4}, who:'没入体験を求めるユーザー', pain:'視覚・聴覚以外の五感でのエンタメ体験が不足している', uvp:'映像や状況に合わせて香りを自動選定・合成。五感エンタメ。', solution:'映画やゲームのメタデータから香りを自動生成・噴霧するデバイス。香りのカートリッジ交換式。', kgi:'エンタメコンテンツの満足度スコア', tech:'嗅覚ディスプレイ、コンテンツメタデータ解析', risk:'香りの個人差、カートリッジのコスト', timing:'XR技術の進化、五感刺激型コンテンツの模索'},
+        { id:1, author:'中尾', title:'歯ブラシカメラ', cat:'Life/Health', score:{k:3, s:5, n:3}, who:'口腔ケア意識の高い人', pain:'歯の磨き残しが見えず、虫歯や口臭の原因になってしまう', uvp:'イメージセンサで歯を可視化。高度なセンシング技術の日常化。', solution:'歯ブラシの先端にイメージセンサーを搭載し、磨き残しをAIがカラーコードで表示。', kgi:'プラーク付着率の低下', tech:'AI(画像解析)、イメージセンサ技術', risk:'衛生面、医療機器としての規制', timing:'ヘルスケア意識の向上、小型センサーの進化'},
+        { id:12, author:'真田', title:'YUKIQUEST (除雪AR)', cat:'AV/Immersive', score:{k:4, s:3, n:5}, who:'豪雪地帯の住民', pain:'雪かきが辛い労働で、モチベーションを保つのが困難', uvp:'ARグラスで除雪をゲーミフィケーション化。労働をエンタメに。', solution:'ARグラスを装着し、雪かきエリアをゲームのクエストのようにマッピング。雪の量に応じてスコアや報酬を付与。', kgi:'平均除雪時間の短縮', tech:'ARグラス、ロケーションベースゲーミフィケーション', risk:'屋外での視認性、バッテリー持続時間', timing:'AR技術の一般普及、労働人口減少に伴う省力化ニーズ'},
+        { id:52, author:'真田', title:'PawBot (片付けロボ)', cat:'AI/Robotics', score:{k:4, s:4, n:3}, who:'片付けが苦手な家庭', pain:'部屋が散らかり、どこに何があるかわからなくなる', uvp:'「かわいさ」で片付けを促すパートナーロボット。AIBOの家事版。', solution:'AIが物を認識し、可愛らしい鳴き声や動きで片付けを促す小型ロボット。AIBOのような愛着デザイン。', kgi:'部屋の片付け完了率', tech:'AI(物体認識)、ロボティクス(愛玩性)', risk:'実用性の限界、高価格化', timing:'AIBO成功体験の活用、家庭内ロボット需要の増加'},
+        { id:30, author:'浜野', title:'パーソナライズラジオ', cat:'AV/Immersive', score:{k:3, s:4, n:3}, who:'情報選別を面倒に感じる人', pain:'必要な情報を得るために、多くのコンテンツから選別する手間がある', uvp:'AIが興味に合わせて番組を自動編成する自分専用放送局。', solution:'AIがユーザーの行動・興味を分析し、ニュース、音楽、ポッドキャストなどをシームレスに編集・放送する。', kgi:'利用継続率', tech:'AI(レコメンデーション)、音声合成', risk:'情報の偏り（フィルターバブル）、著作権', timing:'音声コンテンツの復権、AIによるコンテンツ自動生成の進化'},
+        { id:14, author:'里平', title:'スマホ背面ディスプレイ', cat:'Creative', score:{k:3, s:4, n:3}, who:'個性を表現したいスマートフォンユーザー', pain:'スマートフォンのケースやデザインに飽きる、もっと個性を出したい', uvp:'背面全体がディスプレイ。気分でデザインを変えるSonyらしい意匠。', solution:'スマートフォン背面に高解像度・低消費電力のE-Inkまたは有機ELディスプレイを搭載し、デザインや情報を表示。', kgi:'デザイン変更頻度', tech:'ディスプレイ技術、薄型化技術', risk:'バッテリー消費、耐久性', timing:'若年層の自己表現ニーズ、モバイルデバイスの意匠差別化'},
+        { id:27, author:'伊達', title:'香りキー (生体認証)', cat:'Communication', score:{k:2, s:4, n:5}, who:'セキュリティと利便性を求める人', pain:'指紋・顔認証、パスワード入力の手間', uvp:'体臭で認証する究極のハンズフリー・セキュリティ。', solution:'個人の体臭（揮発性有機化合物）をセンサーで瞬時に解析し、生体認証キーとして利用。', kgi:'認証成功率と速度', tech:'高感度センサー、AI(パターン認識)', risk:'認証の安定性、体調による変動', timing:'生体認証技術の進化、プライバシー意識の高まり'},
+        { id:32, author:'浜野', title:'BackDodge (第六感)', cat:'Life/Health', score:{k:3, s:4, n:5}, who:'都市部の歩行者', pain:'背後からの衝突や危険な接近に気づきにくい', uvp:'背面センサと振動で接近を通知。「第六感」のテクノロジー化。', solution:'背中や服に装着する超小型センサーが背後の動きや接近を検知し、振動や音でユーザーに警告。', kgi:'衝突事故の減少率', tech:'超音波/赤外線センサー、触覚フィードバック', risk:'誤検知の多発、装着の手間', timing:'都市生活のストレス増加、ウェアラブルセンサーの小型化'},
+        { id:40, author:'伊達', title:'Behavior Synth', cat:'Creative', score:{k:4, s:5, n:4}, who:'音楽制作に興味がある非専門家', pain:'作曲スキルがなく、自分の感情を音楽で表現できない', uvp:'日常の振る舞いがそのまま音楽になるシンセサイザー。', solution:'ウェアラブルデバイスが心拍、歩行リズム、位置情報などを取得し、それらをパラメータとしてAIが即興で音楽を生成。', kgi:'生成された楽曲の公開数', tech:'AI(音楽生成)、バイオセンシング', risk:'音楽の品質、ユーザーの解釈とのズレ', timing:'AIによる創作支援の一般化、非同期なコミュニケーションの増加'},
+        { id:45, author:'真田', title:'可変ハイヒール', cat:'AI/Robotics', score:{k:4, s:3, n:4}, who:'TPOに合わせて靴を変えるのが面倒な人', pain:'TPO（時間、場所、場合）で靴を履き替えなければならない', uvp:'ロボティクス技術でヒールの高さを自動調整。', solution:'靴底に小型のアクチュエーターを搭載し、スマホや環境に応じてヒールの高さを1cm単位で瞬時に変更。', kgi:'靴の平均着用回数', tech:'小型アクチュエーター、ロボティクス', risk:'耐久性、安定性、デザイン性', timing:'スマートウェア市場の成長、精密機械の小型化'},
+        { id:47, author:'里平', title:'Horizon Navigation', cat:'AV/Immersive', score:{k:3, s:4, n:4}, who:'運転中のナビゲーションに煩わしさを感じるドライバー', pain:'運転中のナビゲーション画面が視線移動を伴い危険', uvp:'フロントガラスARで道路に直接ルートを描画。', solution:'超小型プロジェクターを搭載した車載デバイスがフロントガラスに直接、ルート案内や危険警告を投影する。', kgi:'運転中の視線移動時間減少率', tech:'AR/プロジェクション技術、センサーフュージョン', risk:'屋外での輝度、情報の多すぎる表示', timing:'自動運転技術の発展、AR技術の車載応用'},
+        { id:18, author:'歌丸', title:'人間ETC', cat:'Communication', score:{k:3, s:3, n:3}, who:'行列が嫌いな人', pain:'テーマパークやイベント会場での行列、チケット購入のストレス', uvp:'顔パス・RFIDでゲートレス入場。止まらない体験。', solution:'体内のICチップや顔認証と連携した決済システムで、ゲートを通過するだけで自動的に料金を精算。', kgi:'入場時の平均待ち時間短縮率', tech:'RFID、顔認証、非接触決済', risk:'プライバシー、生体認証への抵抗感', timing:'非接触ニーズの増加、生体認証技術の普及'},
+        { id:34, author:'歌丸', title:'白紙の本 (AR Book)', cat:'AV/Immersive', score:{k:4, s:3, n:4}, who:'紙の本の手触りを好む読書家', pain:'紙の本の手触り感とデジタルの利便性の両立が難しい', uvp:'白紙の本＋ARグラス。アナログな体験とデジタル情報の融合。', solution:'本自体は手触りの良い白紙だが、ARグラスを装着するとページに文章やイラストが表示される。', kgi:'読書平均時間', tech:'ARグラス、触覚フィードバック', risk:'ARグラスの普及率、紙の質感の再現性', timing:'ARデバイスの高性能化、アナログとデジタルの融合'},
+        { id:23, author:'浜野', title:'デジタル箱庭', cat:'Creative', score:{k:3, s:4, n:3}, who:'VR酔いしやすいクリエイター', pain:'VRは酔いやすく、長時間の創作活動が難しい', uvp:'裸眼立体視ディスプレイで手の中に世界を作る。', solution:'裸眼で立体視が可能な小型ディスプレイとモーションセンサーで、手のひらの上にデジタルコンテンツを操作・配置。', kgi:'ユーザーの創作時間', tech:'裸眼立体視ディスプレイ、センサー技術', risk:'解像度、価格、視野角', timing:'メタバースの成長、裸眼3D技術の進化'},
+        { id:21, author:'浜野', title:'香りのタイムカプセル', cat:'Life/Health', score:{k:5, s:3, n:4}, who:'思い出を鮮明に残したい人', pain:'時間が経つと写真を見ても当時の感情や記憶が薄れてしまう', uvp:'写真＋香りを記録し、プルースト効果で記憶を鮮明に再生。', solution:'写真撮影時に環境の香りをキャプチャし、AIで分析。写真閲覧時にその香りを再現するデバイス。', kgi:'記憶の鮮明度評価', tech:'高感度センサー、嗅覚ディスプレイ', risk:'香りの再現精度、メンテナンス', timing:'記憶・感情科学への関心の高まり、センサー技術の発展'},
+        { id:7, author:'浜野', title:'オーラパワー', cat:'Life/Health', score:{k:3, s:4, n:3}, who:'自分の体調変化に鈍い人', pain:'自身の体調やメンタルヘルスの微妙な変化に気づきにくい', uvp:'バイタルをゲーム風オーラとして可視化', solution:'ウェアラブルセンサーがバイタルデータを測定し、それを色彩豊かなオーラとして視覚的に表現。', kgi:'体調変化の早期発見率', tech:'バイタルセンサー、AR/VR可視化', risk:'データの正確性、視覚表現の解釈', timing:'パーソナライズヘルスケアのトレンド、ウェアラブル普及'},
+        { id:13, author:'真田', title:'空もようカーテン', cat:'Life/Health', score:{k:4, s:3, n:3}, who:'窓からの景色に不満がある人', pain:'都市部で窓から景色が見えない、天気が悪いと気分が落ち込む', uvp:'LEDカーテンで窓の景色を自由に変更', solution:'高解像度LEDパネルをカーテンのように窓に設置し、リアルタイムの空模様や好みの風景を投影。', kgi:'ユーザーの気分スコア向上率', tech:'LEDディスプレイ、環境センシング', risk:'設置コスト、消費電力', timing:'ホームシアター化の進行、インテリア需要の多様化'},
+        { id:3, author:'歌丸', title:'VR検証デバイス', cat:'AV/Immersive', score:{k:2, s:4, n:3}, who:'VRコンテンツ開発者', pain:'VRコンテンツ開発における両眼視覚の検証効率が悪い', uvp:'両眼視覚を1画面に再現する開発ツール', solution:'VRヘッドセットを装着した視覚を1つのディスプレイに統合し、開発者がリアルタイムで視覚差を確認できるデバイス。', kgi:'検証時間の短縮率', tech:'VR/AR技術、ディスプレイ', risk:'開発者向けのニッチ市場、ソフトウェアとの連携', timing:'VR/ARコンテンツ市場の拡大'},
+        { id:24, author:'中尾', title:'自動雨よけ', cat:'Life/Health', score:{k:3, s:2, n:2}, who:'洗濯物を干す人', pain:'外出中に急な雨で洗濯物が濡れてしまう', uvp:'雨検知で自動展開', solution:'雨センサーが雨を検知すると、自動で展開し洗濯物を覆う防水カバー。', kgi:'洗濯物が濡れた回数の減少', tech:'センサー技術、自動展開機構', risk:'強風への耐性、センサーの誤作動', timing:'IoT家電の普及、共働き世帯の増加'},
+        { id:41, author:'浜野', title:'スマートゴミ箱', cat:'Life/Health', score:{k:2, s:3, n:3}, who:'ゴミ捨てを面倒に感じる人', pain:'ゴミの分別が面倒、ゴミ出しのタイミングを忘れがち', uvp:'バーコード管理で分別・在庫管理', solution:'投入されたゴミのバーコードや形状をAIが認識し、正しい分別を指示。自動でゴミ出し通知も行う。', kgi:'分別ミスの減少率', tech:'AI(画像認識)、IoTデバイス', risk:'ゴミ箱自体の洗浄・衛生面、価格', timing:'スマートホームの普及、環境意識の高まり'},
+        { id:8, author:'里平', title:'HelpWork', cat:'Communication', score:{k:3, s:1, n:2}, who:'急な人手不足に困る店舗経営者', pain:'急な欠勤や繁忙期の人手不足に即時対応できない', uvp:'近隣即時マッチング', solution:'急な欠員や業務を、近隣の登録者に即時でマッチングするプラットフォーム。', kgi:'マッチング成功までの平均時間', tech:'ロケーションベースサービス、マッチングAI', risk:'労働条件、トラブル発生時の責任', timing:'ギグワークの一般化、労働人口の流動性増加'},
+        { id:44, author:'浜野', title:'サウンドアロー', cat:'AV/Immersive', score:{k:2, s:5, n:3}, who:'騒がしい場所で会話が困難な人', pain:'騒がしい場所や広い会場で特定の相手との会話が聞き取りにくい', uvp:'超指向性スピーカーで特定の人にだけ声を届ける', solution:'超指向性スピーカー/マイク技術を用い、周囲のノイズを遮断し、特定の人物との会話をクリアにするポータブルデバイス。', kgi:'会話の聞き取りやすさスコア', tech:'超指向性音響技術', risk:'音の漏れ、音質の調整', timing:'音響技術の進化、公共空間の多様化'},
+        // IDが文字列のアイデア（R1/R2）
+        { id:'R1', author:'-', title:'虫ボーグ', cat:'Other', score:{k:1, s:2, n:4}, who:'農家、害虫駆除業者', pain:'害虫駆除の非効率、農薬の使用', uvp:'益虫コントロール', solution:'益虫に超小型センサーを装着し、特定の害虫への移動を遠隔コントロール。', kgi:'害虫駆除の成功率', tech:'超小型デバイス、無線制御', risk:'倫理的な問題、虫への負荷', timing:'IoT技術の微細化、精密農業の需要'},
+        { id:'R2', author:'-', title:'けん玉ギブス', cat:'Creative', score:{k:2, s:3, n:2}, who:'特定の技術習得に挫折した人', pain:'けん玉やゴルフなど、技術習得が難しく挫折してしまう', uvp:'絶対できる矯正具', solution:'正確な動作を補助するギブス型デバイス。AIが動作を解析し、最適なタイミングで力を加えて成功体験を保証。', kgi:'技術習得までの期間短縮率', tech:'ロボティクス、AI(動作解析)', risk:'自力での習得意欲の低下、装着の煩わしさ', timing:'パーソナルトレーニング需要、ロボティクス技術の民生応用'}
     ];
 
-    // State
-    const state = {
-        author: 'all',
-        cat: 'all',
-        search: '',
-        isFiltersOpen: true 
-    };
+    let currentCategory = 'all';
+    let currentAuthor = 'all';
+    const LOCAL_STORAGE_KEY = 'personalScores_v1';
+    let personalScores = {};
 
-    // --- DOM Elements ---
-    const dom = {
-        toggleBar: document.getElementById('filter-toggle-bar'),
-        filterContent: document.getElementById('filter-content'),
-        toggleIcon: document.getElementById('toggle-icon'),
-        toggleText: document.getElementById('toggle-text'),
-        activeSummary: document.getElementById('active-summary'),
-        searchInput: document.getElementById('search-input'),
-        catFilters: document.getElementById('cat-filters'),
-        gridMember: document.getElementById('grid-member'),
-        gridResearch: document.getElementById('grid-research'),
-        sectionMember: document.getElementById('section-member'),
-        sectionResearch: document.getElementById('section-research'),
-        emptyState: document.getElementById('empty-state'),
-        totalCount: document.getElementById('total-count')
-    };
-
-    // --- Functions ---
-    
-    // Toggle Logic
-    function toggleFilter(forceState = null) {
-        if (forceState !== null) {
-            state.isFiltersOpen = forceState;
-        } else {
-            state.isFiltersOpen = !state.isFiltersOpen;
-        }
-
-        if (state.isFiltersOpen) {
-            dom.filterContent.classList.add('open');
-            dom.toggleIcon.classList.add('open');
-            dom.toggleText.textContent = "閉じる";
-        } else {
-            dom.filterContent.classList.remove('open');
-            dom.toggleIcon.classList.remove('open');
-            dom.toggleText.textContent = "条件を変更する";
-        }
-        updateSummary();
-    }
-
-    // Active Summary Tags
-    function updateSummary() {
-        dom.activeSummary.innerHTML = '';
+    function init() {
+        loadPersonalScores();
         
-        // Author Tag
-        const authTag = document.createElement('span');
-        authTag.className = 'summary-tag';
-        if (state.author !== 'all') {
-            authTag.classList.add('active-highlight');
-            authTag.textContent = state.author === 'others' ? 'その他' : state.author;
-        } else {
-            authTag.textContent = '全員';
-        }
-        dom.activeSummary.appendChild(authTag);
-
-        // Category Tag
-        const catTag = document.createElement('span');
-        catTag.className = 'summary-tag';
-        if (state.cat !== 'all') {
-            catTag.classList.add('active-highlight');
-            catTag.textContent = state.cat;
-        } else {
-            catTag.textContent = '全ジャンル';
-        }
-        dom.activeSummary.appendChild(catTag);
-    }
-
-    // Init Category Buttons (動的に生成されるジャンルボタンの処理)
-    function initCats() {
-        const cats = new Set();
-        ideas.forEach(i => { if (i.cat && i.cat !== '-') cats.add(i.cat); });
-        const sortedCats = Array.from(cats).sort();
-
-        // 既存の「すべて」ボタンをクリアしないように、動的ボタンのみ追加
-        sortedCats.forEach(cat => {
-            const btn = document.createElement('button');
-            btn.className = 'btn-filter';
-            btn.dataset.type = 'cat';
-            btn.dataset.val = cat;
-            btn.textContent = cat;
-            // 動的ボタンには生成時にリスナーを追加
-            btn.addEventListener('click', () => setFilter('cat', cat));
-            dom.catFilters.appendChild(btn);
-        });
-    }
-
-    // Apply Filter Logic
-    function setFilter(type, value) {
-        state[type] = value;
-        
-        // Update Buttons Visual
-        document.querySelectorAll(`.btn-filter[data-type="${type}"]`).forEach(btn => {
-            if (btn.dataset.val === value) btn.classList.add('active');
-            else btn.classList.remove('active');
+        rawData.forEach(item => {
+            if(!item.score) item.score = {k:1, s:1, n:1};
+            item.totalScore = item.score.k + item.score.s + item.score.n;
+            if(item.totalScore >= 13) item.rank = 'S';
+            else if(item.totalScore >= 11) item.rank = 'A';
+            else item.rank = 'B';
+            
+            const personal = personalScores[item.id] || { k: 0, s: 0, n: 0, note: '' };
+            item.personalScore = personal;
+            item.personalTotal = personal.k + personal.s + personal.n;
         });
 
+        populateAuthorFilter();
         render();
-        updateSummary();
+    }
 
-        // Mobile UX: Auto close on selection to see results
-        if (window.innerWidth < 768) {
-            toggleFilter(false);
+    function loadPersonalScores() {
+        const stored = localStorage.getItem(LOCAL_STORAGE_KEY);
+        if (stored) {
+            personalScores = JSON.parse(stored);
         }
     }
 
-    // Render Grid
+    function savePersonalScores(id, k, s, n, note) {
+        personalScores[id] = { k: parseInt(k) || 0, s: parseInt(s) || 0, n: parseInt(n) || 0, note: note || '' };
+        localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(personalScores));
+        
+        init();
+    }
+
+    function populateAuthorFilter() {
+        const authorSelect = document.getElementById('authorSelect');
+        const authors = [...new Set(rawData.map(item => item.author))].filter(a => a !== '-').sort((a, b) => a.localeCompare(b, 'ja'));
+        
+        if (rawData.some(item => item.author === '-')) {
+            authors.push('-');
+        }
+        
+        authors.forEach(author => {
+            const displayAuthor = author === '-' ? '不明' : author;
+            const option = document.createElement('option');
+            option.value = author;
+            option.textContent = displayAuthor;
+            authorSelect.appendChild(option);
+        });
+        authorSelect.onchange = (e) => {
+            currentAuthor = e.target.value;
+            render();
+        };
+    }
+
+    function setCategory(cat, element) {
+        currentCategory = cat;
+        
+        document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+        if(element) {
+            element.classList.add('active');
+        } else {
+             const matchingButton = document.querySelector(`.filter-tabs button[onclick*="'${cat}'"]`);
+             if (matchingButton) matchingButton.classList.add('active');
+        }
+        
+        render();
+    }
+
     function render() {
-        dom.gridMember.innerHTML = '';
-        dom.gridResearch.innerHTML = '';
+        const grid = document.getElementById('grid');
+        grid.innerHTML = '';
 
-        let count = 0;
-        let memberCount = 0;
-        let researchCount = 0;
-        const targetAuthors = ['歌丸', '中尾', '真田', '浜野', '里平', '伊達'];
+        const sortType = document.getElementById('sortSelect').value;
 
-        ideas.forEach(item => {
-            // Filter Logic
-            if (state.author !== 'all') {
-                if (state.author === 'others') {
-                    // 'others' に該当するのは targetAuthors に含まれない、または '不明' のアイデア
-                    // item.author === '不明' も 'others' フィルタで表示する
-                    if (targetAuthors.includes(item.author) && item.author !== '不明') return; 
-                } else {
-                    if (item.author !== state.author) return;
-                }
-            }
+        let filtered = rawData.filter(item => {
+            if (currentCategory !== 'all' && item.cat !== currentCategory) return false;
+            if (currentAuthor !== 'all' && item.author !== currentAuthor) return false;
+            return true;
+        });
 
-            if (state.cat !== 'all') {
-                if (item.cat !== state.cat) return;
-            }
+        filtered.sort((a, b) => {
+            if (sortType === 'score') return b.totalScore - a.totalScore;
+            if (sortType === 'personal_score') return b.personalTotal - a.personalTotal;
+            if (sortType === 'id') return (parseInt(String(a.id))||999) - (parseInt(String(b.id))||999);
+            if (sortType === 'author') return a.author.localeCompare(b.author, 'ja');
+            if (sortType === 'kando') return b.score.k - a.score.k;
+            if (sortType === 'sony') return b.score.s - a.score.s;
+            if (sortType === 'new') return b.score.n - a.score.n;
+            return 0;
+        });
 
-            if (state.search) {
-                const text = `${item.title} ${item.solution} ${item.pain} ${item.uvp} ${item.target} ${item.author || ''} ${item.cat || ''}`.toLowerCase();
-                if (!text.includes(state.search)) return;
-            }
-
-            // Create Card
-            count++;
-            const isResearch = item.type === 'research';
+        filtered.forEach(item => {
             const card = document.createElement('div');
             card.className = 'card';
             
-            let tagsHtml = '';
-            if (item.id) tagsHtml += `<span class="tag">#${item.id}</span>`;
-            if (item.author && item.author !== '-') tagsHtml += `<span class="tag author">${item.author}</span>`;
-            if (item.cat && item.cat !== '-') tagsHtml += `<span class="tag cat">${item.cat}</span>`;
-            if (isResearch) tagsHtml += `<span class="tag draft">Idea Seed</span>`;
+            card.setAttribute('onclick', `openModal('${item.id}')`);
+            
+            let rankHtml = '';
+            if (item.rank === 'S') rankHtml = `<div class="rank-badge rank-s">S Rank (AI)</div>`;
+            else if (item.rank === 'A') rankHtml = `<div class="rank-badge rank-a">A Rank (AI)</div>`;
+
+            const wK = (item.score.k / 5) * 100;
+            const wS = (item.score.s / 5) * 100;
+            const wN = (item.score.n / 5) * 100;
+            
+            const personal = personalScores[item.id] || { k: 0, s: 0, n: 0, note: '' };
+            const personalStars = personal.k > 0 || personal.s > 0 || personal.n > 0 ? 
+                `<div style="margin-top:5px; font-size:0.8rem; color:var(--primary-dark);">
+                    <strong>あなたの評価:</strong> ${item.personalTotal} / 15点 
+                    ${item.personalTotal > 0 ? '（クリックして編集）' : ''}
+                </div>` : 
+                `<div style="margin-top:5px; font-size:0.8rem; color:#f00; font-weight:bold;">クリックして評価！</div>`;
 
             card.innerHTML = `
+                ${rankHtml}
                 <div class="card-header">
-                    <div class="card-meta">${tagsHtml}</div>
-                    <h3 class="card-title">${item.title || 'No Title'}</h3>
+                    <div class="meta-row">
+                        <span class="tag">No.${item.id}</span>
+                        <span class="tag author">${item.author === '-' ? '不明' : item.author}</span>
+                        <span class="tag cat">${item.cat}</span>
+                    </div>
+                    <h3 class="card-title">${item.title}</h3>
+                    
+                    <div style="margin-top:15px; font-size:0.8rem; color:#999; font-weight:bold;">【AI評価：合計${item.totalScore} / 15点】</div>
+                    <div class="score-bar-container">
+                        <div class="score-item"><div class="score-fill fill-kando" style="width:${wK}%"></div></div>
+                        <div class="score-item"><div class="score-fill fill-sony" style="width:${wS}%"></div></div>
+                        <div class="score-item"><div class="score-fill fill-new" style="width:${wN}%"></div></div>
+                    </div>
+                    <div class="score-labels">
+                        <span>感動(${item.score.k})</span><span>Sony(${item.score.s})</span><span>新奇(${item.score.n})</span>
+                    </div>
+                    ${personalStars}
                 </div>
                 <div class="card-body">
-                    ${!isResearch && item.target ? `<div><span class="info-label">Target</span><div class="info-text">${item.target}</div></div>` : ''}
-                    ${!isResearch && item.pain ? `<div><span class="info-label">Pain (課題)</span><div class="info-text">${item.pain}</div></div>` : ''}
-                    ${item.solution ? `<div><span class="info-label">Solution (解決策)</span><div class="info-text">${item.solution}</div></div>` : ''}
-                    ${!isResearch && item.uvp ? `<div class="uvp-box">${item.uvp}</div>` : ''}
+                    <div style="font-size:0.85rem; color:#666; margin-bottom:5px;">
+                        <strong>ターゲット:</strong> ${item.who || '-'}
+                    </div>
+                    <div class="uvp-box">
+                        <strong>価値提案:</strong> ${item.uvp}
+                    </div>
                 </div>
             `;
-
-            if (isResearch) {
-                dom.gridResearch.appendChild(card);
-                researchCount++;
-            } else {
-                dom.gridMember.appendChild(card);
-                memberCount++;
-            }
+            grid.appendChild(card);
         });
-
-        // Update Counts & Visibility
-        dom.totalCount.textContent = count;
-        dom.sectionMember.style.display = memberCount > 0 ? 'block' : 'none';
-        dom.sectionResearch.style.display = researchCount > 0 ? 'block' : 'none';
-        
-        if (count === 0) dom.emptyState.classList.add('visible');
-        else dom.emptyState.classList.remove('visible');
     }
 
-    // --- Event Listeners ---
-    dom.toggleBar.addEventListener('click', () => toggleFilter());
-    
-    dom.searchInput.addEventListener('keyup', (e) => {
-        state.search = e.target.value.toLowerCase();
-        render();
-    });
+    // --- Modal Functions ---
 
-    // ★ 最終修正: 静的に記述されているボタンにイベントリスナーを確実に追加 (担当者とジャンルすべて)
-    // #cat-filters の中の data-val="all" のボタンを明示的にターゲットにしています。
-    document.querySelectorAll('#author-filters .btn-filter, #cat-filters .btn-filter[data-val="all"]').forEach(btn => {
-        btn.addEventListener('click', () => {
-            const type = btn.dataset.type;
-            const value = btn.dataset.val;
-            setFilter(type, value);
-        });
-    });
+    function openModal(id) {
+        const item = rawData.find(d => (String(d.id) === id));
+        if (!item) return;
 
-    // Initialize
-    initCats();
-    // 初期状態を正しく表示し、フィルターエリアを開いた状態で始める
-    render();
-    toggleFilter(true); 
-});
+        const modal = document.getElementById('evaluationModal');
+        document.getElementById('modalTitle').textContent = item.title;
+        document.getElementById('modalMeta').innerHTML = `
+            <span class="tag author">記入者: ${item.author === '-' ? '不明' : item.author}</span> 
+            <span class="tag cat">カテゴリ: ${item.cat}</span>
+        `;
+        document.getElementById('modalUVP').textContent = item.uvp;
+
+        // Excel詳細情報をセット
+        document.getElementById('modalWho').textContent = item.who || '-';
+        document.getElementById('modalPain').textContent = item.pain || '-';
+        document.getElementById('modalSolution').textContent = item.solution || '-';
+        document.getElementById('modalKGI').textContent = item.kgi || '-';
+        document.getElementById('modalTech').textContent = item.tech || '-';
+        document.getElementById('modalRisk').textContent = item.risk || '-';
+        document.getElementById('modalTiming').textContent = item.timing || '-';
+        
+        // AIスコア情報
+        document.getElementById('modalAIScore').innerHTML = `
+            感動: <strong>${item.score.k}</strong>, Sonyらしさ: <strong>${item.score.s}</strong>, 新奇性: <strong>${item.score.n}</strong> (合計: ${item.totalScore}/15点)
+        `;
+        document.getElementById('modalIdeaId').value = item.id;
+
+        // 個人スコアをロード
+        const personal = personalScores[item.id] || { k: '', s: '', n: '', note: '' };
+        document.getElementById('personalKando').value = personal.k || '';
+        document.getElementById('personalSony').value = personal.s || '';
+        document.getElementById('personalNew').value = personal.n || '';
+        document.getElementById('personalNote').value = personal.note || '';
+
+        modal.style.display = 'flex';
+    }
+
+    function closeModal() {
+        document.getElementById('evaluationModal').style.display = 'none';
+    }
+
+    function savePersonalScore() {
+        const id = document.getElementById('modalIdeaId').value;
+        const k = document.getElementById('personalKando').value;
+        const s = document.getElementById('personalSony').value;
+        const n = document.getElementById('personalNew').value;
+        const note = document.getElementById('personalNote').value;
+        
+        const numK = parseInt(k);
+        const numS = parseInt(s);
+        const numN = parseInt(n);
+        
+        if ( (k !== '' && (isNaN(numK) || numK < 1 || numK > 5)) ||
+             (s !== '' && (isNaN(numS) || numS < 1 || numS > 5)) ||
+             (n !== '' && (isNaN(numN) || numN < 1 || numN > 5)) ) {
+            alert("スコアは1〜5の範囲の半角数字で入力してください。未入力でも構いません。");
+            return;
+        }
+
+        savePersonalScores(id, k, s, n, note);
+        closeModal();
+    }
+
+    window.onclick = function(event) {
+        const modal = document.getElementById('evaluationModal');
+        if (event.target === modal) {
+            closeModal();
+        }
+    }
+
+    // 実行
+    init();
+
 </script>
 </body>
 </html>
