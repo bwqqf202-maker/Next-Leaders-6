@@ -3,13 +3,18 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Future Product Lab | インタラクティブ評価版 (Ver. 4 - 採点基準追加)</title>
+    <title>Future Product Lab | インタラクティブ評価版 (Ver. 13)</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
     <style>
         :root {
             --bg: #F0F2F5;
             --surface: #FFFFFF;
             --primary: #0066CC;
             --primary-dark: #0056b3;
+            --personal: #009688; /* 個人評価のカラー */
+            --personal-bg: #E0F2F1;
+            --emotional-score: #C53030; /* 情緒的価値のカラー */
+            --execution-score: #38A169; /* 実行価値のカラー */
             --text-main: #333;
             --text-sub: #666;
             --rank-s: #FFD700;
@@ -43,6 +48,11 @@
             justify-content: space-between;
             align-items: center;
             margin-bottom: 1rem;
+            gap: 1rem;
+        }
+        .controls-selectors {
+            display: flex;
+            gap: 10px;
         }
         .sort-select, .author-select {
             padding: 8px 12px;
@@ -51,6 +61,30 @@
             font-size: 0.9rem;
             background: #f9f9f9;
         }
+
+        /* Tab Navigation */
+        .page-tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 10px;
+            border-bottom: 2px solid #ddd;
+        }
+        .page-tab-btn {
+            padding: 8px 20px;
+            border: none;
+            background: none;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: bold;
+            color: var(--text-sub);
+            border-bottom: 3px solid transparent;
+            transition: all 0.2s;
+        }
+        .page-tab-btn.active {
+            color: var(--primary);
+            border-bottom: 3px solid var(--primary);
+        }
+
         .filter-tabs {
             display: flex;
             gap: 0.5rem;
@@ -144,32 +178,31 @@
             margin: 0;
             line-height: 1.4;
         }
+        /* スコアバー共通スタイル */
         .score-bar-container {
-            display: flex;
-            gap: 4px;
-            margin-top: 8px;
+            margin-top: 5px;
+            height: 6px;
+            background: #e0e0e0;
+            border-radius: 3px;
         }
-        .score-item {
-            flex: 1;
-            height: 4px;
-            background: #eee;
-            border-radius: 2px;
-            position: relative;
-        }
-        .score-fill {
+        /* AI総合スコアバー */
+        .score-fill-total {
             height: 100%;
-            border-radius: 2px;
+            border-radius: 3px;
+            background: var(--primary);
+            transition: width 0.3s;
         }
-        .fill-kando { background: #E53E3E; }
-        .fill-sony { background: #3182CE; }
-        .fill-new { background: #38A169; }
-        .score-labels {
-            display: flex;
-            justify-content: space-between;
-            font-size: 0.65rem;
-            color: #999;
-            margin-top: 2px;
+        /* 個人スコアバーのスタイル */
+        .personal-score-container {
+            margin-bottom: 10px; 
         }
+        .score-fill-personal {
+            height: 100%;
+            border-radius: 3px;
+            background: var(--personal);
+            transition: width 0.3s;
+        }
+
         .card-body {
             padding: 1.2rem;
             flex: 1;
@@ -186,7 +219,7 @@
             border-radius: 0 4px 4px 0;
         }
 
-        /* Modal */
+        /* Modal Styles */
         .modal {
             display: none;
             position: fixed;
@@ -218,17 +251,14 @@
             cursor: pointer;
             transition: color 0.2s;
         }
-        .close-btn:hover,
-        .close-btn:focus {
-            color: var(--primary);
-            text-decoration: none;
-        }
-
         .modal-score-section h3 {
             border-bottom: 2px solid #eee;
             padding-bottom: 5px;
             margin-top: 20px;
             color: var(--primary);
+        }
+        .modal-score-section.personal-score h3 {
+            color: var(--personal);
         }
         .modal-score-section p {
             margin-bottom: 5px;
@@ -239,7 +269,6 @@
             width: 140px;
             color: var(--text-main);
         }
-        
         .score-input-group {
             display: flex;
             align-items: center;
@@ -261,6 +290,7 @@
         .score-value {
             font-weight: bold;
             color: var(--primary-dark);
+            width: 160px;
         }
         textarea {
             width: calc(100% - 20px);
@@ -271,7 +301,7 @@
             resize: vertical;
         }
         .modal-save-btn {
-            background-color: var(--primary);
+            background-color: var(--personal);
             color: white;
             padding: 10px 20px;
             border: none;
@@ -280,9 +310,6 @@
             font-size: 1rem;
             margin-top: 20px;
             transition: background-color 0.2s;
-        }
-        .modal-save-btn:hover {
-            background-color: var(--primary-dark);
         }
         .modal-uvp-box {
             padding: 15px;
@@ -296,6 +323,164 @@
             color: #00c3ff;
             font-weight: bold;
         }
+        .personal-score-summary {
+            padding: 10px;
+            background: var(--personal-bg);
+            border-radius: 4px;
+            margin-top: 10px;
+            font-weight: bold;
+            color: var(--personal);
+            text-align: center;
+        }
+        
+        /* AI Score Toggle Switch Styles */
+        .toggle-section {
+            display: flex;
+            align-items: center;
+            font-size: 0.9rem;
+            white-space: nowrap;
+        }
+        .switch-label {
+            position: relative;
+            display: inline-block;
+            width: 40px;
+            height: 20px;
+            margin-left: 10px;
+            margin-right: 5px;
+        }
+        .switch-label input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #ccc;
+            transition: .4s;
+            border-radius: 20px;
+        }
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 16px;
+            width: 16px;
+            left: 2px;
+            bottom: 2px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+        }
+        input:checked + .slider {
+            background-color: #F56565;
+        }
+        input:checked + .slider:before {
+            transform: translateX(20px);
+        }
+
+        /* AI Score Hiding Logic */
+        body.hide-ai-scores .rank-badge,
+        body.hide-ai-scores .score-bar-container.ai-total-score-container,
+        body.hide-ai-scores .ai-total-score-text
+        {
+            display: none !important;
+        }
+        .personal-score-container {
+            display: block; 
+        }
+
+        /* Summary Page Styles */
+        #summaryPage {
+            padding: 2rem 1.5rem;
+        }
+        .summary-header {
+            text-align: center;
+            margin-bottom: 2rem;
+            border-bottom: 2px solid #ddd;
+            padding-bottom: 1rem;
+        }
+        .chart-container-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            gap: 2rem;
+            margin-top: 2rem;
+        }
+        .chart-box {
+            background: var(--surface);
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+        }
+        .chart-box h3 {
+            margin-top: 0;
+            color: var(--primary-dark);
+            border-bottom: 1px solid #eee;
+            padding-bottom: 10px;
+        }
+        
+        /* Modal: Score Sections Divider */
+        .score-input-section-divider {
+            margin-top: 20px;
+            padding-top: 15px;
+            border-top: 1px solid #ddd;
+        }
+
+        /* Mobile Optimizations */
+        @media (max-width: 768px) {
+            .header-inner {
+                padding: 1rem;
+            }
+            .container {
+                padding: 1rem;
+            }
+            .grid {
+                grid-template-columns: 1fr;
+                gap: 1rem;
+            }
+            .controls-row {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 0.5rem;
+            }
+            .controls-selectors {
+                width: 100%;
+                justify-content: space-between;
+                margin-top: 10px;
+            }
+            .sort-select, .author-select {
+                flex-grow: 1;
+            }
+            h1 {
+                font-size: 1.5rem;
+            }
+            .modal-content {
+                width: 95%;
+                max-width: 95%;
+                padding: 20px 15px;
+            }
+            .score-input-group {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+            .score-input-group label {
+                width: 100%;
+                margin-bottom: 5px;
+            }
+            .score-input-group input {
+                width: calc(100% - 100px);
+            }
+            .score-value {
+                width: auto;
+            }
+            .chart-container-grid {
+                grid-template-columns: 1fr;
+                gap: 1.5rem;
+            }
+        }
     </style>
 </head>
 <body>
@@ -304,36 +489,88 @@
     <div class="header-inner">
         <div class="controls-row">
             <h1>プロダクトアイデア評価ボード</h1>
-            <div>
-                <select class="author-select" id="authorSelect" onchange="render()">
-                    <option value="all">すべて（作成者）</option>
-                </select>
-                <select class="sort-select" id="sortSelect" onchange="render()">
-                    <option value="score">おすすめ順 (AI評価)</option>
-                    <option value="id">ID順 (入力順)</option>
-                    <option value="author">作成者順</option>
-                    <option value="kando">感動スコア順</option>
-                    <option value="sony">Sonyらしさ順</option>
-                    <option value="new">新奇性順</option>
-                    <option value="personal_score">個人スコア順</option>
-                </select>
+            <div style="display: flex; align-items:center; flex-wrap: wrap; gap: 10px;">
+                <div class="toggle-section">
+                    <span style="color:#A00;">AIスコアを隠す</span>
+                    <label class="switch-label">
+                        <input type="checkbox" id="aiScoreToggle" onchange="toggleAIScores()">
+                        <span class="slider"></span>
+                    </label>
+                </div>
+                <div class="controls-selectors">
+                    <select class="author-select" id="authorSelect" onchange="render()">
+                        <option value="all">すべて（作成者）</option>
+                    </select>
+                    <select class="sort-select" id="sortSelect" onchange="render()">
+                        <option value="personal_score">個人スコア順 (総合評価)</option>
+                        <option value="total_ai_score">AI総合スコア順</option>
+                        <option value="score_kando">AI簡易評価順 (情緒)</option>
+                        <option value="score_exec">AI実行評価順 (実行)</option>
+                        <option value="id">ID順 (入力順)</option>
+                        <option value="author">作成者順</option>
+                    </select>
+                </div>
             </div>
         </div>
 
-        <div class="filter-tabs" id="categoryTabs">
-            <button class="tab-btn active" onclick="setCategory('all', this)">すべて</button>
-            <button class="tab-btn" onclick="setCategory('AV/Immersive', this)">AV/没入体験</button>
-            <button class="tab-btn" onclick="setCategory('AI/Robotics', this)">AI/ロボット</button>
-            <button class="tab-btn" onclick="setCategory('Life/Health', this)">生活/ヘルスケア</button>
-            <button class="tab-btn" onclick="setCategory('Communication', this)">通信/交流</button>
-            <button class="tab-btn" onclick="setCategory('Creative', this)">クリエイティブ</button>
-            <button class="tab-btn" onclick="setCategory('Other', this)">その他</button>
+        <div class="page-tabs">
+            <button class="page-tab-btn active" id="tabGrid" onclick="changePage('grid')">一覧ボード 🖼️</button>
+            <button class="page-tab-btn" id="tabSummary" onclick="changePage('summary')">評価サマリー 📊</button>
+        </div>
+
+        <div id="filterSection">
+            <div class="filter-tabs" id="categoryTabs">
+                <button class="tab-btn active" onclick="setCategory('all', this)">すべて</button>
+                <button class="tab-btn" onclick="setCategory('AV/Immersive', this)">AV/没入体験</button>
+                <button class="tab-btn" onclick="setCategory('AI/Robotics', this)">AI/ロボット</button>
+                <button class="tab-btn" onclick="setCategory('Life/Health', this)">生活/ヘルスケア</button>
+                <button class="tab-btn" onclick="setCategory('Communication', this)">通信/交流</button>
+                <button class="tab-btn" onclick="setCategory('Creative', this)">クリエイティブ</button>
+                <button class="tab-btn" onclick="setCategory('Other', this)">その他</button>
+            </div>
         </div>
     </div>
 </header>
 
-<div class="container">
+<div class="container" id="gridPage">
     <div class="grid" id="grid"></div>
+</div>
+
+<div class="container" id="summaryPage" style="display:none;">
+    <div class="summary-header">
+        <h2>アイデア評価傾向サマリー</h2>
+        <p>全アイデアのAI評価とメンバー評価（自己採点）の平均値を比較し、傾向を分析します。</p>
+        <div style="margin-top: 15px; font-weight: bold; color: var(--personal);">
+            ※メンバー評価は、あなたの採点（${Object.keys(personalScores).length}件）の平均値です。
+        </div>
+    </div>
+
+    <div class="chart-container-grid">
+        <div class="chart-box">
+            <h3>AI vs メンバー 総合レーダーチャート</h3>
+            <p style="font-size:0.85rem; color:#666;">（感動・ソニー・新奇性・実現性・検証容易性・戦略適合性の6軸）</p>
+            <canvas id="radarChart"></canvas>
+        </div>
+
+        <div class="chart-box">
+            <h3>情緒的価値 (AI vs メンバー) 棒グラフ</h3>
+            <p style="font-size:0.85rem; color:#666;">（感動、ソニーらしさ、新奇性 の平均点を比較）</p>
+            <canvas id="emotionalBarChart"></canvas>
+        </div>
+        
+        <div class="chart-box">
+            <h3>実行価値 (AI vs メンバー) 棒グラフ</h3>
+            <p style="font-size:0.85rem; color:#666;">（実現可能性、検証容易性、戦略的適合性 の平均点を比較）</p>
+            <canvas id="executionBarChart"></canvas>
+        </div>
+
+        <div class="chart-box">
+            <h3>AI総合スコアのカテゴリー別平均</h3>
+            <p style="font-size:0.85rem; color:#666;">（AI総合スコアの平均点をカテゴリー別に比較）</p>
+            <canvas id="categoryBarChart"></canvas>
+        </div>
+
+    </div>
 </div>
 
 <div id="evaluationModal" class="modal">
@@ -347,6 +584,62 @@
             <p id="modalUVP"></p>
         </div>
 
+        <div class="modal-score-section personal-score">
+            <h3>📝 メンバー評価 (あなたの採点)</h3>
+            <p style="font-size:0.85rem; color:var(--personal);">（各項目5点満点、合計30点満点での採点を行います。）</p>
+            <form id="personalScoreForm">
+                <input type="hidden" id="modalIdeaId">
+
+                <div class="score-input-section-divider" style="border-top: none;">
+                    <h4>情緒的価値（感動・新奇性など）- 合計15点</h4>
+                    <div class="score-input-group">
+                        <label for="personalKando">評価 A</label>
+                        <input type="number" id="personalKando" min="1" max="5" oninput="updatePersonalTotal()">
+                        <span class="score-value">/ 5 (感動/Kando)</span>
+                    </div>
+                    <div class="score-input-group">
+                        <label for="personalSony">評価 B</label>
+                        <input type="number" id="personalSony" min="1" max="5" oninput="updatePersonalTotal()">
+                        <span class="score-value">/ 5 (ソニーらしさ)</span>
+                    </div>
+                    <div class="score-input-group">
+                        <label for="personalNewness">評価 C</label>
+                        <input type="number" id="personalNewness" min="1" max="5" oninput="updatePersonalTotal()">
+                        <span class="score-value">/ 5 (新奇性)</span>
+                    </div>
+                </div>
+
+                <div class="score-input-section-divider">
+                    <h4>実行価値（事業実現性など）- 合計15点</h4>
+                    <div class="score-input-group">
+                        <label for="personalFeat">評価 D</label>
+                        <input type="number" id="personalFeat" min="1" max="5" oninput="updatePersonalTotal()">
+                        <span class="score-value">/ 5 (実現可能性)</span>
+                    </div>
+                    <div class="score-input-group">
+                        <label for="personalTest">評価 E</label>
+                        <input type="number" id="personalTest" min="1" max="5" oninput="updatePersonalTotal()">
+                        <span class="score-value">/ 5 (市場検証容易性)</span>
+                    </div>
+                    <div class="score-input-group">
+                        <label for="personalStrat">評価 F</label>
+                        <input type="number" id="personalStrat" min="1" max="5" oninput="updatePersonalTotal()">
+                        <span class="score-value">/ 5 (戦略的適合性)</span>
+                    </div>
+                </div>
+
+                <div class="personal-score-summary">
+                    あなたの総合評価 合計: <span id="personalTotalDisplay">0</span> / 30点
+                </div>
+
+                <h4>メモ・コメント</h4>
+                <textarea id="personalNote" placeholder="このアイデアについてのあなたの考えや、懸念点、実現に向けた具体策などを記入してください..."></textarea>
+
+                <button type="button" class="modal-save-btn" onclick="savePersonalScore()">評価を保存</button>
+                <p style="font-size:0.8rem; margin-top:10px; color:#999;">※評価とメモはブラウザに保存され、他者とは共有されません。</p>
+            </form>
+        </div>
+        
         <div class="modal-score-section">
             <h3>詳細情報 (Excelシート内容)</h3>
             <p><strong>🎯 ターゲット顧客 (Who):</strong> <span id="modalWho"></span></p>
@@ -357,12 +650,12 @@
             <p><strong>⚠️ 最大のリスク:</strong> <span id="modalRisk"></span></p>
             <p><strong>🕰️ タイミング (今):</strong> <span id="modalTiming"></span></p>
         </div>
-        
+
         <div class="modal-score-section">
-            <h3>AI評価 (参考)</h3>
-            <p id="modalAIScore"></p>
-            <div style="padding: 10px; border: 1px dashed #ccc; border-radius: 6px; background: #fafafa;">
-                <h4>採点基準 (5点満点)</h4>
+            <h3 style="color:var(--emotional-score);">【AI簡易評価】情緒的価値 (最大15点)</h3>
+            <p id="modalAIScoreKando"></p>
+            <div style="padding: 10px; border: 1px dashed var(--emotional-score); border-radius: 6px; background: #FFF5F5;">
+                <h4>AI採点基準 (5点満点)</h4>
                 <p style="margin: 5px 0;"><strong>🔥 感動（Kando）:</strong> ユーザーの心を動かし、期待を超える**情緒的な価値**を提供できるか。</p>
                 <p style="margin: 5px 0;"><strong>🌟 Sonyらしさ:</strong> Sonyの**技術的優位性**（イメージセンサー、音響、AI/ロボティクスなど）を活用しているか。</p>
                 <p style="margin: 5px 0;"><strong>✨ 新奇性:</strong> 既存の市場にない、**新しい課題解決策や技術の組み合わせ**を提供しているか。</p>
@@ -370,91 +663,121 @@
         </div>
 
         <div class="modal-score-section">
-            <h3>📝 メンバーによる個人評価</h3>
-            <form id="personalScoreForm">
-                <input type="hidden" id="modalIdeaId">
-                <div class="score-input-group">
-                    <label for="personalKando">感動</label>
-                    <input type="number" id="personalKando" min="1" max="5">
-                    <span class="score-value">/ 5</span>
-                </div>
-                <div class="score-input-group">
-                    <label for="personalSony">Sonyらしさ</label>
-                    <input type="number" id="personalSony" min="1" max="5">
-                    <span class="score-value">/ 5</span>
-                </div>
-                <div class="score-input-group">
-                    <label for="personalNew">新奇性</label>
-                    <input type="number" id="personalNew" min="1" max="5">
-                    <span class="score-value">/ 5</span>
-                </div>
-                
-                <h4>メモ・コメント</h4>
-                <textarea id="personalNote" placeholder="このアイデアについてのあなたの考えや、懸念点などを記入してください..."></textarea>
-                
-                <button type="button" class="modal-save-btn" onclick="savePersonalScore()">評価を保存</button>
-            </form>
-            <p style="font-size:0.8rem; margin-top:10px; color:#999;">※評価とメモはブラウザに保存され、他者とは共有されません。</p>
+            <h3 style="color:var(--execution-score);">【AIプロダクト評価】実行価値 (最大15点)</h3>
+            <p id="modalAIScoreExec"></p>
+            <div style="padding: 10px; border: 1px dashed var(--execution-score); border-radius: 6px; background: #F0FFF4;">
+                <h4>AI採点基準 (5点満点)</h4>
+                <p style="margin: 5px 0;">**A. 実現可能性 (Feasibility):** 既存技術の組み合わせで、速やかにMVPを構築可能か。 (技術的難易度とコスト)</p>
+                <p style="margin: 5px 0;">**B. 市場検証容易性 (Testability):** 低コスト・短期間で市場の重要仮説を検証できるか。 (MVP開発の明確性)</p>
+                <p style="margin: 5px 0;">**C. 戦略的適合性 (Strategic Fit):** 長期的な事業成長と競争優位性（参入障壁）に貢献するか。</p>
+            </div>
         </div>
     </div>
 </div>
 
 <script>
     // --- データ定義 (Excelシートの全主要情報を含む) ---
-    // AI Score: { k:感動, s:Sony, n:新奇 } 5点満点
+    // score_kando: { k:感動, s:Sony, n:新奇 } 5点満点 (AI簡易評価 - 情緒的価値)
+    // score_exec: { feat:実現性, test:検証容易性, strat:戦略的適合性 } 5点満点 (AIプロダクト評価 - 実行価値)
     const rawData = [
-        { id:53, author:'伊達', title:'Behavior Soundscape', cat:'Creative', score:{k:5, s:5, n:5}, who:'ありのままの自分を表現したい人', pain:'自身の感情や行動を言葉以外で表現する手段がない', uvp:'心拍・表情・行動を音楽に変換。「私が音になる」体験。', solution:'バイタルセンサーとAIを搭載したウェアラブルデバイスで行動パターンをリアルタイム解析し、音楽として出力。', kgi:'音楽共有プラットフォーム上での楽曲利用数', tech:'AI(行動解析)、センサー技術', risk:'プライバシー、データの倫理的な使用', timing:'個の表現欲求の高まり、ウェアラブル技術の成熟'},
-        { id:2, author:'歌丸', title:'寝ながらドーム型ディスプレイ', cat:'AV/Immersive', score:{k:5, s:5, n:4}, who:'夜しか時間がない親', pain:'夜子供を寝かしつけた後に、大迫力の映像コンテンツを体験したい', uvp:'指向性スピーカー＋暗視ドーム。寝落ちOKの完全没入シアター。', solution:'寝室の天井に取り付ける超短焦点プロジェクターと音漏れしない指向性スピーカー、遮光ドーム。', kgi:'平均視聴時間', tech:'指向性スピーカー、プロジェクション技術', risk:'設置の手間、寝室環境への配慮', timing:'共働き世帯の増加、ホームエンタメ需要の拡大'},
-        { id:48, author:'里平', title:'MEMORY SEED', cat:'Life/Health', score:{k:5, s:4, n:5}, who:'思い出を大切にする人', pain:'デジタル思い出は膨大で、見返すことなく埋もれていく', uvp:'水をあげて思い出を「育てる」デバイス。記憶が花開く体験。', solution:'写真や動画を「種」に見立て、水（インタラクション）を与えると、美しいディスプレイの中で「花」として再生されるIoTデバイス。', kgi:'月間再生頻度', tech:'AI(画像解析)、IoTデバイス', risk:'デバイスのデザイン性とインテリア性', timing:'デジタルデトックス、アナログ回帰のトレンド'},
-        { id:56, author:'歌丸', title:'SilentSphere', cat:'AV/Immersive', score:{k:3, s:5, n:5}, who:'集中したいワーカー', pain:'オフィスやカフェの雑音、オンライン会議のノイズ', uvp:'見えない音のバリアを作るポータブル空間ノイズキャンセラ。', solution:'超音波とノイズキャンセリング技術を組み合わせ、特定の空間・人物にだけ静寂を提供するポータブルデバイス。', kgi:'会議中の集中度向上率', tech:'超指向性音響、ノイズキャンセリング技術', risk:'効果範囲の限定、他の利用者への影響', timing:'リモートワークの定着、オープンオフィス化'},
-        { id:6, author:'真田', title:'専属メイクアップマシーン', cat:'AI/Robotics', score:{k:4, s:5, n:4}, who:'メイク時間がない/苦手な人', pain:'毎朝のメイクにかかる時間が勿体ない、プロのような仕上がりにしたい', uvp:'顔認識とロボットアームで、毎朝プロ級のメイクを自動化。', solution:'AIが顔の輪郭や肌の調子を解析し、最適なメイクをロボットアームで高速かつ精密に施す。', kgi:'朝の準備時間短縮率', tech:'AI(画像認識)、ロボティクス(精密動作)', risk:'安全性の懸念、肌への接触', timing:'AIとロボット技術の進化、時短ニーズの増加'},
-        { id:29, author:'真田', title:'ココミミ (AIミラー)', cat:'AI/Robotics', score:{k:5, s:4, n:3}, who:'心のケアを必要とする人', pain:'誰とも話したくないが、心のどこかで寂しさを感じている', uvp:'表情を読み取り、鏡が静かに寄り添い共感してくれる。', solution:'AIが表情や声のトーンを解析し、鏡のディスプレイ上に感情に合った抽象的な視覚表現（色、光など）を投影。', kgi:'ユーザーの自己肯定感スコア', tech:'AI(感情認識)、ディスプレイ技術', risk:'依存性、プライバシーの侵害', timing:'メンタルヘルス意識の高まり、AI技術の日常浸透'},
-        { id:9, author:'里平', title:'香り自動発生 (Smart Scent)', cat:'AV/Immersive', score:{k:4, s:4, n:4}, who:'没入体験を求めるユーザー', pain:'視覚・聴覚以外の五感でのエンタメ体験が不足している', uvp:'映像や状況に合わせて香りを自動選定・合成。五感エンタメ。', solution:'映画やゲームのメタデータから香りを自動生成・噴霧するデバイス。香りのカートリッジ交換式。', kgi:'エンタメコンテンツの満足度スコア', tech:'嗅覚ディスプレイ、コンテンツメタデータ解析', risk:'香りの個人差、カートリッジのコスト', timing:'XR技術の進化、五感刺激型コンテンツの模索'},
-        { id:1, author:'中尾', title:'歯ブラシカメラ', cat:'Life/Health', score:{k:3, s:5, n:3}, who:'口腔ケア意識の高い人', pain:'歯の磨き残しが見えず、虫歯や口臭の原因になってしまう', uvp:'イメージセンサで歯を可視化。高度なセンシング技術の日常化。', solution:'歯ブラシの先端にイメージセンサーを搭載し、磨き残しをAIがカラーコードで表示。', kgi:'プラーク付着率の低下', tech:'AI(画像解析)、イメージセンサ技術', risk:'衛生面、医療機器としての規制', timing:'ヘルスケア意識の向上、小型センサーの進化'},
-        { id:12, author:'真田', title:'YUKIQUEST (除雪AR)', cat:'AV/Immersive', score:{k:4, s:3, n:5}, who:'豪雪地帯の住民', pain:'雪かきが辛い労働で、モチベーションを保つのが困難', uvp:'ARグラスで除雪をゲーミフィケーション化。労働をエンタメに。', solution:'ARグラスを装着し、雪かきエリアをゲームのクエストのようにマッピング。雪の量に応じてスコアや報酬を付与。', kgi:'平均除雪時間の短縮', tech:'ARグラス、ロケーションベースゲーミフィケーション', risk:'屋外での視認性、バッテリー持続時間', timing:'AR技術の一般普及、労働人口減少に伴う省力化ニーズ'},
-        { id:52, author:'真田', title:'PawBot (片付けロボ)', cat:'AI/Robotics', score:{k:4, s:4, n:3}, who:'片付けが苦手な家庭', pain:'部屋が散らかり、どこに何があるかわからなくなる', uvp:'「かわいさ」で片付けを促すパートナーロボット。AIBOの家事版。', solution:'AIが物を認識し、可愛らしい鳴き声や動きで片付けを促す小型ロボット。AIBOのような愛着デザイン。', kgi:'部屋の片付け完了率', tech:'AI(物体認識)、ロボティクス(愛玩性)', risk:'実用性の限界、高価格化', timing:'AIBO成功体験の活用、家庭内ロボット需要の増加'},
-        { id:30, author:'浜野', title:'パーソナライズラジオ', cat:'AV/Immersive', score:{k:3, s:4, n:3}, who:'情報選別を面倒に感じる人', pain:'必要な情報を得るために、多くのコンテンツから選別する手間がある', uvp:'AIが興味に合わせて番組を自動編成する自分専用放送局。', solution:'AIがユーザーの行動・興味を分析し、ニュース、音楽、ポッドキャストなどをシームレスに編集・放送する。', kgi:'利用継続率', tech:'AI(レコメンデーション)、音声合成', risk:'情報の偏り（フィルターバブル）、著作権', timing:'音声コンテンツの復権、AIによるコンテンツ自動生成の進化'},
-        { id:14, author:'里平', title:'スマホ背面ディスプレイ', cat:'Creative', score:{k:3, s:4, n:3}, who:'個性を表現したいスマートフォンユーザー', pain:'スマートフォンのケースやデザインに飽きる、もっと個性を出したい', uvp:'背面全体がディスプレイ。気分でデザインを変えるSonyらしい意匠。', solution:'スマートフォン背面に高解像度・低消費電力のE-Inkまたは有機ELディスプレイを搭載し、デザインや情報を表示。', kgi:'デザイン変更頻度', tech:'ディスプレイ技術、薄型化技術', risk:'バッテリー消費、耐久性', timing:'若年層の自己表現ニーズ、モバイルデバイスの意匠差別化'},
-        { id:27, author:'伊達', title:'香りキー (生体認証)', cat:'Communication', score:{k:2, s:4, n:5}, who:'セキュリティと利便性を求める人', pain:'指紋・顔認証、パスワード入力の手間', uvp:'体臭で認証する究極のハンズフリー・セキュリティ。', solution:'個人の体臭（揮発性有機化合物）をセンサーで瞬時に解析し、生体認証キーとして利用。', kgi:'認証成功率と速度', tech:'高感度センサー、AI(パターン認識)', risk:'認証の安定性、体調による変動', timing:'生体認証技術の進化、プライバシー意識の高まり'},
-        { id:32, author:'浜野', title:'BackDodge (第六感)', cat:'Life/Health', score:{k:3, s:4, n:5}, who:'都市部の歩行者', pain:'背後からの衝突や危険な接近に気づきにくい', uvp:'背面センサと振動で接近を通知。「第六感」のテクノロジー化。', solution:'背中や服に装着する超小型センサーが背後の動きや接近を検知し、振動や音でユーザーに警告。', kgi:'衝突事故の減少率', tech:'超音波/赤外線センサー、触覚フィードバック', risk:'誤検知の多発、装着の手間', timing:'都市生活のストレス増加、ウェアラブルセンサーの小型化'},
-        { id:40, author:'伊達', title:'Behavior Synth', cat:'Creative', score:{k:4, s:5, n:4}, who:'音楽制作に興味がある非専門家', pain:'作曲スキルがなく、自分の感情を音楽で表現できない', uvp:'日常の振る舞いがそのまま音楽になるシンセサイザー。', solution:'ウェアラブルデバイスが心拍、歩行リズム、位置情報などを取得し、それらをパラメータとしてAIが即興で音楽を生成。', kgi:'生成された楽曲の公開数', tech:'AI(音楽生成)、バイオセンシング', risk:'音楽の品質、ユーザーの解釈とのズレ', timing:'AIによる創作支援の一般化、非同期なコミュニケーションの増加'},
-        { id:45, author:'真田', title:'可変ハイヒール', cat:'AI/Robotics', score:{k:4, s:3, n:4}, who:'TPOに合わせて靴を変えるのが面倒な人', pain:'TPO（時間、場所、場合）で靴を履き替えなければならない', uvp:'ロボティクス技術でヒールの高さを自動調整。', solution:'靴底に小型のアクチュエーターを搭載し、スマホや環境に応じてヒールの高さを1cm単位で瞬時に変更。', kgi:'靴の平均着用回数', tech:'小型アクチュエーター、ロボティクス', risk:'耐久性、安定性、デザイン性', timing:'スマートウェア市場の成長、精密機械の小型化'},
-        { id:47, author:'里平', title:'Horizon Navigation', cat:'AV/Immersive', score:{k:3, s:4, n:4}, who:'運転中のナビゲーションに煩わしさを感じるドライバー', pain:'運転中のナビゲーション画面が視線移動を伴い危険', uvp:'フロントガラスARで道路に直接ルートを描画。', solution:'超小型プロジェクターを搭載した車載デバイスがフロントガラスに直接、ルート案内や危険警告を投影する。', kgi:'運転中の視線移動時間減少率', tech:'AR/プロジェクション技術、センサーフュージョン', risk:'屋外での輝度、情報の多すぎる表示', timing:'自動運転技術の発展、AR技術の車載応用'},
-        { id:18, author:'歌丸', title:'人間ETC', cat:'Communication', score:{k:3, s:3, n:3}, who:'行列が嫌いな人', pain:'テーマパークやイベント会場での行列、チケット購入のストレス', uvp:'顔パス・RFIDでゲートレス入場。止まらない体験。', solution:'体内のICチップや顔認証と連携した決済システムで、ゲートを通過するだけで自動的に料金を精算。', kgi:'入場時の平均待ち時間短縮率', tech:'RFID、顔認証、非接触決済', risk:'プライバシー、生体認証への抵抗感', timing:'非接触ニーズの増加、生体認証技術の普及'},
-        { id:34, author:'歌丸', title:'白紙の本 (AR Book)', cat:'AV/Immersive', score:{k:4, s:3, n:4}, who:'紙の本の手触りを好む読書家', pain:'紙の本の手触り感とデジタルの利便性の両立が難しい', uvp:'白紙の本＋ARグラス。アナログな体験とデジタル情報の融合。', solution:'本自体は手触りの良い白紙だが、ARグラスを装着するとページに文章やイラストが表示される。', kgi:'読書平均時間', tech:'ARグラス、触覚フィードバック', risk:'ARグラスの普及率、紙の質感の再現性', timing:'ARデバイスの高性能化、アナログとデジタルの融合'},
-        { id:23, author:'浜野', title:'デジタル箱庭', cat:'Creative', score:{k:3, s:4, n:3}, who:'VR酔いしやすいクリエイター', pain:'VRは酔いやすく、長時間の創作活動が難しい', uvp:'裸眼立体視ディスプレイで手の中に世界を作る。', solution:'裸眼で立体視が可能な小型ディスプレイとモーションセンサーで、手のひらの上にデジタルコンテンツを操作・配置。', kgi:'ユーザーの創作時間', tech:'裸眼立体視ディスプレイ、センサー技術', risk:'解像度、価格、視野角', timing:'メタバースの成長、裸眼3D技術の進化'},
-        { id:21, author:'浜野', title:'香りのタイムカプセル', cat:'Life/Health', score:{k:5, s:3, n:4}, who:'思い出を鮮明に残したい人', pain:'時間が経つと写真を見ても当時の感情や記憶が薄れてしまう', uvp:'写真＋香りを記録し、プルースト効果で記憶を鮮明に再生。', solution:'写真撮影時に環境の香りをキャプチャし、AIで分析。写真閲覧時にその香りを再現するデバイス。', kgi:'記憶の鮮明度評価', tech:'高感度センサー、嗅覚ディスプレイ', risk:'香りの再現精度、メンテナンス', timing:'記憶・感情科学への関心の高まり、センサー技術の発展'},
-        { id:7, author:'浜野', title:'オーラパワー', cat:'Life/Health', score:{k:3, s:4, n:3}, who:'自分の体調変化に鈍い人', pain:'自身の体調やメンタルヘルスの微妙な変化に気づきにくい', uvp:'バイタルをゲーム風オーラとして可視化', solution:'ウェアラブルセンサーがバイタルデータを測定し、それを色彩豊かなオーラとして視覚的に表現。', kgi:'体調変化の早期発見率', tech:'バイタルセンサー、AR/VR可視化', risk:'データの正確性、視覚表現の解釈', timing:'パーソナライズヘルスケアのトレンド、ウェアラブル普及'},
-        { id:13, author:'真田', title:'空もようカーテン', cat:'Life/Health', score:{k:4, s:3, n:3}, who:'窓からの景色に不満がある人', pain:'都市部で窓から景色が見えない、天気が悪いと気分が落ち込む', uvp:'LEDカーテンで窓の景色を自由に変更', solution:'高解像度LEDパネルをカーテンのように窓に設置し、リアルタイムの空模様や好みの風景を投影。', kgi:'ユーザーの気分スコア向上率', tech:'LEDディスプレイ、環境センシング', risk:'設置コスト、消費電力', timing:'ホームシアター化の進行、インテリア需要の多様化'},
-        { id:3, author:'歌丸', title:'VR検証デバイス', cat:'AV/Immersive', score:{k:2, s:4, n:3}, who:'VRコンテンツ開発者', pain:'VRコンテンツ開発における両眼視覚の検証効率が悪い', uvp:'両眼視覚を1画面に再現する開発ツール', solution:'VRヘッドセットを装着した視覚を1つのディスプレイに統合し、開発者がリアルタイムで視覚差を確認できるデバイス。', kgi:'検証時間の短縮率', tech:'VR/AR技術、ディスプレイ', risk:'開発者向けのニッチ市場、ソフトウェアとの連携', timing:'VR/ARコンテンツ市場の拡大'},
-        { id:24, author:'中尾', title:'自動雨よけ', cat:'Life/Health', score:{k:3, s:2, n:2}, who:'洗濯物を干す人', pain:'外出中に急な雨で洗濯物が濡れてしまう', uvp:'雨検知で自動展開', solution:'雨センサーが雨を検知すると、自動で展開し洗濯物を覆う防水カバー。', kgi:'洗濯物が濡れた回数の減少', tech:'センサー技術、自動展開機構', risk:'強風への耐性、センサーの誤作動', timing:'IoT家電の普及、共働き世帯の増加'},
-        { id:41, author:'浜野', title:'スマートゴミ箱', cat:'Life/Health', score:{k:2, s:3, n:3}, who:'ゴミ捨てを面倒に感じる人', pain:'ゴミの分別が面倒、ゴミ出しのタイミングを忘れがち', uvp:'バーコード管理で分別・在庫管理', solution:'投入されたゴミのバーコードや形状をAIが認識し、正しい分別を指示。自動でゴミ出し通知も行う。', kgi:'分別ミスの減少率', tech:'AI(画像認識)、IoTデバイス', risk:'ゴミ箱自体の洗浄・衛生面、価格', timing:'スマートホームの普及、環境意識の高まり'},
-        { id:8, author:'里平', title:'HelpWork', cat:'Communication', score:{k:3, s:1, n:2}, who:'急な人手不足に困る店舗経営者', pain:'急な欠勤や繁忙期の人手不足に即時対応できない', uvp:'近隣即時マッチング', solution:'急な欠員や業務を、近隣の登録者に即時でマッチングするプラットフォーム。', kgi:'マッチング成功までの平均時間', tech:'ロケーションベースサービス、マッチングAI', risk:'労働条件、トラブル発生時の責任', timing:'ギグワークの一般化、労働人口の流動性増加'},
-        { id:44, author:'浜野', title:'サウンドアロー', cat:'AV/Immersive', score:{k:2, s:5, n:3}, who:'騒がしい場所で会話が困難な人', pain:'騒がしい場所や広い会場で特定の相手との会話が聞き取りにくい', uvp:'超指向性スピーカーで特定の人にだけ声を届ける', solution:'超指向性スピーカー/マイク技術を用い、周囲のノイズを遮断し、特定の人物との会話をクリアにするポータブルデバイス。', kgi:'会話の聞き取りやすさスコア', tech:'超指向性音響技術', risk:'音の漏れ、音質の調整', timing:'音響技術の進化、公共空間の多様化'},
-        // IDが文字列のアイデア（R1/R2）
-        { id:'R1', author:'-', title:'虫ボーグ', cat:'Other', score:{k:1, s:2, n:4}, who:'農家、害虫駆除業者', pain:'害虫駆除の非効率、農薬の使用', uvp:'益虫コントロール', solution:'益虫に超小型センサーを装着し、特定の害虫への移動を遠隔コントロール。', kgi:'害虫駆除の成功率', tech:'超小型デバイス、無線制御', risk:'倫理的な問題、虫への負荷', timing:'IoT技術の微細化、精密農業の需要'},
-        { id:'R2', author:'-', title:'けん玉ギブス', cat:'Creative', score:{k:2, s:3, n:2}, who:'特定の技術習得に挫折した人', pain:'けん玉やゴルフなど、技術習得が難しく挫折してしまう', uvp:'絶対できる矯正具', solution:'正確な動作を補助するギブス型デバイス。AIが動作を解析し、最適なタイミングで力を加えて成功体験を保証。', kgi:'技術習得までの期間短縮率', tech:'ロボティクス、AI(動作解析)', risk:'自力での習得意欲の低下、装着の煩わしさ', timing:'パーソナルトレーニング需要、ロボティクス技術の民生応用'}
+        // AI簡易評価 (kando/sony/new) : 実現性 (feat/test/strat)
+        // ID 53: Kando S (15点). Exec: 3+4+5=12点. Total: 27点.
+        { id:53, author:'伊達', title:'Behavior Soundscape', cat:'Creative', score_kando:{k:5, s:5, n:5}, score_exec:{feat:3, test:4, strat:5}, who:'ありのままの自分を表現したい人', pain:'自身の感情や行動を言葉以外で表現する手段がない', uvp:'心拍・表情・行動を音楽に変換。「私が音になる」体験。', solution:'バイタルセンサーとAIを搭載したウェアラブルデバイスで行動パターンをリアルタイム解析し、音楽として出力。', kgi:'音楽共有プラットフォーム上での楽曲利用数', tech:'AI(行動解析)、センサー技術', risk:'プライバシー、データの倫理的な使用', timing:'個の表現欲求の高まり、ウェアラブル技術の成熟'},
+        // ID 2: Kando A (14点). Exec: 4+5+4=13点. Total: 27点.
+        { id:2, author:'歌丸', title:'寝ながらドーム型ディスプレイ', cat:'AV/Immersive', score_kando:{k:5, s:5, n:4}, score_exec:{feat:4, test:5, strat:4}, who:'夜しか時間がない親', pain:'夜子供を寝かしつけた後に、大迫力の映像コンテンツを体験したい', uvp:'指向性スピーカー＋暗視ドーム。寝落ちOKの完全没入シアター。', solution:'寝室の天井に取り付ける超短焦点プロジェクターと音漏れしない指向性スピーカー、遮光ドーム。', kgi:'平均視聴時間', tech:'指向性スピーカー、プロジェクション技術', risk:'設置の手間、寝室環境への配慮', timing:'共働き世帯の増加、ホームエンタメ需要の拡大'},
+        // ID 48: Kando A (14点). Exec: 3+5+5=13点. Total: 27点.
+        { id:48, author:'里平', title:'MEMORY SEED', cat:'Life/Health', score_kando:{k:5, s:4, n:5}, score_exec:{feat:3, test:5, strat:5}, who:'思い出を大切にする人', pain:'デジタル思い出は膨大で、見返すことなく埋もれていく', uvp:'水をあげて思い出を「育てる」デバイス。記憶が花開く体験。', solution:'写真や動画を「種」に見立て、水（インタラクション）を与えると、美しいディスプレイの中で「花」として再生されるIoTデバイス。', kgi:'月間再生頻度', tech:'AI(画像解析)、IoTデバイス', risk:'デバイスのデザイン性とインテリア性', timing:'デジタルデトックス、アナログ回帰のトレンド'},
+        // ID 56: Kando A (13点). Exec: 5+4+4=13点. Total: 26点.
+        { id:56, author:'歌丸', title:'SilentSphere', cat:'AV/Immersive', score_kando:{k:3, s:5, n:5}, score_exec:{feat:5, test:4, strat:4}, who:'集中したいワーカー', pain:'オフィスやカフェの雑音、オンライン会議のノイズ', uvp:'見えない音のバリアを作るポータブル空間ノイズキャンセラ。', solution:'超音波とノイズキャンセリング技術を組み合わせ、特定の空間・人物にだけ静寂を提供するポータブルデバイス。', kgi:'会議中の集中度向上率', tech:'超指向性音響、ノイズキャンセリング技術', risk:'効果範囲の限定、他の利用者への影響', timing:'リモートワークの定着、オープンオフィス化'},
+        // ID 6: Kando A (13点). Exec: 3+3+5=11点. Total: 24点.
+        { id:6, author:'真田', title:'専属メイクアップマシーン', cat:'AI/Robotics', score_kando:{k:4, s:5, n:4}, score_exec:{feat:3, test:3, strat:5}, who:'メイク時間がない/苦手な人', pain:'毎朝のメイクにかかる時間が勿体ない、プロのような仕上がりにしたい', uvp:'顔認識とロボットアームで、毎朝プロ級のメイクを自動化。', solution:'AIが顔の輪郭や肌の調子を解析し、最適なメイクをロボットアームで高速かつ精密に施す。', kgi:'朝の準備時間短縮率', tech:'AI(画像認識)、ロボティクス(精密動作)', risk:'安全性の懸念、肌への接触', timing:'AIとロボット技術の進化、時短ニーズの増加'},
+        // ID 29: Kando A (12点). Exec: 4+4+4=12点. Total: 24点.
+        { id:29, author:'真田', title:'ココミミ (AIミラー)', cat:'AI/Robotics', score_kando:{k:5, s:4, n:3}, score_exec:{feat:4, test:4, strat:4}, who:'心のケアを必要とする人', pain:'誰とも話したくないが、心のどこかで寂しさを感じている', uvp:'表情を読み取り、鏡が静かに寄り添い共感してくれる。', solution:'AIが表情や声のトーンを解析し、鏡のディスプレイ上に感情に合った抽象的な視覚表現（色、光など）を投影。', kgi:'ユーザーの自己肯定感スコア', tech:'AI(感情認識)、ディスプレイ技術', risk:'依存性、プライバシーの侵害', timing:'メンタルヘルス意識の高まり、AI技術の日常浸透'},
+        // ID 9: Kando A (12点). Exec: 4+4+4=11点. Total: 23点.
+        { id:9, author:'里平', title:'香り自動発生 (Smart Scent)', cat:'AV/Immersive', score_kando:{k:4, s:4, n:4}, score_exec:{feat:4, test:3, strat:4}, who:'没入体験を求めるユーザー', pain:'視覚・聴覚以外の五感でのエンタメ体験が不足している', uvp:'映像や状況に合わせて香りを自動選定・合成。五感エンタメ。', solution:'映画やゲームのメタデータから香りを自動生成・噴霧するデバイス。香りのカートリッジ交換式。', kgi:'エンタメコンテンツの満足度スコア', tech:'嗅覚ディスプレイ、コンテンツメタデータ解析', risk:'香りの個人差、カートリッジのコスト', timing:'XR技術の進化、五感刺激型コンテンツの模索'},
+        // ID 1: Kando B (11点). Exec: 5+5+3=13点. Total: 24点.
+        { id:1, author:'中尾', title:'歯ブラシカメラ', cat:'Life/Health', score_kando:{k:3, s:5, n:3}, score_exec:{feat:5, test:5, strat:3}, who:'口腔ケア意識の高い人', pain:'歯の磨き残しが見えず、虫歯や口臭の原因になってしまう', uvp:'イメージセンサで歯を可視化。高度なセンシング技術の日常化。', solution:'歯ブラシの先端にイメージセンサーを搭載し、磨き残しをAIがカラーコードで表示。', kgi:'プラーク付着率の低下', tech:'AI(画像解析)、イメージセンサ技術', risk:'衛生面、医療機器としての規制', timing:'ヘルスケア意識の向上、小型センサーの進化'},
+        // ID 12: Kando A (12点). Exec: 3+5+5=13点. Total: 25点.
+        { id:12, author:'真田', title:'YUKIQUEST (除雪AR)', cat:'AV/Immersive', score_kando:{k:4, s:3, n:5}, score_exec:{feat:3, test:5, strat:5}, who:'豪雪地帯の住民', pain:'雪かきが辛い労働で、モチベーションを保つのが困難', uvp:'ARグラスで除雪をゲーミフィケーション化。労働をエンタメに。', solution:'ARグラスを装着し、雪かきエリアをゲームのクエストのようにマッピング。雪の量に応じてスコアや報酬を付与。', kgi:'平均除雪時間の短縮', tech:'ARグラス、ロケーションベースゲーミフィケーション', risk:'屋外での視認性、バッテリー持続時間', timing:'AR技術の一般普及、労働人口減少に伴う省力化ニーズ'},
+        // ID 52: Kando A (11点). Exec: 4+3+4=11点. Total: 22点.
+        { id:52, author:'真田', title:'PawBot (片付けロボ)', cat:'AI/Robotics', score_kando:{k:4, s:4, n:3}, score_exec:{feat:4, test:3, strat:4}, who:'片付けが苦手な家庭', pain:'部屋が散らかり、どこに何があるかわからなくなる', uvp:'「かわいさ」で片付けを促すパートナーロボット。AIBOの家事版。', solution:'AIが物を認識し、可愛らしい鳴き声や動きで片付けを促す小型ロボット。AIBOのような愛着デザイン。', kgi:'部屋の片付け完了率', tech:'AI(物体認識)、ロボティクス(愛玩性)', risk:'実用性の限界、高価格化', timing:'AIBO成功体験の活用、家庭内ロボット需要の増加'},
+        // ID 30: Kando B (10点). Exec: 4+4+4=12点. Total: 22点.
+        { id:30, author:'浜野', title:'パーソナライズラジオ', cat:'AV/Immersive', score_kando:{k:3, s:4, n:3}, score_exec:{feat:4, test:4, strat:4}, who:'情報選別を面倒に感じる人', pain:'必要な情報を得るために、多くのコンテンツから選別する手間がある', uvp:'AIが興味に合わせて番組を自動編成する自分専用放送局。', solution:'AIがユーザーの行動・興味を分析し、ニュース、音楽、ポッドキャストなどをシームレスに編集・放送する。', kgi:'利用継続率', tech:'AI(レコメンデーション)、音声合成', risk:'情報の偏り（フィルターバブル）、著作権', timing:'音声コンテンツの復権、AIによるコンテンツ自動生成の進化'},
+        // ID 14: Kando B (10点). Exec: 5+4+4=13点. Total: 23点.
+        { id:14, author:'里平', title:'スマホ背面ディスプレイ', cat:'Creative', score_kando:{k:3, s:4, n:3}, score_exec:{feat:5, test:4, strat:4}, who:'個性を表現したいスマートフォンユーザー', pain:'スマートフォンのケースやデザインに飽きる、もっと個性を出したい', uvp:'背面全体がディスプレイ。気分でデザインを変えるSonyらしい意匠。', solution:'スマートフォン背面に高解像度・低消費電力のE-Inkまたは有機ELディスプレイを搭載し、デザインや情報を表示。', kgi:'デザイン変更頻度', tech:'ディスプレイ技術、薄型化技術', risk:'バッテリー消費、耐久性', timing:'若年層の自己表現ニーズ、モバイルデバイスの意匠差別化'},
+        // ID 27: Kando A (11点). Exec: 3+4+5=12点. Total: 23点.
+        { id:27, author:'伊達', title:'香りキー (生体認証)', cat:'Communication', score_kando:{k:2, s:4, n:5}, score_exec:{feat:3, test:4, strat:5}, who:'セキュリティと利便性を求める人', pain:'指紋・顔認証、パスワード入力の手間', uvp:'体臭で認証する究極のハンズフリー・セキュリティ。', solution:'個人の体臭（揮発性有機化合物）をセンサーで瞬時に解析し、生体認証キーとして利用。', kgi:'認証成功率と速度', tech:'高感度センサー、AI(パターン認識)', risk:'認証の安定性、体調による変動', timing:'生体認証技術の進化、プライバシー意識の高まり'},
+        // ID 32: Kando A (12点). Exec: 4+5+4=13点. Total: 25点.
+        { id:32, author:'浜野', title:'BackDodge (第六感)', cat:'Life/Health', score_kando:{k:3, s:4, n:5}, score_exec:{feat:4, test:5, strat:4}, who:'都市部の歩行者', pain:'背後からの衝突や危険な接近に気づきにくい', uvp:'背面センサと振動で接近を通知。「第六感」のテクノロジー化。', solution:'背中や服に装着する超小型センサーが背後の動きや接近を検知し、振動や音でユーザーに警告。', kgi:'衝突事故の減少率', tech:'超音波/赤外線センサー、触覚フィードバック', risk:'誤検知の多発、装着の手間', timing:'都市生活のストレス増加、ウェアラブルセンサーの小型化'},
+        // ID 40: Kando A (13点). Exec: 3+3+5=11点. Total: 24点.
+        { id:40, author:'伊達', title:'Behavior Synth', cat:'Creative', score_kando:{k:4, s:5, n:4}, score_exec:{feat:3, test:3, strat:5}, who:'音楽制作に興味がある非専門家', pain:'作曲スキルがなく、自分の感情を音楽で表現できない', uvp:'日常の振る舞いがそのまま音楽になるシンセサイザー。', solution:'ウェアラブルデバイスが心拍、歩行リズム、位置情報などを取得し、それらをパラメータとしてAIが即興で音楽を生成。', kgi:'生成された楽曲の公開数', tech:'AI(音楽生成)、バイオセンシング', risk:'音楽の品質、ユーザーの解釈とのズレ', timing:'AIによる創作支援の一般化、非同期なコミュニケーションの増加'},
+        // ID 45: Kando A (11点). Exec: 3+4+4=11点. Total: 22点.
+        { id:45, author:'真田', title:'可変ハイヒール', cat:'AI/Robotics', score_kando:{k:4, s:3, n:4}, score_exec:{feat:3, test:4, strat:4}, who:'TPOに合わせて靴を変えるのが面倒な人', pain:'TPO（時間、場所、場合）で靴を履き替えなければならない', uvp:'ロボティクス技術でヒールの高さを自動調整。', solution:'靴底に小型のアクチュエーターを搭載し、スマホや環境に応じてヒールの高さを1cm単位で瞬時に変更。', kgi:'靴の平均着用回数', tech:'小型アクチュエーター、ロボティクス', risk:'耐久性、安定性、デザイン性', timing:'スマートウェア市場の成長、精密機械の小型化'},
+        // ID 47: Kando A (11点). Exec: 3+4+5=12点. Total: 23点.
+        { id:47, author:'里平', title:'Horizon Navigation', cat:'AV/Immersive', score_kando:{k:3, s:4, n:4}, score_exec:{feat:3, test:4, strat:5}, who:'運転中のナビゲーションに煩わしさを感じるドライバー', pain:'運転中のナビゲーション画面が視線移動を伴い危険', uvp:'フロントガラスARで道路に直接ルートを描画。', solution:'超小型プロジェクターを搭載した車載デバイスがフロントガラスに直接、ルート案内や危険警告を投影する。', kgi:'運転中の視線移動時間減少率', tech:'AR/プロジェクション技術、センサーフュージョン', risk:'屋外での輝度、情報の多すぎる表示', timing:'自動運転技術の発展、AR技術の車載応用'},
+        // ID 18: Kando B (9点). Exec: 5+4+4=13点. Total: 22点.
+        { id:18, author:'歌丸', title:'人間ETC', cat:'Communication', score_kando:{k:3, s:3, n:3}, score_exec:{feat:5, test:4, strat:4}, who:'行列が嫌いな人', pain:'テーマパークやイベント会場での行列、チケット購入のストレス', uvp:'顔パス・RFIDでゲートレス入場。止まらない体験。', solution:'体内のICチップや顔認証と連携した決済システムで、ゲートを通過するだけで自動的に料金を精算。', kgi:'入場時の平均待ち時間短縮率', tech:'RFID、顔認証、非接触決済', risk:'プライバシー、生体認証への抵抗感', timing:'非接触ニーズの増加、生体認証技術の普及'},
+        // ID 34: Kando A (11点). Exec: 3+4+4=11点. Total: 22点.
+        { id:34, author:'歌丸', title:'白紙の本 (AR Book)', cat:'AV/Immersive', score_kando:{k:4, s:3, n:4}, score_exec:{feat:3, test:4, strat:4}, who:'紙の本の手触りを好む読書家', pain:'紙の本の手触り感とデジタルの利便性の両立が難しい', uvp:'白紙の本＋ARグラス。アナログな体験とデジタル情報の融合。', solution:'本自体は手触りの良い白紙だが、ARグラスを装着するとページに文章やイラストが表示される。', kgi:'読書平均時間', tech:'ARグラス、触覚フィードバック', risk:'ARグラスの普及率、紙の質感の再現性', timing:'ARデバイスの高性能化、アナログとデジタルの融合'},
+        // ID 23: Kando B (10点). Exec: 4+5+4=13点. Total: 23点.
+        { id:23, author:'浜野', title:'デジタル箱庭', cat:'Creative', score_kando:{k:3, s:4, n:3}, score_exec:{feat:4, test:5, strat:4}, who:'VR酔いしやすいクリエイター', pain:'VRは酔いやすく、長時間の創作活動が難しい', uvp:'裸眼立体視ディスプレイで手の中に世界を作る。', solution:'裸眼で立体視が可能な小型ディスプレイとモーションセンサーで、手のひらの上にデジタルコンテンツを操作・配置。', kgi:'ユーザーの創作時間', tech:'裸眼立体視ディスプレイ、センサー技術', risk:'解像度、価格、視野角', timing:'メタバースの成長、裸眼3D技術の進化'},
+        // ID 21: Kando A (12点). Exec: 4+5+4=13点. Total: 25点.
+        { id:21, author:'浜野', title:'香りのタイムカプセル', cat:'Life/Health', score_kando:{k:5, s:3, n:4}, score_exec:{feat:4, test:5, strat:4}, who:'思い出を鮮明に残したい人', pain:'時間が経つと写真を見ても当時の感情や記憶が薄れてしまう', uvp:'写真＋香りを記録し、プルースト効果で記憶を鮮明に再生。', solution:'写真撮影時に環境の香りをキャプチャし、AIで分析。写真閲覧時にその香りを再現するデバイス。', kgi:'記憶の鮮明度評価', tech:'高感度センサー、嗅覚ディスプレイ', risk:'香りの再現精度、メンテナンス', timing:'記憶・感情科学への関心の高まり、センサー技術の発展'},
+        // ID 7: Kando B (10点). Exec: 5+4+4=13点. Total: 23点.
+        { id:7, author:'浜野', title:'オーラパワー', cat:'Life/Health', score_kando:{k:3, s:4, n:3}, score_exec:{feat:5, test:4, strat:4}, who:'自分の体調変化に鈍い人', pain:'自身の体調やメンタルヘルスの微妙な変化に気づきにくい', uvp:'バイタルをゲーム風オーラとして可視化', solution:'ウェアラブルセンサーがバイタルデータを測定し、それを色彩豊かなオーラとして視覚的に表現。', kgi:'体調変化の早期発見率', tech:'バイタルセンサー、AR/VR可視化', risk:'データの正確性、視覚表現の解釈', timing:'パーソナライズヘルスケアのトレンド、ウェアラブル普及'},
+        // ID 13: Kando B (10点). Exec: 4+4+4=12点. Total: 22点.
+        { id:13, author:'真田', title:'空もようカーテン', cat:'Life/Health', score_kando:{k:4, s:3, n:3}, score_exec:{feat:4, test:4, strat:4}, who:'窓からの景色に不満がある人', pain:'都市部で窓から景色が見えない、天気が悪いと気分が落ち込む', uvp:'LEDカーテンで窓の景色を自由に変更', solution:'高解像度LEDパネルをカーテンのように窓に設置し、リアルタイムの空模様や好みの風景を投影。', kgi:'ユーザーの気分スコア向上率', tech:'LEDディスプレイ、環境センシング', risk:'設置コスト、消費電力', timing:'ホームシアター化の進行、インテリア需要の多様化'},
+        // ID 3: Kando B (9点). Exec: 5+3+4=12点. Total: 21点.
+        { id:3, author:'歌丸', title:'VR検証デバイス', cat:'AV/Immersive', score_kando:{k:2, s:4, n:3}, score_exec:{feat:5, test:3, strat:4}, who:'VRコンテンツ開発者', pain:'VRコンテンツ開発における両眼視覚の検証効率が悪い', uvp:'両眼視覚を1画面に再現する開発ツール', solution:'VRヘッドセットを装着した視覚を1つのディスプレイに統合し、開発者がリアルタイムで視覚差を確認できるデバイス。', kgi:'検証時間の短縮率', tech:'VR/AR技術、ディスプレイ', risk:'開発者向けのニッチ市場、ソフトウェアとの連携', timing:'VR/ARコンテンツ市場の拡大'},
+        // ID 24: Kando B (7点). Exec: 5+5+3=13点. Total: 20点.
+        { id:24, author:'中尾', title:'自動雨よけ', cat:'Life/Health', score_kando:{k:3, s:2, n:2}, score_exec:{feat:5, test:5, strat:3}, who:'洗濯物を干す人', pain:'外出中に急な雨で洗濯物が濡れてしまう', uvp:'雨検知で自動展開', solution:'雨センサーが雨を検知すると、自動で展開し洗濯物を覆う防水カバー。', kgi:'洗濯物が濡れた回数の減少', tech:'センサー技術、自動展開機構', risk:'強風への耐性、センサーの誤作動', timing:'IoT家電の普及、共働き世帯の増加'},
+        // ID 41: Kando B (8点). Exec: 4+4+4=12点. Total: 20点.
+        { id:41, author:'浜野', title:'スマートゴミ箱', cat:'Life/Health', score_kando:{k:2, s:3, n:3}, score_exec:{feat:4, test:4, strat:4}, who:'ゴミ捨てを面倒に感じる人', pain:'ゴミの分別が面倒、ゴミ出しのタイミングを忘れがち', uvp:'バーコード管理で分別・在庫管理', solution:'投入されたゴミのバーコードや形状をAIが認識し、正しい分別を指示。自動でゴミ出し通知も行う。', kgi:'分別ミスの減少率', tech:'AI(画像認識)、IoTデバイス', risk:'ゴミ箱自体の洗浄・衛生面、価格', timing:'スマートホームの普及、環境意識の高まり'},
+        // ID 8: Kando B (6点). Exec: 5+5+3=13点. Total: 19点.
+        { id:8, author:'里平', title:'HelpWork', cat:'Communication', score_kando:{k:3, s:1, n:2}, score_exec:{feat:5, test:5, strat:3}, who:'急な人手不足に困る店舗経営者', pain:'急な欠勤や繁忙期の人手不足に即時対応できない', uvp:'近隣即時マッチング', solution:'急な欠員や業務を、近隣の登録者に即時でマッチングするプラットフォーム。', kgi:'マッチング成功までの平均時間', tech:'ロケーションベースサービス、マッチングAI', risk:'労働条件、トラブル発生時の責任', timing:'ギグワークの一般化、労働人口の流動性増加'},
+        // ID 44: Kando B (10点). Exec: 4+4+4=12点. Total: 22点.
+        { id:44, author:'浜野', title:'サウンドアロー', cat:'AV/Immersive', score_kando:{k:2, s:5, n:3}, score_exec:{feat:4, test:4, strat:4}, who:'騒がしい場所で会話が困難な人', pain:'騒がしい場所や広い会場で特定の相手との会話が聞き取りにくい', uvp:'超指向性スピーカーで特定の人にだけ声を届ける', solution:'超指向性スピーカー/マイク技術を用い、周囲のノイズを遮断し、特定の人物との会話をクリアにするポータブルデバイス。', kgi:'会話の聞き取りやすさスコア', tech:'超指向性音響技術', risk:'音の漏れ、音質の調整', timing:'音響技術の進化、公共空間の多様化'},
+        // ID R1: Kando B (7点). Exec: 3+2+4=9点. Total: 16点.
+        { id:'R1', author:'-', title:'虫ボーグ', cat:'Other', score_kando:{k:1, s:2, n:4}, score_exec:{feat:3, test:2, strat:4}, who:'農家、害虫駆除業者', pain:'害虫駆除の非効率、農薬の使用', uvp:'益虫コントロール', solution:'益虫に超小型センサーを装着し、特定の害虫への移動を遠隔コントロール。', kgi:'害虫駆除の成功率', tech:'超小型デバイス、無線制御', risk:'倫理的な問題、虫への負荷', timing:'IoT技術の微細化、精密農業の需要'},
+        // ID R2: Kando B (7点). Exec: 4+4+3=11点. Total: 18点.
+        { id:'R2', author:'-', title:'けん玉ギブス', cat:'Creative', score_kando:{k:2, s:3, n:2}, score_exec:{feat:4, test:4, strat:3}, who:'特定の技術習得に挫折した人', pain:'けん玉やゴルフなど、技術習得が難しく挫折してしまう', uvp:'絶対できる矯正具', solution:'正確な動作を補助するギブス型デバイス。AIが動作を解析し、最適なタイミングで力を加えて成功体験を保証。', kgi:'技術習得までの期間短縮率', tech:'ロボティクス、AI(動作解析)', risk:'自力での習得意欲の低下、装着の煩わしさ', timing:'パーソナルトレーニング需要、ロボティクス技術の民生応用'}
     ];
 
     let currentCategory = 'all';
     let currentAuthor = 'all';
-    const LOCAL_STORAGE_KEY = 'personalScores_v1';
+    // 内部データ構造を変更: personalScores[id] = { kando: k, sony: s, newness: n, feat: f, test: t, strat: st, note: note }
+    // V13からは全6項目を保存する
+    const LOCAL_STORAGE_KEY = 'personalScores_v13'; 
+    const AI_SCORE_TOGGLE_KEY = 'aiScoreHidden';
     let personalScores = {};
 
     function init() {
         loadPersonalScores();
-        
+
         rawData.forEach(item => {
-            if(!item.score) item.score = {k:1, s:1, n:1};
-            item.totalScore = item.score.k + item.score.s + item.score.n;
-            if(item.totalScore >= 13) item.rank = 'S';
-            else if(item.totalScore >= 11) item.rank = 'A';
+            // AIスコア計算
+            item.totalKandoScore = item.score_kando.k + item.score_kando.s + item.score_kando.n;
+            item.totalExecScore = item.score_exec.feat + item.score_exec.test + item.score_exec.strat;
+            item.totalScore = item.totalKandoScore + item.totalExecScore; // 最大 30点
+
+            // 総合ランク付け
+            if(item.totalScore >= 26) item.rank = 'S'; // 85%以上
+            else if(item.totalScore >= 22) item.rank = 'A'; // 70%以上
             else item.rank = 'B';
-            
-            const personal = personalScores[item.id] || { k: 0, s: 0, n: 0, note: '' };
+
+            // 個人スコアを更新
+            const personal = personalScores[item.id] || { kando: 0, sony: 0, newness: 0, feat: 0, test: 0, strat: 0, note: '' };
             item.personalScore = personal;
-            item.personalTotal = personal.k + personal.s + personal.n;
+            item.personalTotal = personal.kando + personal.sony + personal.newness + personal.feat + personal.test + personal.strat;
         });
+
+        // AIスコアの表示/非表示状態をロード
+        const isHidden = localStorage.getItem(AI_SCORE_TOGGLE_KEY) === 'true';
+        document.getElementById('aiScoreToggle').checked = isHidden;
+        document.body.classList.toggle('hide-ai-scores', isHidden);
+
+        // 現在のページ状態をセット (デフォルトはgrid)
+        changePage(document.querySelector('.page-tab-btn.active').id.replace('tab', '').toLowerCase());
 
         populateAuthorFilter();
         render();
@@ -467,21 +790,35 @@
         }
     }
 
-    function savePersonalScores(id, k, s, n, note) {
-        personalScores[id] = { k: parseInt(k) || 0, s: parseInt(s) || 0, n: parseInt(n) || 0, note: note || '' };
+    // 6つの個人スコアを保存
+    function savePersonalScores(id, kando, sony, newness, feat, test, strat, note) {
+        personalScores[id] = { 
+            kando: parseInt(kando) || 0, 
+            sony: parseInt(sony) || 0, 
+            newness: parseInt(newness) || 0, 
+            feat: parseInt(feat) || 0, 
+            test: parseInt(test) || 0, 
+            strat: parseInt(strat) || 0, 
+            note: note || '' 
+        };
         localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(personalScores));
-        
-        init();
+        init(); // データを再ロードして更新
+    }
+
+    function toggleAIScores() {
+        const isHidden = document.getElementById('aiScoreToggle').checked;
+        document.body.classList.toggle('hide-ai-scores', isHidden);
+        localStorage.setItem(AI_SCORE_TOGGLE_KEY, isHidden);
     }
 
     function populateAuthorFilter() {
         const authorSelect = document.getElementById('authorSelect');
         const authors = [...new Set(rawData.map(item => item.author))].filter(a => a !== '-').sort((a, b) => a.localeCompare(b, 'ja'));
-        
+
         if (rawData.some(item => item.author === '-')) {
             authors.push('-');
         }
-        
+
         authors.forEach(author => {
             const displayAuthor = author === '-' ? '不明' : author;
             const option = document.createElement('option');
@@ -497,19 +834,43 @@
 
     function setCategory(cat, element) {
         currentCategory = cat;
-        
-        document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+
+        document.querySelectorAll('#categoryTabs .tab-btn').forEach(btn => btn.classList.remove('active'));
         if(element) {
             element.classList.add('active');
         } else {
-             const matchingButton = document.querySelector(`.filter-tabs button[onclick*="'${cat}'"]`);
+             const matchingButton = document.querySelector(`#categoryTabs button[onclick*="'${cat}'"]`);
              if (matchingButton) matchingButton.classList.add('active');
         }
-        
+
         render();
     }
+    
+    // --- ページ切り替え機能 ---
+    function changePage(page) {
+        document.getElementById('gridPage').style.display = 'none';
+        document.getElementById('summaryPage').style.display = 'none';
+        document.getElementById('filterSection').style.display = 'none';
+        
+        document.querySelectorAll('.page-tab-btn').forEach(btn => btn.classList.remove('active'));
 
+        if (page === 'grid') {
+            document.getElementById('gridPage').style.display = 'block';
+            document.getElementById('tabGrid').classList.add('active');
+            document.getElementById('filterSection').style.display = 'block';
+            render();
+        } else if (page === 'summary') {
+            document.getElementById('summaryPage').style.display = 'block';
+            document.getElementById('tabSummary').classList.add('active');
+            renderSummary();
+        }
+    }
+
+
+    // --- メイン描画機能 (カード一覧) ---
     function render() {
+        if(document.getElementById('gridPage').style.display === 'none') return;
+
         const grid = document.getElementById('grid');
         grid.innerHTML = '';
 
@@ -522,37 +883,49 @@
         });
 
         filtered.sort((a, b) => {
-            if (sortType === 'score') return b.totalScore - a.totalScore;
             if (sortType === 'personal_score') return b.personalTotal - a.personalTotal;
+            if (sortType === 'total_ai_score') return b.totalScore - a.totalScore;
+            if (sortType === 'score_kando') return b.totalKandoScore - a.totalKandoScore;
+            if (sortType === 'score_exec') return b.totalExecScore - a.totalExecScore;
             if (sortType === 'id') return (parseInt(String(a.id))||999) - (parseInt(String(b.id))||999);
             if (sortType === 'author') return a.author.localeCompare(b.author, 'ja');
-            if (sortType === 'kando') return b.score.k - a.score.k;
-            if (sortType === 'sony') return b.score.s - a.score.s;
-            if (sortType === 'new') return b.score.n - a.score.n;
             return 0;
         });
 
         filtered.forEach(item => {
             const card = document.createElement('div');
             card.className = 'card';
-            
-            card.setAttribute('onclick', `openModal('${item.id}')`);
-            
-            let rankHtml = '';
-            if (item.rank === 'S') rankHtml = `<div class="rank-badge rank-s">S Rank (AI)</div>`;
-            else if (item.rank === 'A') rankHtml = `<div class="rank-badge rank-a">A Rank (AI)</div>`;
 
-            const wK = (item.score.k / 5) * 100;
-            const wS = (item.score.s / 5) * 100;
-            const wN = (item.score.n / 5) * 100;
+            card.setAttribute('onclick', `openModal('${item.id}')`);
+
+            let rankHtml = '';
+            // 総合30点満点でのランク
+            if (item.rank === 'S') rankHtml = `<div class="rank-badge rank-s">S Rank (AI総合)</div>`;
+            else if (item.rank === 'A') rankHtml = `<div class="rank-badge rank-a">A Rank (AI総合)</div>`;
+
+            // 個人スコアバー (最大30点)
+            const wPersonal = (item.personalTotal / 30) * 100;
+
+            const personalScoreSection = `
+                <div style="margin-top:10px; font-size:0.8rem; color:var(--personal); font-weight:bold;">
+                    あなたの総合評価: 合計 ${item.personalTotal} / 30点
+                    ${item.personalTotal > 0 ? '（クリックで編集）' : '（未評価 - クリックで採点）'}
+                </div>
+                <div class="score-bar-container personal-score-container">
+                    <div class="score-fill-personal" style="width:${wPersonal}%"></div>
+                </div>
+            `;
             
-            const personal = personalScores[item.id] || { k: 0, s: 0, n: 0, note: '' };
-            const personalStars = personal.k > 0 || personal.s > 0 || personal.n > 0 ? 
-                `<div style="margin-top:5px; font-size:0.8rem; color:var(--primary-dark);">
-                    <strong>あなたの評価:</strong> ${item.personalTotal} / 15点 
-                    ${item.personalTotal > 0 ? '（クリックして編集）' : ''}
-                </div>` : 
-                `<div style="margin-top:5px; font-size:0.8rem; color:#f00; font-weight:bold;">クリックして評価！</div>`;
+            // AI総合スコアバー (最大30点)
+            const wTotal = (item.totalScore / 30) * 100;
+            const aiScoreSection = `
+                <div style="margin-top:5px; font-size:0.8rem; color:#999; font-weight:bold;" class="ai-total-score-text">
+                    【AI総合評価：合計${item.totalScore} / 30点】
+                </div>
+                <div class="score-bar-container ai-total-score-container">
+                    <div class="score-fill-total" style="width:${wTotal}%"></div>
+                </div>
+            `;
 
             card.innerHTML = `
                 ${rankHtml}
@@ -564,16 +937,8 @@
                     </div>
                     <h3 class="card-title">${item.title}</h3>
                     
-                    <div style="margin-top:15px; font-size:0.8rem; color:#999; font-weight:bold;">【AI評価：合計${item.totalScore} / 15点】</div>
-                    <div class="score-bar-container">
-                        <div class="score-item"><div class="score-fill fill-kando" style="width:${wK}%"></div></div>
-                        <div class="score-item"><div class="score-fill fill-sony" style="width:${wS}%"></div></div>
-                        <div class="score-item"><div class="score-fill fill-new" style="width:${wN}%"></div></div>
-                    </div>
-                    <div class="score-labels">
-                        <span>感動(${item.score.k})</span><span>Sony(${item.score.s})</span><span>新奇(${item.score.n})</span>
-                    </div>
-                    ${personalStars}
+                    ${personalScoreSection}
+                    ${aiScoreSection}
                 </div>
                 <div class="card-body">
                     <div style="font-size:0.85rem; color:#666; margin-bottom:5px;">
@@ -597,7 +962,7 @@
         const modal = document.getElementById('evaluationModal');
         document.getElementById('modalTitle').textContent = item.title;
         document.getElementById('modalMeta').innerHTML = `
-            <span class="tag author">記入者: ${item.author === '-' ? '不明' : item.author}</span> 
+            <span class="tag author">記入者: ${item.author === '-' ? '不明' : item.author}</span>
             <span class="tag cat">カテゴリ: ${item.cat}</span>
         `;
         document.getElementById('modalUVP').textContent = item.uvp;
@@ -610,19 +975,36 @@
         document.getElementById('modalTech').textContent = item.tech || '-';
         document.getElementById('modalRisk').textContent = item.risk || '-';
         document.getElementById('modalTiming').textContent = item.timing || '-';
-        
-        // AIスコア情報
-        document.getElementById('modalAIScore').innerHTML = `
-            感動: <strong>${item.score.k}</strong>, Sonyらしさ: <strong>${item.score.s}</strong>, 新奇性: <strong>${item.score.n}</strong> (合計: ${item.totalScore}/15点)
+
+        // AI簡易評価 (情緒的価値)
+        document.getElementById('modalAIScoreKando').innerHTML = `
+            感動: <strong>${item.score_kando.k}</strong>, Sonyらしさ: <strong>${item.score_kando.s}</strong>, 新奇性: <strong>${item.score_kando.n}</strong> (簡易評価合計: ${item.totalKandoScore}/15点)
         `;
+        
+        // AIプロダクト評価 (実行価値)
+        document.getElementById('modalAIScoreExec').innerHTML = `
+            実現可能性 (A): <strong>${item.score_exec.feat}</strong>, 市場検証容易性 (B): <strong>${item.score_exec.test}</strong>, 戦略的適合性 (C): <strong>${item.score_exec.strat}</strong> (実行評価合計: ${item.totalExecScore}/15点)
+        `;
+
         document.getElementById('modalIdeaId').value = item.id;
 
         // 個人スコアをロード
-        const personal = personalScores[item.id] || { k: '', s: '', n: '', note: '' };
-        document.getElementById('personalKando').value = personal.k || '';
-        document.getElementById('personalSony').value = personal.s || '';
-        document.getElementById('personalNew').value = personal.n || '';
+        const personal = personalScores[item.id] || { kando: '', sony: '', newness: '', feat: '', test: '', strat: '', note: '' };
+        
+        // 情緒的価値
+        document.getElementById('personalKando').value = personal.kando || '';
+        document.getElementById('personalSony').value = personal.sony || '';
+        document.getElementById('personalNewness').value = personal.newness || '';
+        
+        // 実行価値
+        document.getElementById('personalFeat').value = personal.feat || ''; // 実現可能性 (Feasibility)
+        document.getElementById('personalTest').value = personal.test || ''; // 市場検証容易性 (Testability)
+        document.getElementById('personalStrat').value = personal.strat || ''; // 戦略的適合性 (Strategic Fit)
+        
         document.getElementById('personalNote').value = personal.note || '';
+        
+        // 合計スコアを初期表示
+        updatePersonalTotal();
 
         modal.style.display = 'flex';
     }
@@ -631,25 +1013,42 @@
         document.getElementById('evaluationModal').style.display = 'none';
     }
 
+    function updatePersonalTotal() {
+        // 情緒的価値
+        const kando = parseInt(document.getElementById('personalKando').value) || 0;
+        const sony = parseInt(document.getElementById('personalSony').value) || 0;
+        const newness = parseInt(document.getElementById('personalNewness').value) || 0;
+        // 実行価値
+        const feat = parseInt(document.getElementById('personalFeat').value) || 0;
+        const test = parseInt(document.getElementById('personalTest').value) || 0;
+        const strat = parseInt(document.getElementById('personalStrat').value) || 0;
+        
+        const total = kando + sony + newness + feat + test + strat;
+        document.getElementById('personalTotalDisplay').textContent = total;
+    }
+
     function savePersonalScore() {
         const id = document.getElementById('modalIdeaId').value;
-        const k = document.getElementById('personalKando').value;
-        const s = document.getElementById('personalSony').value;
-        const n = document.getElementById('personalNew').value;
+        
+        // 情緒的価値
+        const kando = document.getElementById('personalKando').value;
+        const sony = document.getElementById('personalSony').value;
+        const newness = document.getElementById('personalNewness').value;
+        // 実行価値
+        const feat = document.getElementById('personalFeat').value;
+        const test = document.getElementById('personalTest').value;
+        const strat = document.getElementById('personalStrat').value;
         const note = document.getElementById('personalNote').value;
-        
-        const numK = parseInt(k);
-        const numS = parseInt(s);
-        const numN = parseInt(n);
-        
-        if ( (k !== '' && (isNaN(numK) || numK < 1 || numK > 5)) ||
-             (s !== '' && (isNaN(numS) || numS < 1 || numS > 5)) ||
-             (n !== '' && (isNaN(numN) || numN < 1 || numN > 5)) ) {
+
+        const allScores = [kando, sony, newness, feat, test, strat];
+        const valid = allScores.every(s => s === '' || (parseInt(s) >= 1 && parseInt(s) <= 5 && !isNaN(parseInt(s))));
+
+        if (!valid) {
             alert("スコアは1〜5の範囲の半角数字で入力してください。未入力でも構いません。");
             return;
         }
 
-        savePersonalScores(id, k, s, n, note);
+        savePersonalScores(id, kando, sony, newness, feat, test, strat, note);
         closeModal();
     }
 
@@ -658,6 +1057,225 @@
         if (event.target === modal) {
             closeModal();
         }
+    }
+
+    // --- サマリーページ描画機能 (Chart.js利用) ---
+
+    let radarChartInstance = null;
+    let emotionalBarChartInstance = null;
+    let executionBarChartInstance = null;
+    let categoryBarChartInstance = null;
+
+    function calculateAverages() {
+        let aiTotals = { kando: 0, sony: 0, newness: 0, feat: 0, test: 0, strat: 0, count: 0 };
+        let personalTotals = { kando: 0, sony: 0, newness: 0, feat: 0, test: 0, strat: 0, count: 0 };
+        let categories = {};
+
+        rawData.forEach(item => {
+            // AI Total
+            aiTotals.kando += item.score_kando.k;
+            aiTotals.sony += item.score_kando.s;
+            aiTotals.newness += item.score_kando.n;
+            aiTotals.feat += item.score_exec.feat;
+            aiTotals.test += item.score_exec.test;
+            aiTotals.strat += item.score_exec.strat;
+            aiTotals.count++;
+
+            // Personal Total (採点済みのもののみカウント)
+            const personal = personalScores[item.id];
+            if (personal && item.personalTotal > 0) {
+                personalTotals.kando += personal.kando;
+                personalTotals.sony += personal.sony;
+                personalTotals.newness += personal.newness;
+                personalTotals.feat += personal.feat;
+                personalTotals.test += personal.test;
+                personalTotals.strat += personal.strat;
+                personalTotals.count++;
+            }
+
+            // Category Totals
+            if (!categories[item.cat]) {
+                categories[item.cat] = { total: 0, count: 0 };
+            }
+            categories[item.cat].total += item.totalScore;
+            categories[item.cat].count++;
+        });
+
+        const aiAvg = {};
+        for (const key in aiTotals) {
+            if (key !== 'count') {
+                aiAvg[key] = (aiTotals[key] / aiTotals.count).toFixed(2);
+            }
+        }
+
+        const personalAvg = {};
+        for (const key in personalTotals) {
+            if (key !== 'count') {
+                personalAvg[key] = (personalTotals.count > 0 ? (personalTotals[key] / personalTotals.count) : 0).toFixed(2);
+            }
+        }
+        
+        const categoryAvg = {};
+        for (const cat in categories) {
+            categoryAvg[cat] = (categories[cat].total / categories[cat].count).toFixed(2);
+        }
+
+        return { aiAvg, personalAvg, personalCount: personalTotals.count, categoryAvg };
+    }
+
+    function renderSummary() {
+        const { aiAvg, personalAvg, personalCount, categoryAvg } = calculateAverages();
+        
+        // 採点件数を更新
+        const summaryHeader = document.querySelector('.summary-header p:last-of-type');
+        summaryHeader.innerHTML = `※メンバー評価は、あなたの採点（${personalCount}件）の平均値です。`;
+
+        // 1. 総合レーダーチャート
+        if (radarChartInstance) radarChartInstance.destroy();
+        const ctxRadar = document.getElementById('radarChart').getContext('2d');
+        radarChartInstance = new Chart(ctxRadar, {
+            type: 'radar',
+            data: {
+                labels: ['感動', 'ソニーらしさ', '新奇性', '実現可能性', '検証容易性', '戦略的適合性'],
+                datasets: [
+                    {
+                        label: 'AI評価 平均',
+                        data: [aiAvg.kando, aiAvg.sony, aiAvg.newness, aiAvg.feat, aiAvg.test, aiAvg.strat],
+                        backgroundColor: 'rgba(0, 102, 204, 0.2)',
+                        borderColor: 'var(--primary)',
+                        pointBackgroundColor: 'var(--primary)',
+                        pointBorderColor: '#fff',
+                        pointHoverBackgroundColor: '#fff',
+                        pointHoverBorderColor: 'var(--primary)'
+                    },
+                    {
+                        label: 'メンバー評価 平均',
+                        data: [personalAvg.kando, personalAvg.sony, personalAvg.newness, personalAvg.feat, personalAvg.test, personalAvg.strat],
+                        backgroundColor: 'rgba(0, 150, 136, 0.2)',
+                        borderColor: 'var(--personal)',
+                        pointBackgroundColor: 'var(--personal)',
+                        pointBorderColor: '#fff',
+                        pointHoverBackgroundColor: '#fff',
+                        pointHoverBorderColor: 'var(--personal)'
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                scales: {
+                    r: {
+                        angleLines: { display: false },
+                        suggestedMin: 1,
+                        suggestedMax: 5,
+                        pointLabels: { font: { size: 12 } },
+                        ticks: { stepSize: 1 }
+                    }
+                },
+                plugins: {
+                    legend: { position: 'top' },
+                    tooltip: { callbacks: { label: (context) => `${context.dataset.label}: ${context.parsed.r}点` } }
+                }
+            }
+        });
+
+        // 2. 情緒的価値 棒グラフ
+        if (emotionalBarChartInstance) emotionalBarChartInstance.destroy();
+        const ctxEmotional = document.getElementById('emotionalBarChart').getContext('2d');
+        emotionalBarChartInstance = new Chart(ctxEmotional, {
+            type: 'bar',
+            data: {
+                labels: ['感動', 'ソニーらしさ', '新奇性'],
+                datasets: [
+                    {
+                        label: 'AI評価 平均',
+                        data: [aiAvg.kando, aiAvg.sony, aiAvg.newness],
+                        backgroundColor: 'var(--emotional-score)',
+                    },
+                    {
+                        label: 'メンバー評価 平均',
+                        data: [personalAvg.kando, personalAvg.sony, personalAvg.newness],
+                        backgroundColor: 'rgba(0, 150, 136, 0.6)',
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                indexAxis: 'y',
+                scales: {
+                    x: { suggestedMin: 0, suggestedMax: 5, ticks: { stepSize: 1 } }
+                },
+                plugins: {
+                    legend: { position: 'top' },
+                    tooltip: { callbacks: { label: (context) => `${context.dataset.label}: ${context.parsed.x}点` } }
+                }
+            }
+        });
+
+        // 3. 実行価値 棒グラフ
+        if (executionBarChartInstance) executionBarChartInstance.destroy();
+        const ctxExecution = document.getElementById('executionBarChart').getContext('2d');
+        executionBarChartInstance = new Chart(ctxExecution, {
+            type: 'bar',
+            data: {
+                labels: ['実現可能性', '検証容易性', '戦略的適合性'],
+                datasets: [
+                    {
+                        label: 'AI評価 平均',
+                        data: [aiAvg.feat, aiAvg.test, aiAvg.strat],
+                        backgroundColor: 'var(--execution-score)',
+                    },
+                    {
+                        label: 'メンバー評価 平均',
+                        data: [personalAvg.feat, personalAvg.test, personalAvg.strat],
+                        backgroundColor: 'rgba(0, 150, 136, 0.6)',
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                indexAxis: 'y',
+                scales: {
+                    x: { suggestedMin: 0, suggestedMax: 5, ticks: { stepSize: 1 } }
+                },
+                plugins: {
+                    legend: { position: 'top' },
+                    tooltip: { callbacks: { label: (context) => `${context.dataset.label}: ${context.parsed.x}点` } }
+                }
+            }
+        });
+
+        // 4. カテゴリー別AI総合スコア棒グラフ
+        if (categoryBarChartInstance) categoryBarChartInstance.destroy();
+        const ctxCategory = document.getElementById('categoryBarChart').getContext('2d');
+        const categoriesLabels = Object.keys(categoryAvg).sort();
+        const categoriesData = categoriesLabels.map(cat => categoryAvg[cat]);
+
+        categoryBarChartInstance = new Chart(ctxCategory, {
+            type: 'bar',
+            data: {
+                labels: categoriesLabels,
+                datasets: [
+                    {
+                        label: 'AI総合スコア 平均',
+                        data: categoriesData,
+                        backgroundColor: 'var(--primary)',
+                        borderColor: 'var(--primary-dark)',
+                        borderWidth: 1
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                scales: {
+                    y: { suggestedMin: 15, suggestedMax: 30, ticks: { stepSize: 5 } }
+                },
+                plugins: {
+                    legend: { position: 'top' },
+                    tooltip: { callbacks: { label: (context) => `${context.dataset.label}: ${context.parsed.y}点` } }
+                }
+            }
+        });
+
     }
 
     // 実行
