@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Future Product Lab | Mobile Card Edition (Ver.2)</title>
+    <title>Future Product Lab | Mobile Fix (Ver. 39)</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
     <style>
         :root {
@@ -28,8 +28,7 @@
             margin: 0;
             line-height: 1.5;
             font-size: 14px;
-            /* ヘッダー固定用の余白（JSで動的に調整も可能だがCSSで安全マージン確保） */
-            padding-top: 180px; 
+            padding-top: 200px; /* JSで上書きされますが、初期値として設定 */
         }
 
         /* Header (Fixed) */
@@ -42,11 +41,12 @@
             z-index: 1000;
             box-shadow: 0 2px 8px rgba(0,0,0,0.08);
             padding-bottom: 0.5rem;
+            transition: all 0.2s ease;
         }
         .header-inner {
             max-width: 1200px;
             margin: 0 auto;
-            padding: 0.5rem 1rem 0 1rem;
+            padding: 0.8rem 1rem 0 1rem;
         }
 
         /* Top Row */
@@ -54,29 +54,30 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 0.5rem;
-            padding-bottom: 5px;
+            margin-bottom: 0.8rem;
             border-bottom: 1px solid #eee;
+            padding-bottom: 8px;
         }
         .header-top-row h1 {
             margin: 0;
-            font-size: 1.1rem;
+            font-size: 1.3rem;
             color: var(--primary-dark);
             display: flex;
             align-items: center;
-            gap: 8px;
+            gap: 10px;
+            white-space: nowrap;
         }
         .ver-badge {
-            font-size: 0.65rem; background: #eee; padding: 2px 6px; border-radius: 4px; color: #666; font-weight: normal;
+            font-size: 0.7rem; background: #eee; padding: 2px 6px; border-radius: 4px; color: #666; font-weight: normal;
         }
         .file-actions {
             display: flex;
-            gap: 6px;
+            gap: 8px;
         }
         .btn-file {
-            display: flex; align-items: center; gap: 3px;
-            padding: 4px 10px; border-radius: 6px; border: 1px solid #ccc;
-            font-size: 0.8rem; font-weight: bold; cursor: pointer; background: white;
+            display: flex; align-items: center; gap: 4px;
+            padding: 5px 12px; border-radius: 6px; border: 1px solid #ccc;
+            font-size: 0.85rem; font-weight: bold; cursor: pointer; background: white;
             white-space: nowrap; transition: all 0.2s;
         }
         .btn-file:hover { transform: translateY(-1px); box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
@@ -87,42 +88,41 @@
 
         /* Controls */
         .controls-row {
-            display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px; margin-bottom: 5px;
+            display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; margin-bottom: 5px;
         }
         .page-tabs {
             display: flex; gap: 4px; background: #f0f2f5; padding: 3px; border-radius: 6px; align-items: center;
         }
         .page-tab-btn {
-            padding: 5px 12px; border: none; background: none; cursor: pointer;
-            font-size: 0.85rem; font-weight: bold; color: #666; border-radius: 4px;
+            padding: 6px 14px; border: none; background: none; cursor: pointer;
+            font-size: 0.9rem; font-weight: bold; color: #666; border-radius: 4px;
         }
         .page-tab-btn.active {
             background: white; color: var(--primary); box-shadow: 0 1px 3px rgba(0,0,0,0.1);
         }
         .count-badge {
             margin-left: 8px; margin-right: 4px; background: #CBD5E0; color: #2D3748;
-            padding: 2px 8px; border-radius: 12px; font-size: 0.75rem; font-weight: bold; white-space: nowrap;
+            padding: 3px 10px; border-radius: 12px; font-size: 0.8rem; font-weight: bold; white-space: nowrap;
         }
 
         .control-group-right {
-            display: flex; gap: 8px; align-items: center; flex-wrap: wrap; flex: 1; justify-content: flex-end;
+            display: flex; gap: 10px; align-items: center; flex-wrap: wrap; flex: 1; justify-content: flex-end;
         }
         
-        /* Search Box */
         .search-box { position: relative; }
         .search-box input {
-            padding: 5px 10px 5px 28px; border-radius: 20px; border: 1px solid #ccc; font-size: 0.85rem; width: 140px;
+            padding: 6px 10px 6px 30px; border-radius: 20px; border: 1px solid #ccc; font-size: 0.9rem; width: 180px;
         }
         .search-box::before {
-            content: "🔍"; position: absolute; left: 8px; top: 50%; transform: translateY(-50%); font-size: 0.8rem; opacity: 0.6;
+            content: "🔍"; position: absolute; left: 10px; top: 50%; transform: translateY(-50%); font-size: 0.8rem; opacity: 0.6;
         }
 
         .toggle-section {
-            display: flex; align-items: center; font-size: 0.75rem; color: #666;
-            background: #fff; padding: 2px 6px; border-radius: 15px; border: 1px solid #eee; white-space: nowrap;
+            display: flex; align-items: center; font-size: 0.8rem; color: #666;
+            background: #fff; padding: 2px 8px; border-radius: 15px; border: 1px solid #eee; white-space: nowrap;
         }
         .switch-label {
-            position: relative; display: inline-block; width: 28px; height: 16px; margin-left: 4px;
+            position: relative; display: inline-block; width: 28px; height: 16px; margin-left: 6px;
         }
         .switch-label input { opacity: 0; width: 0; height: 0; }
         .slider {
@@ -134,9 +134,9 @@
         input:checked + .slider { background-color: var(--ai); }
         input:checked + .slider:before { transform: translateX(12px); }
 
-        .controls-selectors { display: flex; gap: 4px; }
+        .controls-selectors { display: flex; gap: 5px; }
         .controls-selectors select {
-            padding: 4px 6px; border-radius: 4px; border: 1px solid #ddd; font-size: 0.8rem; background: #fff; max-width: 120px;
+            padding: 5px 8px; border-radius: 4px; border: 1px solid #ddd; font-size: 0.8rem; background: #fff; max-width: 130px;
         }
 
         .filter-tabs {
@@ -144,80 +144,78 @@
         }
         .filter-tabs::-webkit-scrollbar { display: none; }
         .tab-btn {
-            white-space: nowrap; padding: 4px 10px; border-radius: 20px; border: 1px solid #ddd;
-            background: #fff; color: #666; font-size: 0.75rem; cursor: pointer; transition: all 0.2s;
+            white-space: nowrap; padding: 4px 12px; border-radius: 20px; border: 1px solid #ddd;
+            background: #fff; color: #666; font-size: 0.8rem; cursor: pointer; transition: all 0.2s;
         }
         .tab-btn.active {
             background: var(--primary); color: #fff; border-color: var(--primary); font-weight: bold;
         }
         .btn-random {
-            white-space: nowrap; padding: 4px 10px; border-radius: 20px; border: 1px solid #FF9800;
-            background: #FFF3E0; color: #E65100; font-size: 0.75rem; cursor: pointer; font-weight: bold; margin-left: auto;
+            white-space: nowrap; padding: 4px 12px; border-radius: 20px; border: 1px solid #FF9800;
+            background: #FFF3E0; color: #E65100; font-size: 0.8rem; cursor: pointer; font-weight: bold; margin-left: auto;
         }
 
         /* Grid & Card */
         .container { max-width: 1200px; margin: 0 auto; padding: 0 1rem 1.5rem 1rem; }
         .grid {
-            display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 1rem;
+            display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 1.2rem;
         }
         .card {
-            background: var(--surface); border-radius: 10px;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.05); border: 1px solid #e0e0e0;
+            background: var(--surface); border-radius: 12px;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.04); border: 1px solid #e0e0e0;
             display: flex; flex-direction: column; overflow: hidden;
-            transition: transform 0.15s; position: relative; cursor: pointer;
+            transition: transform 0.2s; position: relative; cursor: pointer;
         }
-        .card:active { transform: scale(0.98); background-color: #f9f9f9; }
+        .card:active { transform: scale(0.98); }
         .card.memo-card { background-color: #FAFAFA; border: 1px dashed #ccc; }
         .card.memo-card .card-title { color: #555; }
 
         .rank-badge {
-            position: absolute; top: 0; right: 0; padding: 2px 8px;
-            font-weight: bold; font-size: 0.7rem; color: #000;
-            border-radius: 0 0 0 8px; z-index: 10;
+            position: absolute; top: 0; right: 0; padding: 3px 10px;
+            font-weight: bold; font-size: 0.75rem; color: #000;
+            border-radius: 0 0 0 10px; z-index: 10;
         }
         .rank-s { background: var(--rank-s); box-shadow: 0 2px 4px rgba(0,0,0,0.15); }
         .rank-a { background: var(--rank-a); color: #fff; }
         
-        .card-header { padding: 0.8rem; background: #fff; border-bottom: 1px solid #f0f0f0; }
+        .card-header { padding: 1rem; background: #fff; border-bottom: 1px solid #f5f5f5; }
         .card.memo-card .card-header { background: #FAFAFA; }
 
-        .meta-row { display: flex; gap: 4px; margin-bottom: 4px; flex-wrap: wrap; }
-        .tag { font-size: 0.65rem; padding: 2px 6px; border-radius: 4px; background: #f0f0f0; color: #555; }
+        .meta-row { display: flex; gap: 6px; margin-bottom: 6px; flex-wrap: wrap; }
+        .tag { font-size: 0.7rem; padding: 2px 6px; border-radius: 4px; background: #f0f0f0; color: #555; }
         .tag.cat { background: #E3F2FD; color: var(--primary); }
         .tag.author { background: #ffebee; color: #C53030; }
         .tag.memo-id { background: var(--memo-bg); color: var(--memo); border: 1px solid #FFE0B2; font-weight: bold; }
 
-        .card-title { font-size: 1rem; font-weight: bold; margin: 2px 0 6px 0; line-height: 1.4; color: var(--text-main); }
+        .card-title { font-size: 1.1rem; font-weight: bold; margin: 0; line-height: 1.35; }
         
         /* Bar Styles */
-        .score-bar-group { margin-top: 6px; }
-        .score-bar-row { display: flex; align-items: center; margin-bottom: 3px; }
-        .score-bar-label { width: 40px; font-size: 0.65rem; font-weight: bold; text-align: right; margin-right: 5px; color: #666; }
+        .score-bar-group { margin-top: 8px; }
+        .score-bar-row { display: flex; align-items: center; margin-bottom: 4px; }
+        .score-bar-label { width: 50px; font-size: 0.7rem; font-weight: bold; text-align: right; margin-right: 6px; }
         .score-bar-container {
-            flex-grow: 1; height: 5px; background: #EDF2F7; border-radius: 3px; display: flex; overflow: hidden;
+            flex-grow: 1; height: 6px; background: #EDF2F7; border-radius: 3px; display: flex; overflow: hidden;
         }
         .bar-personal .bar-segment-emotional { background-color: #26A69A; }
         .bar-personal .bar-segment-execution { background-color: #80CBC4; }
         .bar-ai .bar-segment-emotional { background-color: #A0AEC0; }
         .bar-ai .bar-segment-execution { background-color: #CBD5E0; }
 
-        .score-val { width: 25px; font-size: 0.65rem; text-align: left; margin-left: 5px; color: #555; }
+        .score-val { width: 30px; font-size: 0.7rem; text-align: left; margin-left: 6px; color: #555; }
 
         .ai-comment-box {
-            margin-top: 8px; padding: 6px; background: #F8FAFC; border-radius: 6px; border: 1px solid #EDF2F7; font-size: 0.75rem;
+            margin-top: 10px; padding: 8px; background: #F8FAFC; border-radius: 6px; border: 1px solid #EDF2F7; font-size: 0.8rem;
         }
-        .ai-comment-row { display: flex; align-items: flex-start; margin-bottom: 0; line-height: 1.3; }
-        .ai-comment-icon { margin-right: 5px; font-size: 0.85rem; }
+        .ai-comment-row { display: flex; align-items: flex-start; margin-bottom: 4px; line-height: 1.4; }
+        .ai-comment-row:last-child { margin-bottom: 0; }
+        .ai-comment-icon { margin-right: 6px; font-size: 0.9rem; min-width: 18px; text-align: center; }
 
-        /* Card Body Improvements for Mobile */
-        .card-body { padding: 0.8rem; flex: 1; font-size: 0.8rem; color: #444; display: flex; flex-direction: column; gap: 6px; }
-        
+        /* Card Body & Info */
+        .card-body { padding: 1rem; flex: 1; font-size: 0.85rem; color: #444; display: flex; flex-direction: column; gap: 6px; }
         .card-info-row { display: flex; align-items: flex-start; line-height: 1.4; }
-        .info-icon { min-width: 18px; margin-right: 4px; font-size: 0.9rem; text-align: center; }
-        .info-label { font-weight: bold; color: #555; margin-right: 4px; font-size: 0.7rem; min-width: 30px; display:none; /* アイコンのみで省スペース化 */ }
+        .info-icon { min-width: 20px; margin-right: 4px; font-size: 0.9rem; text-align: center; }
         .info-text { 
             color: #333; word-break: break-all;
-            /* 2行で省略するCSS */
             display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
         }
         .info-text.uvp { color: var(--primary); font-weight: bold; background: #f0f7ff; padding: 2px 4px; border-radius: 4px; display:inline-block; -webkit-line-clamp: 3; }
@@ -234,39 +232,38 @@
         }
         .close-btn { float: right; font-size: 24px; font-weight: bold; color: #aaa; padding: 0 5px; cursor: pointer; }
         .modal-score-section h3 {
-            border-bottom: 2px solid #eee; padding-bottom: 5px; margin-top: 20px; font-size: 1rem; color: var(--primary);
+            border-bottom: 2px solid #eee; padding-bottom: 5px; margin-top: 20px; font-size: 1.1rem; color: var(--primary);
         }
         .modal-score-section.personal-score h3 { color: var(--personal); }
         
-        /* Modal Detail Styles */
         .detail-row { margin-bottom: 10px; border-bottom: 1px dashed #eee; padding-bottom: 8px; }
         .detail-label { font-weight: bold; color: #555; display: block; font-size: 0.85rem; margin-bottom: 4px; }
         .detail-text { font-size: 0.95rem; line-height: 1.6; color: #2D3748; }
         .detail-uvp-box { background: #f0f7ff; border-left: 4px solid var(--primary); padding: 10px; border-radius: 4px; margin-bottom: 15px; }
 
         .score-input-group { display: flex; align-items: center; margin-bottom: 10px; }
-        .score-input-group label { width: 90px; font-weight: bold; color: #555; font-size: 0.85rem; }
+        .score-input-group label { width: 90px; font-weight: bold; color: #555; font-size: 0.9rem; }
         .score-input-group input[type="number"] {
-            width: 50px; padding: 8px; border: 1px solid #ddd; border-radius: 4px; text-align: center; margin-right: 8px; font-size: 1rem;
+            width: 50px; padding: 6px; border: 1px solid #ddd; border-radius: 4px; text-align: center; margin-right: 8px;
         }
         textarea {
-            width: calc(100% - 16px); min-height: 80px; padding: 8px; border: 1px solid #ddd; border-radius: 4px; resize: vertical; font-family: inherit;
+            width: calc(100% - 16px); min-height: 80px; padding: 8px; border: 1px solid #ddd; border-radius: 4px; resize: vertical;
         }
         .modal-save-btn {
-            background-color: var(--personal); color: white; padding: 12px 20px; border: none; border-radius: 6px; cursor: pointer; font-size: 1rem; margin-top: 15px; width: 100%; font-weight: bold;
+            background-color: var(--personal); color: white; padding: 10px 20px; border: none; border-radius: 6px; cursor: pointer; font-size: 1rem; margin-top: 15px; width: 100%;
         }
         .personal-score-summary {
-            padding: 10px; background: #E0F2F1; border-radius: 4px; margin-top: 8px; font-weight: bold; color: var(--personal); text-align: center; font-size: 1rem;
+            padding: 8px; background: #E0F2F1; border-radius: 4px; margin-top: 8px; font-weight: bold; color: var(--personal); text-align: center;
         }
         .score-input-section-divider { margin-top: 15px; padding-top: 10px; border-top: 1px solid #ddd; }
 
         /* Guide Table */
-        .guide-table { width: 100%; border-collapse: collapse; font-size: 0.8rem; margin-top: 10px; }
-        .guide-table th, .guide-table td { border: 1px solid #ddd; padding: 6px; text-align: left; }
+        .guide-table { width: 100%; border-collapse: collapse; font-size: 0.85rem; margin-top: 10px; }
+        .guide-table th, .guide-table td { border: 1px solid #ddd; padding: 8px; text-align: left; }
         .guide-table th { background-color: #f5f5f5; color: #333; }
         .guide-cat-header { background-color: #e0f2f1; color: var(--personal); font-weight: bold; text-align: center; }
 
-        /* Analyst Box in Modal */
+        /* Analyst Box */
         .analyst-box {
             background: #FAFAFA; border: 1px solid #E0E0E0; border-left: 4px solid #718096;
             padding: 12px; border-radius: 4px; font-size: 0.9rem; line-height: 1.6; color: #333;
@@ -276,46 +273,71 @@
         .analyst-icon { font-size: 1.2rem; margin-right: 8px; min-width: 24px; }
         .analyst-label { font-weight: bold; color: #555; display: block; font-size: 0.8rem; margin-bottom: 2px; }
 
-        /* Hiding logic */
         body.hide-ai-scores .bar-row-ai,
         body.hide-ai-scores .ai-comment-box,
         body.hide-ai-scores .analyst-box { display: none !important; }
         
         /* Summary Page */
         .summary-header { text-align: center; margin-bottom: 2rem; border-bottom: 2px solid #ddd; padding-bottom: 1rem; }
-        .chart-container-grid {
-            display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1.5rem; margin-top: 1rem;
-        }
-        .chart-box {
-            background: var(--surface); padding: 15px; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.05);
-        }
+        .chart-container-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1.5rem; margin-top: 1rem; }
+        .chart-box { background: var(--surface); padding: 15px; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
         .chart-box h3 { margin-top: 0; font-size:1rem; color: var(--primary-dark); border-bottom: 1px solid #eee; padding-bottom: 8px; }
         .chart-box.full-width { grid-column: 1 / -1; }
-        .analysis-text-box {
-            background: #E0F2F1; border-left: 5px solid var(--personal); padding: 15px; border-radius: 4px; margin-bottom: 20px;
-        }
+        .analysis-text-box { background: #E0F2F1; border-left: 5px solid var(--personal); padding: 15px; border-radius: 4px; margin-bottom: 20px; }
         .analysis-text-box h3 { color: var(--personal); margin-top: 0; }
 
-        /* Mobile specific adjustments */
+        /* --- MOBILE OPTIMIZED STYLES --- */
         @media (max-width: 768px) {
-            body { padding-top: 260px; } /* Header padding for mobile */
             .header-inner { padding: 0.5rem; }
-            .header-top-row h1 { font-size: 1rem; }
-            .control-group-right { width: 100%; justify-content: space-between; flex-direction: row-reverse; }
-            .controls-selectors { flex-grow: 1; justify-content: flex-end; }
-            .search-box input { width: 100%; }
-            .grid { grid-template-columns: 1fr; gap: 0.8rem; }
-            .modal-content { width: 92%; padding: 15px; }
-            .info-text { font-size: 0.85rem; }
+            
+            /* Stack header items nicely */
+            .header-top-row { flex-direction: column; align-items: flex-start; gap: 8px; border-bottom: none; padding-bottom: 0; }
+            .header-top-row h1 { font-size: 1.1rem; width: 100%; display: flex; justify-content: space-between; }
+            
+            .file-actions { 
+                width: 100%; overflow-x: auto; padding-bottom: 5px; 
+                border-bottom: 1px solid #eee; margin-bottom: 5px;
+            }
+            .btn-file { font-size: 0.75rem; padding: 4px 8px; }
+
+            /* Control rows stacking */
+            .controls-row { flex-direction: column; align-items: stretch; gap: 8px; margin-bottom: 0; }
+            .page-tabs { width: 100%; justify-content: space-between; }
+            .page-tab-btn { flex: 1; text-align: center; padding: 6px; font-size: 0.8rem; }
+            .count-badge { display: none; /* Hide on mobile to save space */ }
+
+            /* Right controls stacking */
+            .control-group-right { 
+                width: 100%; flex-direction: column; gap: 8px; 
+                background: #f9f9f9; padding: 8px; border-radius: 8px; margin-top: 0;
+            }
+            .search-box { width: 100%; }
+            .search-box input { width: 100%; box-sizing: border-box; }
+            
+            /* Helper for Toggles/Selects on one line */
+            .mobile-filters-row { width: 100%; display: flex; justify-content: space-between; align-items: center; }
+            .controls-selectors { flex: 1; justify-content: flex-end; }
+            .controls-selectors select { width: 100%; max-width: none; }
+
+            /* Filter Tabs */
+            #filterSection { margin-top: 5px; }
+            .tab-btn { font-size: 0.75rem; padding: 4px 10px; }
+
+            /* Grid */
+            .container { padding: 0.5rem; }
+            .grid { grid-template-columns: 1fr; gap: 1rem; }
+            
+            /* Modal */
+            .modal-content { width: 95%; padding: 15px; margin: 10px auto; max-height: 85vh; }
         }
     </style>
 </head>
 <body>
 
-<header>
+<header id="appHeader">
     <div class="header-inner">
         <div class="header-top-row">
-            <h1>プロダクトアイデア評価ボード <span class="ver-badge">Ver.38 Mobile</span></h1>
+            <h1>プロダクトアイデア評価 <span class="ver-badge">Ver.39</span></h1>
             <div class="file-actions">
                 <button onclick="openGuideModal()" class="btn-file help"><span>❓</span> 基準</button>
                 <button onclick="exportPersonalScores()" class="btn-file save"><span>💾</span> 保存</button>
@@ -336,36 +358,38 @@
                 <div class="search-box">
                     <input type="text" id="searchInput" placeholder="検索..." oninput="render()">
                 </div>
-                <div class="toggle-section" style="margin-left: 4px;">
-                    <span>AI隠す</span>
-                    <label class="switch-label">
-                        <input type="checkbox" id="aiScoreToggle" onchange="toggleAIScores()">
-                        <span class="slider"></span>
-                    </label>
-                </div>
-                <div class="controls-selectors" style="margin-left: 4px;">
-                    <select class="author-select" id="authorSelect" onchange="render()">
-                        <option value="all">全員</option>
-                    </select>
-                    <select class="sort-select" id="sortSelect" onchange="render()">
-                        <option value="personal_score">あなた順</option>
-                        <option value="total_ai_score">AI順</option>
-                        <option value="id">ID順</option>
-                    </select>
+                
+                <div class="mobile-filters-row">
+                    <div class="toggle-section">
+                        <span>AI隠す</span>
+                        <label class="switch-label">
+                            <input type="checkbox" id="aiScoreToggle" onchange="toggleAIScores()">
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+                    <div class="controls-selectors">
+                        <select class="author-select" id="authorSelect" onchange="render()">
+                            <option value="all">全員</option>
+                        </select>
+                        <select class="sort-select" id="sortSelect" onchange="render()">
+                            <option value="personal_score">自分評価順</option>
+                            <option value="total_ai_score">AI評価順</option>
+                            <option value="id">ID順</option>
+                        </select>
+                    </div>
                 </div>
             </div>
         </div>
 
         <div id="filterSection">
             <div class="filter-tabs" id="categoryTabs">
-                <button class="tab-btn active" onclick="setCategory('all', this)">全て</button>
+                <button class="tab-btn active" onclick="setCategory('all', this)">All</button>
                 <button class="tab-btn" onclick="setCategory('AV/Immersive', this)">AV</button>
                 <button class="tab-btn" onclick="setCategory('AI/Robotics', this)">AI</button>
                 <button class="tab-btn" onclick="setCategory('Life/Health', this)">生活</button>
                 <button class="tab-btn" onclick="setCategory('Communication', this)">通信</button>
                 <button class="tab-btn" onclick="setCategory('Creative', this)">創造</button>
                 <button class="tab-btn" onclick="setCategory('Other', this)">他</button>
-                
                 <button class="btn-random" onclick="pickRandom()">🎲 Pick</button>
             </div>
         </div>
@@ -623,6 +647,7 @@
     function init() {
         loadPersonalScores();
         processData();
+        adjustBodyPadding();
 
         const isHidden = localStorage.getItem(AI_SCORE_TOGGLE_KEY) === 'true';
         document.getElementById('aiScoreToggle').checked = isHidden;
@@ -634,6 +659,16 @@
 
         populateAuthorFilter();
     }
+
+    function adjustBodyPadding() {
+        const header = document.getElementById('appHeader');
+        if (header) {
+            // ヘッダーの高さ + 少しの余白
+            document.body.style.paddingTop = (header.offsetHeight + 20) + 'px';
+        }
+    }
+    // Resize時にも調整
+    window.addEventListener('resize', adjustBodyPadding);
 
     function processData() {
         rawData.forEach(item => {
@@ -720,6 +755,7 @@
             document.getElementById('tabSummary').classList.add('active');
             renderSummary();
         }
+        adjustBodyPadding();
     }
 
     function getAIAnalysis(item) {
@@ -748,19 +784,20 @@
         
         switch(item.cat) {
             case 'Life/Health':
-                advice.push("「安心感」と「医学的根拠」の担保が鍵です。");
+                advice.push("健康データはセンシティブです。「安心感」と「医学的根拠」をどう担保しますか？");
                 break;
             case 'AV/Immersive':
-                advice.push("日常的に使いたくなる「必然性」が必要です。");
+                advice.push("「凄そう」だけで終わらせないでください。日常的に使いたくなる「必然性」が必要です。");
                 break;
             case 'AI/Robotics':
-                advice.push("愛着が湧くような「キャラクター性」や「振る舞い」が必要です。");
+                if(item.score_kando.k >= 4) good.push("人と機械の情緒的な繋がりをうまく設計できています。");
+                else advice.push("単なる便利ツールになっていませんか？愛着が湧くような「キャラクター性」や「振る舞い」が必要です。");
                 break;
             case 'Communication':
-                advice.push("既存SNSとどう住み分けるか、戦略を練ってください。");
+                advice.push("既存のSNSやツールとどう共存するか、あるいはどう置き換えるか、戦略を練ってください。");
                 break;
             default:
-                advice.push("ターゲットの課題（Pain）をもう一度深掘りしましょう。");
+                advice.push("ニッチな悩み解決に見えます。市場規模（TAM）が小さすぎないか再考してください。");
         }
 
         if (item.id >= 57) {
@@ -814,6 +851,7 @@
 
         filtered.forEach(item => {
             const card = document.createElement('div');
+            
             const isMemo = item.id >= 57;
             const displayId = isMemo ? `Memo-${item.id - 56}` : `No.${item.id}`;
             const idClass = isMemo ? "tag memo-id" : "tag";
@@ -859,10 +897,10 @@
                 </div>
             `;
             
-            let simpleComment = "詳細分析"; 
-            if(item.totalScore >= 25) simpleComment = "🔥 高評価";
-            else if(item.score_kando.n <= 2) simpleComment = "⚠️ 新奇性↓";
-            else if(item.score_kando.s <= 2) simpleComment = "⚠️ Sonyらしさ↓";
+            let simpleComment = "詳細分析を見る"; 
+            if(item.totalScore >= 25) simpleComment = "🔥 高評価: 要チェック";
+            else if(item.score_kando.n <= 2) simpleComment = "⚠️ 新奇性に課題あり";
+            else if(item.score_kando.s <= 2) simpleComment = "⚠️ Sonyらしさ不足";
             
             const aiCommentHtml = `
                 <div class="ai-comment-box">
@@ -907,6 +945,9 @@
             `;
             grid.appendChild(card);
         });
+        
+        // Render後にも高さ調整
+        setTimeout(adjustBodyPadding, 100);
     }
 
     function openModal(id) {
@@ -1180,4 +1221,3 @@
 </script>
 </body>
 </html>
-
