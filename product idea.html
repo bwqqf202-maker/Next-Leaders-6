@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Future Product Lab | インタラクティブ評価版 (Ver. 29)</title>
+    <title>Future Product Lab | Team Sync Edition (Ver. 34)</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
     <style>
         :root {
@@ -11,8 +11,11 @@
             --surface: #FFFFFF;
             --primary: #0066CC;
             --primary-dark: #0056b3;
-            --personal: #009688;
-            --personal-bg: #E0F2F1;
+            --personal: #009688; /* Teal: 自分 */
+            --team: #4F46E5;     /* Indigo: チーム */
+            --ai: #718096;       /* Gray: AI */
+            --memo: #F57C00;     /* Orange: Memo */
+            --memo-bg: #FFF3E0;
             --text-main: #333;
             --text-sub: #666;
             --rank-s: #FFD700;
@@ -26,15 +29,19 @@
             margin: 0;
             line-height: 1.5;
             font-size: 14px;
+            /* ヘッダー固定用の余白（PC） */
+            padding-top: 180px; 
         }
 
-        /* Header */
+        /* Header (Fixed) */
         header {
             background: var(--surface);
-            position: sticky;
+            position: fixed;
             top: 0;
+            left: 0;
+            width: 100%;
             z-index: 1000;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
             padding-bottom: 0.5rem;
         }
         .header-inner {
@@ -56,6 +63,12 @@
             margin: 0;
             font-size: 1.3rem;
             color: var(--primary-dark);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .ver-badge {
+            font-size: 0.7rem; background: #eee; padding: 2px 6px; border-radius: 4px; color: #666; font-weight: normal;
         }
         .file-actions {
             display: flex;
@@ -65,10 +78,12 @@
             display: flex; align-items: center; gap: 4px;
             padding: 5px 12px; border-radius: 6px; border: 1px solid #ccc;
             font-size: 0.85rem; font-weight: bold; cursor: pointer; background: white;
-            white-space: nowrap;
+            white-space: nowrap; transition: all 0.2s;
         }
-        .btn-file.save { background: #2D3748; color: white; border-color: #2D3748; }
+        .btn-file:hover { transform: translateY(-1px); box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        .btn-file.save { background: var(--personal); color: white; border-color: var(--personal); }
         .btn-file.load { background: #fff; color: #333; border-color: #ccc; }
+        .btn-file.team-load { background: var(--team); color: white; border-color: var(--team); }
 
         /* Controls */
         .controls-row {
@@ -106,7 +121,7 @@
         .slider:before {
             position: absolute; content: ""; height: 12px; width: 12px; left: 2px; bottom: 2px; background-color: white; transition: .4s; border-radius: 50%;
         }
-        input:checked + .slider { background-color: #F56565; }
+        input:checked + .slider { background-color: var(--ai); }
         input:checked + .slider:before { transform: translateX(12px); }
 
         .controls-selectors { display: flex; gap: 5px; }
@@ -127,7 +142,7 @@
         }
 
         /* Grid & Card */
-        .container { max-width: 1200px; margin: 0 auto; padding: 1.5rem 1rem; }
+        .container { max-width: 1200px; margin: 0 auto; padding: 0 1rem 1.5rem 1rem; }
         .grid {
             display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 1.2rem;
         }
@@ -138,6 +153,8 @@
             transition: transform 0.2s; position: relative; cursor: pointer;
         }
         .card:active { transform: scale(0.98); }
+        .card.memo-card { background-color: #FAFAFA; border: 1px dashed #ccc; }
+        .card.memo-card .card-title { color: #555; }
 
         .rank-badge {
             position: absolute; top: 0; right: 0; padding: 3px 10px;
@@ -148,24 +165,31 @@
         .rank-a { background: var(--rank-a); color: #fff; }
         
         .card-header { padding: 1rem; background: #fff; border-bottom: 1px solid #f5f5f5; }
+        .card.memo-card .card-header { background: #FAFAFA; }
+
         .meta-row { display: flex; gap: 6px; margin-bottom: 6px; flex-wrap: wrap; }
         .tag { font-size: 0.7rem; padding: 2px 6px; border-radius: 4px; background: #f0f0f0; color: #555; }
         .tag.cat { background: #E3F2FD; color: var(--primary); }
         .tag.author { background: #ffebee; color: #C53030; }
+        .tag.memo-id { background: var(--memo-bg); color: var(--memo); border: 1px solid #FFE0B2; font-weight: bold; }
+
         .card-title { font-size: 1.1rem; font-weight: bold; margin: 0; line-height: 1.35; }
         
-        /* Bar Styles - Direct Colors */
+        /* Bar Styles */
+        .score-bar-group { margin-top: 8px; }
+        .score-bar-row { display: flex; align-items: center; margin-bottom: 4px; }
+        .score-bar-label { width: 50px; font-size: 0.7rem; font-weight: bold; text-align: right; margin-right: 6px; }
         .score-bar-container {
-            margin-top: 4px; height: 8px; background: #EDF2F7; border-radius: 4px; display: flex; overflow: hidden;
+            flex-grow: 1; height: 6px; background: #EDF2F7; border-radius: 3px; display: flex; overflow: hidden;
         }
-        .bar-segment-emotional { height: 100%; background-color: #E53E3E; } /* Red */
-        .bar-segment-execution { height: 100%; background-color: #38A169; } /* Green */
+        .bar-personal .bar-segment-emotional { background-color: #26A69A; }
+        .bar-personal .bar-segment-execution { background-color: #80CBC4; }
+        .bar-team .bar-segment-emotional { background-color: #5C6BC0; }
+        .bar-team .bar-segment-execution { background-color: #9FA8DA; }
+        .bar-ai .bar-segment-emotional { background-color: #A0AEC0; }
+        .bar-ai .bar-segment-execution { background-color: #CBD5E0; }
 
-        .score-detail-text {
-            font-size: 0.7rem; color: #555; margin-top: 8px; display: flex; justify-content: space-between;
-        }
-        .score-label-personal { color: var(--personal); font-weight: bold; }
-        .score-label-ai { color: #888; font-weight: bold; margin-top: 12px; }
+        .score-val { width: 30px; font-size: 0.7rem; text-align: left; margin-left: 6px; color: #555; }
 
         .ai-comment-box {
             margin-top: 10px; padding: 8px; background: #F8FAFC; border-radius: 6px; border: 1px solid #EDF2F7; font-size: 0.8rem;
@@ -186,7 +210,8 @@
         }
         .modal-content {
             background-color: #fefefe; margin: auto; padding: 20px; border-radius: 12px;
-            width: 95%; max-width: 600px; box-shadow: 0 10px 30px rgba(0,0,0,0.3); position: relative;
+            width: 95%; max-width: 650px; box-shadow: 0 10px 30px rgba(0,0,0,0.3); position: relative;
+            max-height: 90vh; overflow-y: auto;
         }
         .close-btn { float: right; font-size: 24px; font-weight: bold; color: #aaa; padding: 0 5px; cursor: pointer; }
         .modal-score-section h3 {
@@ -205,18 +230,15 @@
             background-color: var(--personal); color: white; padding: 10px 20px; border: none; border-radius: 6px; cursor: pointer; font-size: 1rem; margin-top: 15px; width: 100%;
         }
         .personal-score-summary {
-            padding: 8px; background: var(--personal-bg); border-radius: 4px; margin-top: 8px; font-weight: bold; color: var(--personal); text-align: center;
+            padding: 8px; background: #E0F2F1; border-radius: 4px; margin-top: 8px; font-weight: bold; color: var(--personal); text-align: center;
         }
         .score-input-section-divider { margin-top: 15px; padding-top: 10px; border-top: 1px solid #ddd; }
 
         /* Hiding logic */
-        body.hide-ai-scores .rank-badge,
-        body.hide-ai-scores .score-bar-container.ai-total-score-container,
-        body.hide-ai-scores .score-label-ai,
+        body.hide-ai-scores .bar-row-ai,
         body.hide-ai-scores .ai-comment-box { display: none !important; }
         
         /* Summary Page */
-        #summaryPage { padding: 1.5rem 1rem; }
         .summary-header { text-align: center; margin-bottom: 2rem; border-bottom: 2px solid #ddd; padding-bottom: 1rem; }
         .chart-container-grid {
             display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1.5rem; margin-top: 1rem;
@@ -230,21 +252,25 @@
             background: #E0F2F1; border-left: 5px solid var(--personal); padding: 15px; border-radius: 4px; margin-bottom: 20px;
         }
         .analysis-text-box h3 { color: var(--personal); margin-top: 0; }
+        .team-active-alert {
+            background: #E8EAF6; border-left: 5px solid var(--team); padding: 10px; border-radius: 4px; margin-bottom: 15px; color: var(--team); font-weight: bold; display: none;
+        }
 
         @media (max-width: 768px) {
+            body { padding-top: 250px; } /* Header gets taller on mobile */
             .header-inner { padding: 0.8rem; }
             .header-top-row { flex-wrap: wrap; gap: 10px; }
             .header-top-row h1 { font-size: 1.1rem; width: 100%; }
-            .file-actions { width: 100%; justify-content: flex-start; }
+            .file-actions { width: 100%; justify-content: flex-start; overflow-x: auto; padding-bottom: 4px; }
             .controls-row { flex-direction: column; align-items: flex-start; gap: 8px; }
             .page-tabs { width: 100%; justify-content: space-between; }
             .page-tab-btn { flex-grow: 1; text-align: center; padding: 6px 4px; font-size: 0.85rem; }
-            .count-badge { position: absolute; top: 55px; right: 15px; background: transparent; color: #666; padding: 0; font-size: 0.8rem; }
+            .count-badge { position: absolute; top: 60px; right: 15px; background: transparent; color: #666; padding: 0; font-size: 0.8rem; }
             .control-group-right { width: 100%; justify-content: space-between; }
             .controls-selectors { flex-grow: 1; justify-content: flex-end; }
             .controls-selectors select { width: 100%; max-width: none; }
             .grid { grid-template-columns: 1fr; }
-            .modal-content { width: 92%; padding: 15px; max-height: 90vh; overflow-y: auto; }
+            .modal-content { width: 92%; padding: 15px; }
         }
     </style>
 </head>
@@ -253,18 +279,21 @@
 <header>
     <div class="header-inner">
         <div class="header-top-row">
-            <h1>プロダクトアイデア評価ボード</h1>
+            <h1>プロダクトアイデア評価ボード <span class="ver-badge">Ver.34 Team Sync</span></h1>
             <div class="file-actions">
                 <button onclick="exportPersonalScores()" class="btn-file save"><span>💾</span> 保存</button>
-                <button onclick="document.getElementById('importInput').click();" class="btn-file load"><span>📥</span> 読込</button>
+                <button onclick="document.getElementById('importInput').click();" class="btn-file load"><span>📂</span> 読込</button>
                 <input type="file" id="importInput" accept="application/json" onchange="importPersonalScoresFromFile(this.files[0])" style="display:none;">
+                
+                <button onclick="document.getElementById('teamImportInput').click();" class="btn-file team-load"><span>👥</span> チーム読込(複数)</button>
+                <input type="file" id="teamImportInput" accept="application/json" multiple onchange="importTeamScores(this.files)" style="display:none;">
             </div>
         </div>
 
         <div class="controls-row">
             <div class="page-tabs">
                 <button class="page-tab-btn active" id="tabGrid" onclick="changePage('grid')">一覧ボード</button>
-                <button class="page-tab-btn" id="tabSummary" onclick="changePage('summary')">自己分析</button>
+                <button class="page-tab-btn" id="tabSummary" onclick="changePage('summary')">分析レポート</button>
             </div>
             <div class="count-badge" id="displayCount">全 0 件</div>
             
@@ -282,6 +311,7 @@
                     </select>
                     <select class="sort-select" id="sortSelect" onchange="render()">
                         <option value="personal_score">あなた評価順</option>
+                        <option value="team_score">チーム評価順</option>
                         <option value="total_ai_score">AI評価順</option>
                         <option value="id">ID順</option>
                     </select>
@@ -304,17 +334,20 @@
 </header>
 
 <div class="container" id="gridPage">
+    <div id="teamActiveAlert" class="team-active-alert">
+        👥 チーム合意形成モード: <span id="teamMemberCount">0</span>人分のデータを統合中
+    </div>
     <div class="grid" id="grid"></div>
 </div>
 
 <div class="container" id="summaryPage" style="display:none;">
     <div class="summary-header">
-        <h2>自己評価分析レポート</h2>
-        <p>あなたが採点したデータに基づき、興味・関心の傾向を分析します。</p>
+        <h2>分析レポート</h2>
+        <p>自己評価、チーム平均、AI評価の比較分析を行います。</p>
     </div>
 
     <div class="analysis-text-box">
-        <h3>📊 あなたの興味プロファイル</h3>
+        <h3>📊 興味プロファイル (あなた)</h3>
         <div id="userAnalysisText">
             データが不足しています。まずは一覧ボードで気になるアイデアをいくつか評価（採点）してください。
         </div>
@@ -322,11 +355,11 @@
 
     <div class="chart-container-grid">
         <div class="chart-box full-width">
-            <h3>カテゴリー別 平均評価点 (あなたの関心度)</h3>
+            <h3>カテゴリー別 平均評価 (あなた vs チーム)</h3>
             <canvas id="categoryBarChart"></canvas>
         </div>
         <div class="chart-box">
-            <h3>評価軸の傾向 (AI vs あなた)</h3>
+            <h3>評価軸の傾向 (あなた vs チーム vs AI)</h3>
             <canvas id="radarChart"></canvas>
         </div>
         <div class="chart-box">
@@ -347,6 +380,24 @@
             <h4>独自の価値提案 (UVP)</h4>
             <p id="modalUVP"></p>
         </div>
+        
+        <div class="modal-score-section">
+            <h3>詳細情報</h3>
+            <p><strong>🎯 ターゲット:</strong> <span id="modalWho"></span></p>
+            <p><strong>💔 課題:</strong> <span id="modalPain"></span></p>
+            <p><strong>💡 解決策:</strong> <span id="modalSolution"></span></p>
+            <p><strong>📈 KGI:</strong> <span id="modalKGI"></span></p>
+            <p><strong>🌟 Sony技術:</strong> <span id="modalTech"></span></p>
+            <p><strong>⚠️ リスク:</strong> <span id="modalRisk"></span></p>
+            <p><strong>🕰️ タイミング:</strong> <span id="modalTiming"></span></p>
+        </div>
+
+        <div class="modal-score-section">
+            <h3 style="color:#718096;">【AIプロダクト分析】</h3>
+            <p id="modalAIComment" style="font-weight: bold; color:#444; line-height:1.6;"></p>
+            <p style="font-size:0.85rem; color:#666; margin-top:5px;">(参考スコア: 情緒<span id="modalAIScoreKando"></span> / 実行<span id="modalAIScoreExec"></span>)</p>
+        </div>
+
         <div class="modal-score-section personal-score">
             <h3>📝 メンバー評価 (あなたの採点)</h3>
             <form id="personalScoreForm">
@@ -369,95 +420,95 @@
                 <button type="button" class="modal-save-btn" onclick="savePersonalScore()">評価を保存</button>
             </form>
         </div>
-        <div class="modal-score-section">
-            <h3>詳細情報</h3>
-            <p><strong>🎯 ターゲット:</strong> <span id="modalWho"></span></p>
-            <p><strong>💔 課題:</strong> <span id="modalPain"></span></p>
-            <p><strong>💡 解決策:</strong> <span id="modalSolution"></span></p>
-            <p><strong>📈 KGI:</strong> <span id="modalKGI"></span></p>
-            <p><strong>🌟 Sony技術:</strong> <span id="modalTech"></span></p>
-            <p><strong>⚠️ リスク:</strong> <span id="modalRisk"></span></p>
-            <p><strong>🕰️ タイミング:</strong> <span id="modalTiming"></span></p>
-        </div>
-        <div class="modal-score-section">
-            <h3 style="color:#E53E3E;">【AI簡易評価】情緒的価値</h3>
-            <p id="modalAIScoreKando"></p>
-        </div>
-        <div class="modal-score-section">
-            <h3 style="color:#38A169;">【AIプロダクト評価】実行価値</h3>
-            <p id="modalAIScoreExec"></p>
-        </div>
     </div>
 </div>
 
 <script>
-    // 56件分のフルデータ
+    // ==========================================
+    // DATA SECTION (68 items) - 補完済み
+    // ==========================================
     const rawData = [
-        {id:1,author:"中尾",cat:"Life/Health",title:"歯ブラシカメラ",who:"口腔ケア意識の高い人",pain:"歯の磨き残しが見えず、虫歯や口臭の原因になってしまう",solution:"歯ブラシの先端にイメージセンサーを搭載し、磨き残しをAIがカラーコードで表示。",uvp:"イメージセンサで歯を可視化。高度なセンシング技術の日常化。",kgi:"プラーク付着率の低下",tech:"AI(画像解析)、イメージセンサ技術",risk:"衛生面、医療機器としての規制",timing:"ヘルスケア意識の向上、小型センサーの進化",score_kando:{k:3,s:5,n:3},score_exec:{feat:5,test:5,strat:3}},
-        {id:2,author:"歌丸",cat:"AV/Immersive",title:"寝ながらドーム型ディスプレイ",who:"夜しか時間がない親",pain:"夜子供を寝かしつけた後に、大迫力の映像コンテンツを体験したい",solution:"寝室の天井に取り付ける超短焦点プロジェクターと音漏れしない指向性スピーカー、遮光ドーム。",uvp:"指向性スピーカー＋暗視ドーム。寝落ちOKの完全没入シアター。",kgi:"平均視聴時間",tech:"指向性スピーカー、プロジェクション技術",risk:"設置の手間、寝室環境への配慮",timing:"共働き世帯の増加、ホームエンタメ需要の拡大",score_kando:{k:5,s:5,n:4},score_exec:{feat:4,test:5,strat:4}},
-        {id:3,author:"歌丸",cat:"AV/Immersive",title:"VR検証デバイス",who:"VRコンテンツ開発者",pain:"VRコンテンツ開発における両眼視覚の検証効率が悪い",solution:"VRヘッドセットを装着した視覚を1つのディスプレイに統合し、開発者がリアルタイムで視覚差を確認できるデバイス。",uvp:"両眼視覚を1画面に再現する開発ツール",kgi:"検証時間の短縮率",tech:"VR/AR技術、ディスプレイ",risk:"開発者向けのニッチ市場、ソフトウェアとの連携",timing:"VR/ARコンテンツ市場の拡大",score_kando:{k:2,s:4,n:3},score_exec:{feat:5,test:3,strat:4}},
-        {id:4,author:"中尾",cat:"Life/Health",title:"栄養バランスレコメンド",who:"忙しいビジネスパーソン",pain:"外食続きで栄養バランスが偏り、体調管理が難しい",solution:"食べたものの写真を撮るだけで栄養価を計算し、不足栄養素を補う次の食事をレコメンド。",uvp:"写真1枚で完結する手軽さ",kgi:"ユーザーの健康診断結果の改善率",tech:"AI(画像認識)、栄養学データベース",risk:"競合アプリの存在、正確性",timing:"健康志向の高まり",score_kando:{k:3,s:3,n:2},score_exec:{feat:5,test:5,strat:3}},
-        {id:5,author:"里平",cat:"Life/Health",title:"スマートコンタクト",who:"視力矯正が必要な人",pain:"メガネやコンタクトの着脱が面倒、情報の確認にスマホを取り出すのが手間",solution:"AR情報を表示できるコンタクトレンズ。健康状態もモニタリング可能。",uvp:"究極のウェアラブル",kgi:"装着時間の長さ",tech:"極小ディスプレイ、バイオセンサー",risk:"安全性、技術的難易度",timing:"スマートグラスの次世代",score_kando:{k:5,s:5,n:5},score_exec:{feat:1,test:1,strat:5}},
-        {id:6,author:"真田",cat:"AI/Robotics",title:"専属メイクアップマシーン",who:"メイク時間がない/苦手な人",pain:"毎朝のメイクにかかる時間が勿体ない、プロのような仕上がりにしたい",solution:"AIが顔の輪郭や肌の調子を解析し、最適なメイクをロボットアームで高速かつ精密に施す。",uvp:"顔認識とロボットアームで、毎朝プロ級のメイクを自動化。",kgi:"朝の準備時間短縮率",tech:"AI(画像認識)、ロボティクス(精密動作)",risk:"安全性の懸念、肌への接触",timing:"AIとロボット技術の進化、時短ニーズの増加",score_kando:{k:4,s:5,n:4},score_exec:{feat:3,test:3,strat:5}},
-        {id:7,author:"浜野",cat:"Life/Health",title:"オーラパワー",who:"自分の体調変化に鈍い人",pain:"自身の体調やメンタルヘルスの微妙な変化に気づきにくい",solution:"ウェアラブルセンサーがバイタルデータを測定し、それを色彩豊かなオーラとして視覚的に表現。",uvp:"バイタルをゲーム風オーラとして可視化",kgi:"体調変化の早期発見率",tech:"バイタルセンサー、AR/VR可視化",risk:"データの正確性、視覚表現の解釈",timing:"パーソナライズヘルスケアのトレンド、ウェアラブル普及",score_kando:{k:3,s:4,n:3},score_exec:{feat:5,test:4,strat:4}},
-        {id:8,author:"里平",cat:"Communication",title:"HelpWork",who:"急な人手不足に困る店舗経営者",pain:"急な欠勤や繁忙期の人手不足に即時対応できない",solution:"急な欠員や業務を、近隣の登録者に即時でマッチングするプラットフォーム。",uvp:"近隣即時マッチング",kgi:"マッチング成功までの平均時間",tech:"ロケーションベースサービス、マッチングAI",risk:"労働条件、トラブル発生時の責任",timing:"ギグワークの一般化、労働人口の流動性増加",score_kando:{k:3,s:1,n:2},score_exec:{feat:5,test:5,strat:3}},
-        {id:9,author:"里平",cat:"AV/Immersive",title:"香り自動発生 (Smart Scent)",who:"没入体験を求めるユーザー",pain:"視覚・聴覚以外の五感でのエンタメ体験が不足している",solution:"映画やゲームのメタデータから香りを自動生成・噴霧するデバイス。香りのカートリッジ交換式。",uvp:"映像や状況に合わせて香りを自動選定・合成。五感エンタメ。",kgi:"エンタメコンテンツの満足度スコア",tech:"嗅覚ディスプレイ、コンテンツメタデータ解析",risk:"香りの個人差、カートリッジのコスト",timing:"XR技術の進化、五感刺激型コンテンツの模索",score_kando:{k:4,s:4,n:4},score_exec:{feat:4,test:3,strat:4}},
-        {id:10,author:"中尾",cat:"Life/Health",title:"冷蔵庫管理アプリ",who:"食材を無駄にしがちな家庭",pain:"冷蔵庫の中身を把握できず、食材を腐らせてしまう",solution:"冷蔵庫内のカメラで在庫を自動管理し、賞味期限切れ前にレシピを提案。",uvp:"自動在庫管理とロス削減",kgi:"食品廃棄量の削減率",tech:"画像認識、IoT",risk:"カメラ設置のコスト、認識精度",timing:"フードロス削減の社会的要請",score_kando:{k:2,s:3,n:2},score_exec:{feat:4,test:4,strat:3}},
-        {id:11,author:"中尾",cat:"AI/Robotics",title:"全自動洗濯畳み機",who:"家事が負担な共働き世帯",pain:"洗濯物を畳む作業が面倒で時間がかかる",solution:"洗濯乾燥機から取り出した衣類を自動で認識し、綺麗に畳んで収納まで行うロボット。",uvp:"家事の完全自動化",kgi:"家事時間の短縮",tech:"ロボティクス、画像認識",risk:"衣類の種類による対応限界、サイズ",timing:"スマートホーム化の進展",score_kando:{k:4,s:4,n:3},score_exec:{feat:2,test:2,strat:4}},
-        {id:12,author:"真田",cat:"AV/Immersive",title:"YUKIQUEST (除雪AR)",who:"豪雪地帯の住民",pain:"雪かきが辛い労働で、モチベーションを保つのが困難",solution:"ARグラスを装着し、雪かきエリアをゲームのクエストのようにマッピング。雪の量に応じてスコアや報酬を付与。",uvp:"ARグラスで除雪をゲーミフィケーション化。労働をエンタメに。",kgi:"平均除雪時間の短縮",tech:"ARグラス、ロケーションベースゲーミフィケーション",risk:"屋外での視認性、バッテリー持続時間",timing:"AR技術の一般普及、労働人口減少に伴う省力化ニーズ",score_kando:{k:4,s:3,n:5},score_exec:{feat:3,test:5,strat:5}},
-        {id:13,author:"真田",cat:"Life/Health",title:"空もようカーテン",who:"窓からの景色に不満がある人",pain:"都市部で窓から景色が見えない、天気が悪いと気分が落ち込む",solution:"高解像度LEDパネルをカーテンのように窓に設置し、リアルタイムの空模様や好みの風景を投影。",uvp:"LEDカーテンで窓の景色を自由に変更",kgi:"ユーザーの気分スコア向上率",tech:"LEDディスプレイ、環境センシング",risk:"設置コスト、消費電力",timing:"ホームシアター化の進行、インテリア需要の多様化",score_kando:{k:4,s:3,n:3},score_exec:{feat:4,test:4,strat:4}},
-        {id:14,author:"里平",cat:"Creative",title:"スマホ背面ディスプレイ",who:"個性を表現したいスマートフォンユーザー",pain:"スマートフォンのケースやデザインに飽きる、もっと個性を出したい",solution:"スマートフォン背面に高解像度・低消費電力のE-Inkまたは有機ELディスプレイを搭載し、デザインや情報を表示。",uvp:"背面全体がディスプレイ。気分でデザインを変えるSonyらしい意匠。",kgi:"デザイン変更頻度",tech:"ディスプレイ技術、薄型化技術",risk:"バッテリー消費、耐久性",timing:"若年層の自己表現ニーズ、モバイルデバイスの意匠差別化",score_kando:{k:3,s:4,n:3},score_exec:{feat:5,test:4,strat:4}},
-        {id:15,author:"里平",cat:"Life/Health",title:"スマートグラス（視覚補助）",who:"視覚障がい者",pain:"周囲の状況把握や文字の読み取りが困難",solution:"カメラとAIを搭載し、周囲の状況や文字を音声で伝えるスマートグラス。",uvp:"視覚の代替",kgi:"外出頻度の向上",tech:"画像認識、音声合成",risk:"誤認識による事故、バッテリー",timing:"AI技術の成熟、バリアフリー社会",score_kando:{k:4,s:4,n:3},score_exec:{feat:4,test:4,strat:5}},
-        {id:16,author:"伊達",cat:"Communication",title:"翻訳こんにゃく",who:"海外旅行者、ビジネスマン",pain:"言語の壁があり、リアルタイムでのコミュニケーションが難しい",solution:"超小型のイヤホン型デバイスで、相手の言葉をリアルタイムに通訳して耳元で再生。",uvp:"完全ハンズフリーの同時通訳",kgi:"会話の成立率",tech:"音声認識、機械翻訳",risk:"誤訳、通信遅延",timing:"グローバル化、AI翻訳の精度向上",score_kando:{k:4,s:3,n:3},score_exec:{feat:4,test:4,strat:4}},
-        {id:17,author:"伊達",cat:"Life/Health",title:"ドローン傘",who:"雨の日に両手を使いたい人",pain:"傘を持つと手が塞がり、荷物を持ったりスマホを操作したりしにくい",solution:"使用者の頭上を自動追尾して浮遊するドローン型の傘。",uvp:"ハンズフリーの雨除け",kgi:"濡れなかった割合",tech:"ドローン制御、画像認識",risk:"風、バッテリー、安全性（墜落）",timing:"ドローン技術の進化",score_kando:{k:4,s:3,n:4},score_exec:{feat:2,test:2,strat:3}},
-        {id:18,author:"歌丸",cat:"Communication",title:"人間ETC",who:"行列が嫌いな人",pain:"テーマパークやイベント会場での行列、チケット購入のストレス",solution:"体内のICチップや顔認証と連携した決済システムで、ゲートを通過するだけで自動的に料金を精算。",uvp:"顔パス・RFIDでゲートレス入場。止まらない体験。",kgi:"入場時の平均待ち時間短縮率",tech:"RFID、顔認証、非接触決済",risk:"プライバシー、生体認証への抵抗感",timing:"非接触ニーズの増加、生体認証技術の普及",score_kando:{k:3,s:3,n:3},score_exec:{feat:5,test:4,strat:4}},
-        {id:19,author:"歌丸",cat:"AI/Robotics",title:"自動運転ベビーカー",who:"子育て中の親",pain:"ベビーカーを押しながらの移動や買い物が大変",solution:"親を追尾して自動走行するベビーカー。障害物回避機能付き。",uvp:"手ぶらでのお出かけ",kgi:"外出時の疲労度軽減",tech:"自動運転、センサー",risk:"安全性、暴走",timing:"自動運転技術の応用",score_kando:{k:3,s:3,n:3},score_exec:{feat:3,test:3,strat:3}},
-        {id:20,author:"中尾",cat:"Life/Health",title:"スマートシューズ",who:"ランナー、健康志向の人",pain:"ランニングフォームが正しいかわからない、怪我が心配",solution:"靴底のセンサーで着地や重心移動を解析し、スマホでリアルタイムにコーチング。",uvp:"足元からの健康管理",kgi:"怪我の発生率低下",tech:"圧力センサー、IoT",risk:"耐久性、バッテリー",timing:"ランニングブーム",score_kando:{k:3,s:3,n:2},score_exec:{feat:5,test:5,strat:3}},
-        {id:21,author:"浜野",cat:"Life/Health",title:"香りのタイムカプセル",who:"思い出を鮮明に残したい人",pain:"時間が経つと写真を見ても当時の感情や記憶が薄れてしまう",solution:"写真撮影時に環境の香りをキャプチャし、AIで分析。写真閲覧時にその香りを再現するデバイス。",uvp:"写真＋香りを記録し、プルースト効果で記憶を鮮明に再生。",kgi:"記憶の鮮明度評価",tech:"高感度センサー、嗅覚ディスプレイ",risk:"香りの再現精度、メンテナンス",timing:"記憶・感情科学への関心の高まり、センサー技術の発展",score_kando:{k:5,s:3,n:4},score_exec:{feat:4,test:5,strat:4}},
-        {id:22,author:"浜野",cat:"AI/Robotics",title:"ペット翻訳機",who:"ペットオーナー",pain:"ペットの気持ちがわからず、体調不良やストレスに気づけない",solution:"鳴き声や行動をAIが解析し、感情を言語化してアプリに表示。",uvp:"ペットとの真の対話",kgi:"ペットのストレス値低下",tech:"音声解析、行動分析AI",risk:"解釈の正確性",timing:"ペット市場の拡大",score_kando:{k:4,s:3,n:3},score_exec:{feat:4,test:4,strat:4}},
-        {id:23,author:"浜野",cat:"Creative",title:"デジタル箱庭",who:"VR酔いしやすいクリエイター",pain:"VRは酔いやすく、長時間の創作活動が難しい",solution:"裸眼で立体視が可能な小型ディスプレイとモーションセンサーで、手のひらの上にデジタルコンテンツを操作・配置。",uvp:"裸眼立体視ディスプレイで手の中に世界を作る。",kgi:"ユーザーの創作時間",tech:"裸眼立体視ディスプレイ、センサー技術",risk:"解像度、価格、視野角",timing:"メタバースの成長、裸眼3D技術の進化",score_kando:{k:3,s:4,n:3},score_exec:{feat:4,test:5,strat:4}},
-        {id:24,author:"中尾",cat:"Life/Health",title:"自動雨よけ",who:"洗濯物を干す人",pain:"外出中に急な雨で洗濯物が濡れてしまう",solution:"雨センサーが雨を検知すると、自動で展開し洗濯物を覆う防水カバー。",uvp:"雨検知で自動展開",kgi:"洗濯物が濡れた回数の減少",tech:"センサー技術、自動展開機構",risk:"強風への耐性、センサーの誤作動",timing:"IoT家電の普及、共働き世帯の増加",score_kando:{k:3,s:2,n:2},score_exec:{feat:5,test:5,strat:3}},
-        {id:25,author:"中尾",cat:"Life/Health",title:"睡眠最適化ベッド",who:"睡眠の質を上げたい人",pain:"なかなか寝付けない、朝起きるのが辛い",solution:"体温や心拍数に合わせて温度や硬さを自動調整し、最適な睡眠環境を提供するベッド。",uvp:"パーソナライズされた睡眠環境",kgi:"睡眠効率スコア",tech:"バイタルセンシング、温度制御",risk:"高価格、故障時の対応",timing:"スリープテック市場の成長",score_kando:{k:3,s:3,n:2},score_exec:{feat:3,test:3,strat:4}},
-        {id:26,author:"伊達",cat:"Creative",title:"夢録画",who:"夢を覚えていたい人",pain:"面白い夢を見ても、起きたら忘れてしまう",solution:"脳波を解析して夢の内容を映像化し、保存するデバイス。",uvp:"潜在意識の映像化",kgi:"夢の再生回数",tech:"ブレイン・マシン・インターフェース(BMI)",risk:"技術的未熟さ、プライバシー",timing:"脳科学の進展（まだ早いかも）",score_kando:{k:5,s:4,n:5},score_exec:{feat:1,test:1,strat:5}},
-        {id:27,author:"伊達",cat:"Communication",title:"香りキー (生体認証)",who:"セキュリティと利便性を求める人",pain:"指紋・顔認証、パスワード入力の手間",solution:"個人の体臭（揮発性有機化合物）をセンサーで瞬時に解析し、生体認証キーとして利用。",uvp:"体臭で認証する究極のハンズフリー・セキュリティ。",kgi:"認証成功率と速度",tech:"高感度センサー、AI(パターン認識)",risk:"認証の安定性、体調による変動",timing:"生体認証技術の進化、プライバシー意識の高まり",score_kando:{k:2,s:4,n:5},score_exec:{feat:3,test:4,strat:5}},
-        {id:28,author:"真田",cat:"AI/Robotics",title:"AI弁護士",who:"法的トラブルを抱える個人",pain:"弁護士費用が高く、気軽に相談できない",solution:"過去の判例を学習したAIが、法的アドバイスや書類作成を行う。",uvp:"安価で即時性の高い法的支援",kgi:"相談件数、解決率",tech:"自然言語処理、法律データベース",risk:"責任の所在、法規制",timing:"リーガルテックの普及",score_kando:{k:2,s:2,n:3},score_exec:{feat:4,test:3,strat:4}},
-        {id:29,author:"真田",cat:"AI/Robotics",title:"ココミミ (AIミラー)",who:"心のケアを必要とする人",pain:"誰とも話したくないが、心のどこかで寂しさを感じている",solution:"AIが表情や声のトーンを解析し、鏡のディスプレイ上に感情に合った抽象的な視覚表現（色、光など）を投影。",uvp:"表情を読み取り、鏡が静かに寄り添い共感してくれる。",kgi:"ユーザーの自己肯定感スコア",tech:"AI(感情認識)、ディスプレイ技術",risk:"依存性、プライバシーの侵害",timing:"メンタルヘルス意識の高まり、AI技術の日常浸透",score_kando:{k:5,s:4,n:3},score_exec:{feat:4,test:4,strat:4}},
-        {id:30,author:"浜野",cat:"AV/Immersive",title:"パーソナライズラジオ",who:"情報選別を面倒に感じる人",pain:"必要な情報を得るために、多くのコンテンツから選別する手間がある",solution:"AIがユーザーの行動・興味を分析し、ニュース、音楽、ポッドキャストなどをシームレスに編集・放送する。",uvp:"AIが興味に合わせて番組を自動編成する自分専用放送局。",kgi:"利用継続率",tech:"AI(レコメンデーション)、音声合成",risk:"情報の偏り（フィルターバブル）、著作権",timing:"音声コンテンツの復権、AIによるコンテンツ自動生成の進化",score_kando:{k:3,s:4,n:3},score_exec:{feat:4,test:4,strat:4}},
-        {id:31,author:"浜野",cat:"Life/Health",title:"感情共有デバイス",who:"遠距離カップル、家族",pain:"テキストや通話だけでは感情が伝わりにくい",solution:"脈拍や皮膚電気活動から感情を推定し、光や振動で相手のデバイスに伝える。",uvp:"言葉にできない感情の伝達",kgi:"コミュニケーション満足度",tech:"ウェアラブルセンサー、触覚フィードバック",risk:"誤解、プライバシー",timing:"非言語コミュニケーションの重要性再認識",score_kando:{k:4,s:3,n:4},score_exec:{feat:3,test:3,strat:3}},
-        {id:32,author:"浜野",cat:"Life/Health",title:"BackDodge (第六感)",who:"都市部の歩行者",pain:"背後からの衝突や危険な接近に気づきにくい",solution:"背中や服に装着する超小型センサーが背後の動きや接近を検知し、振動や音でユーザーに警告。",uvp:"背面センサと振動で接近を通知。「第六感」のテクノロジー化。",kgi:"衝突事故の減少率",tech:"超音波/赤外線センサー、触覚フィードバック",risk:"誤検知の多発、装着の手間",timing:"都市生活のストレス増加、ウェアラブルセンサーの小型化",score_kando:{k:3,s:4,n:5},score_exec:{feat:4,test:5,strat:4}},
-        {id:33,author:"里平",cat:"Other",title:"植物発電キット",who:"環境教育、インテリア",pain:"身近なエネルギー生成の体験が少ない",solution:"植物が光合成をする際に土壌に放出する電子を利用して発電するキット。",uvp:"植物を育てるだけでスマホ充電",kgi:"発電効率",tech:"微生物燃料電池",risk:"発電量の少なさ",timing:"サステナビリティへの関心",score_kando:{k:3,s:3,n:4},score_exec:{feat:2,test:3,strat:3}},
-        {id:34,author:"歌丸",cat:"AV/Immersive",title:"白紙の本 (AR Book)",who:"紙の本の手触りを好む読書家",pain:"紙の本の手触り感とデジタルの利便性の両立が難しい",solution:"本自体は手触りの良い白紙だが、ARグラスを装着するとページに文章やイラストが表示される。",uvp:"白紙の本＋ARグラス。アナログな体験とデジタル情報の融合。",kgi:"読書平均時間",tech:"ARグラス、触覚フィードバック",risk:"ARグラスの普及率、紙の質感の再現性",timing:"ARデバイスの高性能化、アナログとデジタルの融合",score_kando:{k:4,s:3,n:4},score_exec:{feat:3,test:4,strat:4}},
-        {id:35,author:"歌丸",cat:"Creative",title:"空間お絵描き",who:"子供、アーティスト",pain:"2次元のキャンバスでは表現に限界がある",solution:"ARグラスと専用ペンを使い、空間に3Dの絵を描くことができる。",uvp:"空間そのものをキャンバスに",kgi:"作品投稿数",tech:"AR、空間認識",risk:"操作の難易度",timing:"XRデバイスの普及",score_kando:{k:4,s:4,n:3},score_exec:{feat:4,test:4,strat:4}},
-        {id:36,author:"伊達",cat:"Life/Health",title:"自分探しアプリ",who:"進路に悩む学生、転職希望者",pain:"自分が何をしたいのか、何に向いているのかわからない",solution:"日々の行動ログやSNSの投稿をAIが分析し、潜在的な興味や適性を可視化。",uvp:"AIによる客観的な自己分析",kgi:"進路決定率",tech:"行動分析、自然言語処理",risk:"プライバシー、過度な誘導",timing:"キャリア形成の多様化",score_kando:{k:2,s:2,n:2},score_exec:{feat:5,test:5,strat:3}},
-        {id:37,author:"伊達",cat:"Communication",title:"バーチャル分身",who:"多忙な人、有名人",pain:"体が一つしかなく、複数の場所に同時に存在できない",solution:"自分の外見と声を模したアバターが、メタバース空間で代わりに会議やイベントに参加。",uvp:"身体的制約からの解放",kgi:"同時参加イベント数",tech:"アバター生成、音声合成",risk:"なりすまし、アイデンティティの喪失",timing:"メタバースの普及",score_kando:{k:3,s:3,n:4},score_exec:{feat:3,test:3,strat:4}},
-        {id:38,author:"真田",cat:"Other",title:"昆虫食メーカー",who:"サステナブルな食生活に関心がある人",pain:"昆虫食は見た目の抵抗感があり、普及しにくい",solution:"昆虫を粉末化し、3Dプリンターで美味しそうな見た目の食品に再形成する調理家電。",uvp:"見た目の抵抗感をなくした高タンパク食",kgi:"昆虫食の喫食率",tech:"フード3Dプリンター",risk:"心理的ハードル、食品衛生",timing:"食糧危機への懸念",score_kando:{k:2,s:2,n:4},score_exec:{feat:3,test:3,strat:3}},
-        {id:39,author:"真田",cat:"AI/Robotics",title:"ゴミ拾いドローン",who:"自治体、イベント運営者",pain:"広範囲のゴミ拾いは人手と時間がかかる",solution:"上空からゴミを認識し、アームで回収する自律飛行ドローン。",uvp:"広範囲の清掃自動化",kgi:"ゴミ回収量",tech:"ドローン、画像認識、ロボットアーム",risk:"安全性、バッテリー、法規制",timing:"環境美化意識の向上",score_kando:{k:3,s:3,n:3},score_exec:{feat:3,test:3,strat:4}},
-        {id:40,author:"伊達",cat:"Creative",title:"Behavior Synth",who:"音楽制作に興味がある非専門家",pain:"作曲スキルがなく、自分の感情を音楽で表現できない",solution:"ウェアラブルデバイスが心拍、歩行リズム、位置情報などを取得し、それらをパラメータとしてAIが即興で音楽を生成。",uvp:"日常の振る舞いがそのまま音楽になるシンセサイザー。",kgi:"生成された楽曲の公開数",tech:"AI(音楽生成)、バイオセンシング",risk:"音楽の品質、ユーザーの解釈とのズレ",timing:"AIによる創作支援の一般化、非同期なコミュニケーションの増加",score_kando:{k:4,s:5,n:4},score_exec:{feat:3,test:3,strat:5}},
-        {id:41,author:"浜野",cat:"Life/Health",title:"スマートゴミ箱",who:"ゴミ捨てを面倒に感じる人",pain:"ゴミの分別が面倒、ゴミ出しのタイミングを忘れがち",solution:"投入されたゴミのバーコードや形状をAIが認識し、正しい分別を指示。自動でゴミ出し通知も行う。",uvp:"バーコード管理で分別・在庫管理",kgi:"分別ミスの減少率",tech:"AI(画像認識)、IoTデバイス",risk:"ゴミ箱自体の洗浄・衛生面、価格",timing:"スマートホームの普及、環境意識の高まり",score_kando:{k:2,s:3,n:3},score_exec:{feat:4,test:4,strat:4}},
-        {id:42,author:"浜野",cat:"Life/Health",title:"姿勢矯正チェア",who:"デスクワーカー",pain:"長時間の座り仕事で姿勢が悪くなり、腰痛になる",solution:"座り方をセンサーで検知し、姿勢が悪くなると座面が動いて自然に矯正する。",uvp:"座るだけで姿勢改善",kgi:"腰痛改善率",tech:"圧力センサー、アクチュエーター",risk:"座り心地の悪化",timing:"リモートワークの定着",score_kando:{k:2,s:2,n:2},score_exec:{feat:5,test:5,strat:3}},
-        {id:43,author:"里平",cat:"Other",title:"瞬間冷却缶",who:"アウトドア好き、暑がりの人",pain:"屋外で冷たい飲み物を飲みたいが、すぐにぬるくなる",solution:"ボタンを押すと化学反応で一瞬にして中身が冷却される缶。",uvp:"電源不要の瞬間冷却",kgi:"販売数",tech:"吸熱反応",risk:"コスト、安全性",timing:"猛暑対策",score_kando:{k:3,s:2,n:3},score_exec:{feat:4,test:4,strat:3}},
-        {id:44,author:"浜野",cat:"AV/Immersive",title:"サウンドアロー",who:"騒がしい場所で会話が困難な人",pain:"騒がしい場所や広い会場で特定の相手との会話が聞き取りにくい",solution:"超指向性スピーカー/マイク技術を用い、周囲のノイズを遮断し、特定の人物との会話をクリアにするポータブルデバイス。",uvp:"超指向性スピーカーで特定の人にだけ声を届ける",kgi:"会話の聞き取りやすさスコア",tech:"超指向性音響技術",risk:"音の漏れ、音質の調整",timing:"音響技術の進化、公共空間の多様化",score_kando:{k:2,s:5,n:3},score_exec:{feat:4,test:4,strat:4}},
-        {id:45,author:"真田",cat:"AI/Robotics",title:"可変ハイヒール",who:"TPOに合わせて靴を変えるのが面倒な人",pain:"TPO（時間、場所、場合）で靴を履き替えなければならない",solution:"靴底に小型のアクチュエーターを搭載し、スマホや環境に応じてヒールの高さを1cm単位で瞬時に変更。",uvp:"ロボティクス技術でヒールの高さを自動調整。",kgi:"靴の平均着用回数",tech:"小型アクチュエーター、ロボティクス",risk:"耐久性、安定性、デザイン性",timing:"スマートウェア市場の成長、精密機械の小型化",score_kando:{k:4,s:3,n:4},score_exec:{feat:3,test:4,strat:4}},
-        {id:46,author:"中尾",cat:"Life/Health",title:"カロリー見える化グラス",who:"ダイエット中の人",pain:"食事のたびにカロリーを計算するのが面倒",solution:"ARグラスで食べ物を見ると、AIがカロリーと栄養素を推定して表示。",uvp:"見るだけでカロリー管理",kgi:"ダイエット成功率",tech:"画像認識、AR",risk:"推定精度、食事の楽しみの減退",timing:"ヘルスケア意識の向上",score_kando:{k:3,s:3,n:3},score_exec:{feat:3,test:3,strat:4}},
-        {id:47,author:"里平",cat:"AV/Immersive",title:"Horizon Navigation",who:"運転中のナビゲーションに煩わしさを感じるドライバー",pain:"運転中のナビゲーション画面が視線移動を伴い危険",solution:"超小型プロジェクターを搭載した車載デバイスがフロントガラスに直接、ルート案内や危険警告を投影する。",uvp:"フロントガラスARで道路に直接ルートを描画。",kgi:"運転中の視線移動時間減少率",tech:"AR/プロジェクション技術、センサーフュージョン",risk:"屋外での輝度、情報の多すぎる表示",timing:"自動運転技術の発展、AR技術の車載応用",score_kando:{k:3,s:4,n:4},score_exec:{feat:3,test:4,strat:5}},
-        {id:48,author:"里平",cat:"Life/Health",title:"MEMORY SEED",who:"思い出を大切にする人",pain:"デジタル思い出は膨大で、見返すことなく埋もれていく",solution:"写真や動画を「種」に見立て、水（インタラクション）を与えると、美しいディスプレイの中で「花」として再生されるIoTデバイス。",uvp:"水をあげて思い出を「育てる」デバイス。記憶が花開く体験。",kgi:"月間再生頻度",tech:"AI(画像解析)、IoTデバイス",risk:"デバイスのデザイン性とインテリア性",timing:"デジタルデトックス、アナログ回帰のトレンド",score_kando:{k:5,s:4,n:5},score_exec:{feat:3,test:5,strat:5}},
-        {id:49,author:"伊達",cat:"Other",title:"どこでもドア（VRドア）",who:"遠距離恋愛、単身赴任",pain:"物理的な距離があり、すぐに会えない",solution:"等身大のディスプレイを備えたドア型デバイス。開けると相手の部屋とつながり、臨場感のある通話が可能。",uvp:"空間をつなぐドア",kgi:"利用時間",tech:"大型ディスプレイ、高速通信",risk:"設置スペース、価格",timing:"通信インフラの高速化",score_kando:{k:4,s:3,n:3},score_exec:{feat:3,test:3,strat:3}},
-        {id:50,author:"歌丸",cat:"Creative",title:"思考盗聴ライター",who:"作家、ライター",pain:"アイデアが浮かんでも、文字にするのが遅くて消えてしまう",solution:"脳波を読み取り、考えていることをそのままテキスト化するデバイス。",uvp:"思考の速度で執筆",kgi:"執筆速度の向上",tech:"BMI、自然言語処理",risk:"精度の限界、プライバシー",timing:"BMI技術の進展",score_kando:{k:5,s:4,n:5},score_exec:{feat:1,test:1,strat:5}},
-        {id:51,author:"中尾",cat:"Life/Health",title:"絶対起きられる目覚まし",who:"朝に弱い人",pain:"目覚まし時計を止めて二度寝してしまう",solution:"ベッドが物理的に変形して人を起こす、または強烈な光と音で覚醒を促す。",uvp:"強制的な起床",kgi:"二度寝率0%",tech:"メカトロニクス",risk:"安全性、不快感",timing:"睡眠課題の解決ニーズ",score_kando:{k:2,s:1,n:3},score_exec:{feat:5,test:5,strat:3}},
-        {id:52,author:"真田",cat:"AI/Robotics",title:"PawBot (片付けロボ)",who:"片付けが苦手な家庭",pain:"部屋が散らかり、どこに何があるかわからなくなる",solution:"AIが物を認識し、可愛らしい鳴き声や動きで片付けを促す小型ロボット。AIBOのような愛着デザイン。",uvp:"「かわいさ」で片付けを促すパートナーロボット。AIBOの家事版。",kgi:"部屋の片付け完了率",tech:"AI(物体認識)、ロボティクス(愛玩性)",risk:"実用性の限界、高価格化",timing:"AIBO成功体験の活用、家庭内ロボット需要の増加",score_kando:{k:4,s:4,n:3},score_exec:{feat:4,test:3,strat:4}},
-        {id:53,author:"伊達",cat:"Creative",title:"Behavior Soundscape",who:"ありのままの自分を表現したい人",pain:"自身の感情や行動を言葉以外で表現する手段がない",solution:"バイタルセンサーとAIを搭載したウェアラブルデバイスで行動パターンをリアルタイム解析し、音楽として出力。",uvp:"心拍・表情・行動を音楽に変換。「私が音になる」体験。",kgi:"音楽共有プラットフォーム上での楽曲利用数",tech:"AI(行動解析)、センサー技術",risk:"プライバシー、データの倫理的な使用",timing:"個の表現欲求の高まり、ウェアラブル技術の成熟",score_kando:{k:5,s:5,n:5},score_exec:{feat:3,test:4,strat:5}},
-        {id:54,author:"浜野",cat:"Communication",title:"空気読みメガネ",who:"空気が読めないと言われる人",pain:"会話の間や相手の感情を読み取るのが苦手",solution:"相手の表情や声色から感情を分析し、適切な返答やタイミングをグラスに表示。",uvp:"コミュニケーションの補助",kgi:"人間関係のトラブル減少",tech:"感情認識AI、AR",risk:"依存、不自然な会話",timing:"コミュ力向上ニーズ",score_kando:{k:3,s:3,n:3},score_exec:{feat:4,test:4,strat:4}},
-        {id:55,author:"里平",cat:"Life/Health",title:"集中力可視化ランプ",who:"テレワーカー、受験生",pain:"集中力が続かない、いつ休憩すべきかわからない",solution:"脳波や視線から集中度を測定し、ランプの色で表示。休憩のタイミングを通知。",uvp:"集中力のマネジメント",kgi:"学習・作業効率の向上",tech:"センシング、IoT",risk:"ストレス",timing:"生産性向上ニーズ",score_kando:{k:3,s:2,n:2},score_exec:{feat:5,test:5,strat:4}},
-        {id:56,author:"歌丸",cat:"AV/Immersive",title:"SilentSphere",who:"集中したいワーカー",pain:"オフィスやカフェの雑音、オンライン会議のノイズ",solution:"超音波とノイズキャンセリング技術を組み合わせ、特定の空間・人物にだけ静寂を提供するポータブルデバイス。",uvp:"見えない音のバリアを作るポータブル空間ノイズキャンセラ。",kgi:"会議中の集中度向上率",tech:"超指向性音響、ノイズキャンセリング技術",risk:"効果範囲の限定、他の利用者への影響",timing:"リモートワークの定着、オープンオフィス化",score_kando:{k:3,s:5,n:5},score_exec:{feat:5,test:4,strat:4}}
-    ];
+  { "id": 1, "author": "中尾", "cat": "Life/Health", "title": "歯ブラシカメラ", "who": "虫歯になりたくない人 口臭が気になる人", "pain": "歯の磨き残しにより、虫歯や口臭の原因になってしまう。", "uvp": "自分の歯を隅々まで見ることが可能。歯をカラーコード化し、 可視化することで虫歯、プラーク、食べ残しを判定。", "solution": "AI(画像解析),イメージセンサ", "kgi": "デバイス販売", "tech": "イメージセンサ", "risk": "衛生面、安全性", "timing": "ヘルスケア意識の向上", "score_kando": { "k": 4, "s": 4, "n": 3 }, "score_exec": { "feat": 4, "test": 3, "strat": 3 } },
+  { "id": 2, "author": "歌丸", "cat": "AV/Immersive", "title": "寝ながらドーム型ディスプレイ", "who": "夜しか時間がない親", "pain": "夜子供を寝かしつけた後に、大迫力の映像コンテンツを体験したい", "uvp": "指向性スピーカー＋暗視ドーム。寝落ちOKの完全没入シアター。", "solution": "寝室の天井に取り付ける超短焦点プロジェクターと音漏れしない指向性スピーカー", "kgi": "平均視聴時間", "tech": "指向性スピーカー、プロジェクション技術", "risk": "設置の手間", "timing": "ホームエンタメ需要の拡大", "score_kando": { "k": 5, "s": 5, "n": 4 }, "score_exec": { "feat": 4, "test": 5, "strat": 4 } },
+  { "id": 3, "author": "歌丸", "cat": "AV/Immersive", "title": "VR検証デバイス", "who": "VRコンテンツ開発者", "pain": "VRコンテンツ開発における両眼視覚の検証効率が悪い", "uvp": "両眼視覚を1画面に再現する開発ツール", "solution": "VRヘッドセットを装着した視覚を1つのディスプレイに統合", "kgi": "検証時間の短縮率", "tech": "VR/AR技術", "risk": "ニッチ市場", "timing": "VR/AR市場拡大", "score_kando": { "k": 2, "s": 4, "n": 3 }, "score_exec": { "feat": 5, "test": 3, "strat": 4 } },
+  { "id": 4, "author": "中尾", "cat": "Life/Health", "title": "動画・写真に感動を載せる", "who": "子持ちの親", "pain": "子どもの成長記録、写真を気軽に残す事が難しい。当時の感情まで残せない", "uvp": "思い出を写真、動画以上にリアルに残す", "solution": "バイタルデータを同時に記録し、再生時にその時の興奮度などを再現", "kgi": "サービス継続率", "tech": "センシング、感情解析", "risk": "プライバシー", "timing": "コト消費への移行", "score_kando": { "k": 4, "s": 3, "n": 3 }, "score_exec": { "feat": 3, "test": 3, "strat": 3 } },
+  { "id": 5, "author": "中尾", "cat": "Life/Health", "title": "子供ドラレコ", "who": "子持ちの親", "pain": "子どもに危険が生じた時の状況を追うのが難しい", "uvp": "人向けのドライブレコーダー。子供の視点を記録。", "solution": "子供の鞄や服に装着する広角ウェアラブルカメラ", "kgi": "安心感スコア", "tech": "小型カメラ、AI検知", "risk": "プライバシー、子供の負担", "timing": "防犯意識の高まり", "score_kando": { "k": 3, "s": 3, "n": 3 }, "score_exec": { "feat": 4, "test": 3, "strat": 3 } },
+  { "id": 6, "author": "真田", "cat": "AI/Robotics", "title": "専属メイクアップマシーン", "who": "メイク時間がない/苦手な人", "pain": "毎朝のメイクにかかる時間が勿体ない", "uvp": "顔認識とロボットアームで、毎朝プロ級のメイクを自動化。", "solution": "AIが顔の輪郭や肌の調子を解析し、ロボットアームでメイク", "kgi": "時短率", "tech": "AI(画像認識)、ロボティクス", "risk": "安全性", "timing": "時短ニーズ", "score_kando": { "k": 4, "s": 5, "n": 4 }, "score_exec": { "feat": 3, "test": 3, "strat": 5 } },
+  { "id": 7, "author": "浜野", "cat": "Life/Health", "title": "オーラパワー", "who": "自分の体調変化に鈍い人", "pain": "自身の体調やメンタルヘルスの微妙な変化に気づきにくい", "uvp": "バイタルをゲーム風オーラとして可視化", "solution": "ウェアラブルセンサーがバイタルデータを測定し視覚化", "kgi": "早期発見率", "tech": "バイタルセンサー", "risk": "データの正確性", "timing": "ヘルスケアトレンド", "score_kando": { "k": 3, "s": 4, "n": 3 }, "score_exec": { "feat": 5, "test": 4, "strat": 4 } },
+  { "id": 8, "author": "里平", "cat": "Communication", "title": "HelpWork", "who": "急な人手不足に困る店舗経営者", "pain": "急な欠勤や繁忙期の人手不足に即時対応できない", "uvp": "近隣即時マッチング", "solution": "急な欠員や業務を、近隣の登録者に即時でマッチング", "kgi": "マッチング時間", "tech": "ロケーションベースサービス", "risk": "トラブル対応", "timing": "ギグワーク普及", "score_kando": { "k": 3, "s": 1, "n": 2 }, "score_exec": { "feat": 5, "test": 5, "strat": 3 } },
+  { "id": 9, "author": "里平", "cat": "AV/Immersive", "title": "香り自動発生", "who": "没入体験を求めるユーザー", "pain": "毎日同じ環境を変えたい", "uvp": "映像や状況に合わせて香りを自動選定・合成", "solution": "映画やゲームのメタデータから香りを自動生成・噴霧", "kgi": "満足度", "tech": "嗅覚ディスプレイ", "risk": "香りの個人差", "timing": "五感刺激型コンテンツ", "score_kando": { "k": 4, "s": 4, "n": 4 }, "score_exec": { "feat": 4, "test": 3, "strat": 4 } },
+  { "id": 10, "author": "真田", "cat": "Life/Health", "title": "学校教育カスタマイズ支援", "who": "小学校教員、保護者", "pain": "生徒の多様化に伴う教員の負担増加", "uvp": "生徒のスマートグラスで個別に学習をサポート", "solution": "ビッグデータで学校の情報を一元化し、センシングでモニタリング", "kgi": "工数削減", "tech": "センシング", "risk": "情報漏洩", "timing": "デジタル教育の気運", "score_kando": { "k": 3, "s": 3, "n": 3 }, "score_exec": { "feat": 3, "test": 3, "strat": 4 } },
+  { "id": 11, "author": "真田", "cat": "Other", "title": "雷音キャンセル", "who": "子ども、雷が怖い大人", "pain": "雷の音が怖い", "uvp": "雷の音だけを消す", "solution": "突発的な大音量を検知し、瞬時に逆位相で打ち消すノイキャン窓", "kgi": "安心感", "tech": "アクティブノイズキャンセリング", "risk": "コスト", "timing": "気候変動による雷雨増加", "score_kando": { "k": 3, "s": 3, "n": 3 }, "score_exec": { "feat": 3, "test": 3, "strat": 3 } },
+  { "id": 12, "author": "真田", "cat": "AV/Immersive", "title": "YUKIQUEST", "who": "雪国の人", "pain": "雪かきがしんどい", "uvp": "除雪をゲーミフィケーション化", "solution": "スマートグラスで排雪場所を指示、お楽しみモードで雪像づくり指示", "kgi": "作業時間短縮", "tech": "AR", "risk": "寒冷地での動作", "timing": "人手不足", "score_kando": { "k": 4, "s": 3, "n": 5 }, "score_exec": { "feat": 3, "test": 5, "strat": 5 } },
+  { "id": 13, "author": "真田", "cat": "AV/Immersive", "title": "空もようカーテン", "who": "窓からの景色に不満がある人", "pain": "雨の日は気が滅入る", "uvp": "LEDカーテンで窓の景色を自由に変更", "solution": "高解像度LEDパネルをカーテンのように窓に設置", "kgi": "気分スコア", "tech": "LEDディスプレイ", "risk": "コスト", "timing": "おうち時間の充実", "score_kando": { "k": 4, "s": 3, "n": 3 }, "score_exec": { "feat": 4, "test": 4, "strat": 4 } },
+  { "id": 14, "author": "里平", "cat": "Creative", "title": "スマホ背面ディスプレイ", "who": "個性を表現したいスマートフォンユーザー", "pain": "スマホケースが気に入っているものがない", "uvp": "背面全体がディスプレイ。気分でデザインを変える", "solution": "スマートフォン背面にE-Inkまたは有機ELディスプレイを搭載", "kgi": "デザイン変更頻度", "tech": "ディスプレイ技術", "risk": "バッテリー", "timing": "自己表現ニーズ", "score_kando": { "k": 3, "s": 4, "n": 3 }, "score_exec": { "feat": 5, "test": 4, "strat": 4 } },
+  { "id": 15, "author": "里平", "cat": "Life/Health", "title": "RFID個人カスタマイズ", "who": "一般", "pain": "選択肢がわからない、アレルギー情報の確認が手間", "uvp": "タグを持つだけで環境や商品提案がパーソナライズされる", "solution": "RFIDで個人を認識し、照明調整や商品提案を行う", "kgi": "CX向上", "tech": "RFID", "risk": "インフラ整備", "timing": "パーソナライズ需要", "score_kando": { "k": 3, "s": 3, "n": 3 }, "score_exec": { "feat": 4, "test": 4, "strat": 3 } },
+  { "id": 16, "author": "里平", "cat": "Communication", "title": "SNS連携アクセサリ", "who": "一般", "pain": "コミュニケーションのきっかけ", "uvp": "イベントで映える、名刺代わりになる", "solution": "ICタグ内蔵の指輪。スマホをかざすとSNSリンクを表示", "kgi": "普及率", "tech": "NFC", "risk": "セキュリティ", "timing": "対面交流の再開", "score_kando": { "k": 3, "s": 2, "n": 2 }, "score_exec": { "feat": 5, "test": 5, "strat": 3 } },
+  { "id": 17, "author": "里平", "cat": "Communication", "title": "秘密の交換タグ", "who": "一般", "pain": "プレゼントのマンネリ化", "uvp": "何が出るかわからないワクワク感", "solution": "RFIDタグ付きの小物にメッセージを書き込み可能", "kgi": "利用回数", "tech": "RFID", "risk": "使い捨て懸念", "timing": "ギフト市場", "score_kando": { "k": 4, "s": 2, "n": 3 }, "score_exec": { "feat": 5, "test": 5, "strat": 3 } },
+  { "id": 18, "author": "歌丸", "cat": "Communication", "title": "人間ETC", "who": "行列が嫌いな人", "pain": "テーマパークやイベント会場での行列", "uvp": "顔パス・RFIDでゲートレス入場", "solution": "体内のICチップや顔認証と連携した決済システム", "kgi": "待ち時間短縮", "tech": "RFID、顔認証", "risk": "プライバシー", "timing": "非接触ニーズ", "score_kando": { "k": 3, "s": 3, "n": 3 }, "score_exec": { "feat": 5, "test": 4, "strat": 4 } },
+  { "id": 19, "author": "歌丸", "cat": "Other", "title": "P2Pレンタル(IoT)", "who": "体験重視の消費者", "pain": "今だけほしい、物は増やしたくない", "uvp": "IoT連携で管理された安心な個人間レンタル", "solution": "RFID＋スマホ＋ブロックチェーンで管理", "kgi": "取引数", "tech": "Blockchain", "risk": "トラブル対応", "timing": "シェアリングエコノミー", "score_kando": { "k": 3, "s": 2, "n": 3 }, "score_exec": { "feat": 3, "test": 3, "strat": 3 } },
+  { "id": 20, "author": "浜野", "cat": "AV/Immersive", "title": "空間ノイズキャンセル", "who": "音に敏感な人", "pain": "物音で目が覚めてしまう、イヤホンは嫌", "uvp": "部屋全体を静寂に包む", "solution": "部屋のあらゆる場所で正確に逆位相の音を生成", "kgi": "睡眠質", "tech": "音響制御", "risk": "技術的難易度大", "timing": "睡眠テック", "score_kando": { "k": 4, "s": 5, "n": 4 }, "score_exec": { "feat": 1, "test": 1, "strat": 4 } },
+  { "id": 21, "author": "浜野", "cat": "Life/Health", "title": "香りのタイムカプセル", "who": "思い出を鮮明に残したい人", "pain": "時間が経つと当時の感情や記憶が薄れてしまう", "uvp": "写真＋香りを記録し、記憶を鮮明に再生", "solution": "写真撮影時に環境の香りをキャプチャし保存", "kgi": "記憶鮮明度", "tech": "嗅覚センサ", "risk": "再現精度", "timing": "香り市場拡大", "score_kando": { "k": 5, "s": 3, "n": 4 }, "score_exec": { "feat": 4, "test": 5, "strat": 4 } },
+  { "id": 22, "author": "浜野", "cat": "Communication", "title": "香りで以心伝心", "who": "さりげなく情報を伝えたい人", "pain": "言葉だけでは伝わらない、角が立つ", "uvp": "香りで感情やメッセージを直接伝える", "solution": "メッセージの代わりに香りを送るデバイス", "kgi": "コミュニケーション頻度", "tech": "IoT", "risk": "誤解", "timing": "非言語伝達", "score_kando": { "k": 4, "s": 2, "n": 4 }, "score_exec": { "feat": 4, "test": 4, "strat": 3 } },
+  { "id": 23, "author": "浜野", "cat": "Creative", "title": "デジタル箱庭", "who": "VR酔いしやすいクリエイター", "pain": "VRは酔いやすく、長時間の創作活動が難しい", "uvp": "裸眼立体視ディスプレイで手の中に世界を作る", "solution": "多面ディスプレイ、ヘッドトラッキングによる没入感", "kgi": "制作時間", "tech": "裸眼立体視", "risk": "視野角", "timing": "メタバース", "score_kando": { "k": 3, "s": 4, "n": 3 }, "score_exec": { "feat": 4, "test": 5, "strat": 4 } },
+  { "id": 24, "author": "中尾", "cat": "Life/Health", "title": "自動雨よけ", "who": "洗濯物を干す人", "pain": "外出中に急な雨で洗濯物が濡れてしまう", "uvp": "雨検知で自動展開", "solution": "雨センサーが雨を検知すると自動でカバー展開", "kgi": "洗濯やり直しゼロ", "tech": "IoT", "risk": "強風", "timing": "共働き", "score_kando": { "k": 3, "s": 2, "n": 2 }, "score_exec": { "feat": 5, "test": 5, "strat": 3 } },
+  { "id": 25, "author": "中尾", "cat": "Life/Health", "title": "落し物即時アラーム", "who": "よく忘れ物をする人", "pain": "ハンカチなどは気づきにくい", "uvp": "何でもないものに気軽にセンサーが付けられる", "solution": "シール型RFIDタグとスマホ連携", "kgi": "紛失ゼロ", "tech": "RFID", "risk": "電池寿命", "timing": "IoT普及", "score_kando": { "k": 2, "s": 2, "n": 2 }, "score_exec": { "feat": 5, "test": 5, "strat": 3 } },
+  { "id": 26, "author": "中尾", "cat": "Creative", "title": "スマホ着脱可能カメラ", "who": "一般", "pain": "運動会等の視界不良の場所で撮影をしたい", "uvp": "スマホからカメラだけ分離して撮影", "solution": "マグネット着脱式の高性能カメラモジュール", "kgi": "撮影枚数", "tech": "無線通信", "risk": "紛失", "timing": "スマホカメラの進化", "score_kando": { "k": 3, "s": 4, "n": 3 }, "score_exec": { "feat": 4, "test": 4, "strat": 4 } },
+  { "id": 27, "author": "伊達", "cat": "Communication", "title": "香りキー (生体認証)", "who": "セキュリティと利便性を求める人", "pain": "指紋・顔認証、パスワード入力の手間", "uvp": "体臭で認証する究極のハンズフリー・セキュリティ", "solution": "個人の体臭をセンサーで解析し認証", "kgi": "認証成功率", "tech": "ガスセンサ", "risk": "体調による変動", "timing": "生体認証進化", "score_kando": { "k": 2, "s": 4, "n": 5 }, "score_exec": { "feat": 3, "test": 4, "strat": 5 } },
+  { "id": 28, "author": "伊達", "cat": "Life/Health", "title": "アレルギー予防", "who": "アレルギーを持つ人", "pain": "表示のないもののアレルゲンがわからない", "uvp": "匂いでアレルゲンを特定し未然に防ぐ", "solution": "ポータブル匂いセンサーで成分解析", "kgi": "誤食事故ゼロ", "tech": "センシング", "risk": "検出限界", "timing": "食の安全", "score_kando": { "k": 4, "s": 3, "n": 4 }, "score_exec": { "feat": 3, "test": 3, "strat": 4 } },
+  { "id": 29, "author": "真田", "cat": "AI/Robotics", "title": "ココミミ (AIミラー)", "who": "心のケアを必要とする人", "pain": "誰とも話したくないが、心のどこかで寂しさを感じている", "uvp": "表情を読み取り、鏡が静かに寄り添い共感してくれる", "solution": "AIが表情を解析し、鏡のディスプレイに感情に合った表現を投影", "kgi": "自己肯定感", "tech": "感情認識AI", "risk": "依存性", "timing": "メンタルヘルス", "score_kando": { "k": 5, "s": 4, "n": 3 }, "score_exec": { "feat": 4, "test": 4, "strat": 4 } },
+  { "id": 30, "author": "浜野", "cat": "AV/Immersive", "title": "パーソナライズラジオ", "who": "情報選別を面倒に感じる人", "pain": "必要な情報を得る手間", "uvp": "AIが興味に合わせて番組を自動編成", "solution": "AIがニュース、音楽等をシームレスに編集・放送", "kgi": "継続率", "tech": "AI音声合成", "risk": "著作権", "timing": "音声コンテンツ", "score_kando": { "k": 3, "s": 4, "n": 3 }, "score_exec": { "feat": 4, "test": 4, "strat": 4 } },
+  { "id": 31, "author": "浜野", "cat": "Life/Health", "title": "視覚と聴覚の別作業両立", "who": "忙しいビジネスパーソン", "pain": "PC入力作業(視覚)とテレカン(聴覚)が両立できない", "uvp": "複数作業の同時進行支援", "solution": "AIが会議内容を要約し、重要ポイントだけ耳元で通知", "kgi": "作業効率", "tech": "LLM", "risk": "聞き逃し", "timing": "マルチタスク常態化", "score_kando": { "k": 3, "s": 3, "n": 3 }, "score_exec": { "feat": 3, "test": 3, "strat": 3 } },
+  { "id": 32, "author": "浜野", "cat": "Life/Health", "title": "BackDodge", "who": "都市部の歩行者", "pain": "背後からの衝突や危険な接近に気づきにくい", "uvp": "背面センサと振動で接近を通知。「第六感」のテクノロジー化。", "solution": "背中や服に装着する超小型センサーが背後の動きを検知", "kgi": "事故減少", "tech": "センシング", "risk": "誤検知", "timing": "都市の過密化", "score_kando": { "k": 3, "s": 4, "n": 5 }, "score_exec": { "feat": 4, "test": 5, "strat": 4 } },
+  { "id": 33, "author": "浜野", "cat": "Life/Health", "title": "食べモン", "who": "偏食の子供を持つ親", "pain": "子供が食べ物を残す、好き嫌いが多い", "uvp": "食事をゲーミフィケーション化し、食べる動機づけを行う", "solution": "食前食後の写真で栄養素を解析しキャラを育成", "kgi": "完食率", "tech": "画像認識", "risk": "食事の質の担保", "timing": "食育", "score_kando": { "k": 4, "s": 3, "n": 4 }, "score_exec": { "feat": 5, "test": 5, "strat": 4 } },
+  { "id": 34, "author": "歌丸", "cat": "AV/Immersive", "title": "白紙の本 (AR Book)", "who": "紙の本の手触りを好む読書家", "pain": "紙の質感とデジタルの利便性の両立", "uvp": "白紙の本＋ARグラス。アナログな体験とデジタル情報の融合。", "solution": "RFIDタグ内蔵の白紙の本とARグラスの連携", "kgi": "読書時間", "tech": "AR", "risk": "紙の質感再現", "timing": "電子書籍の限界", "score_kando": { "k": 4, "s": 3, "n": 4 }, "score_exec": { "feat": 3, "test": 4, "strat": 4 } },
+  { "id": 35, "author": "浜野", "cat": "AV/Immersive", "title": "没入型スポーツ応援グッズ", "who": "スポーツファン", "pain": "応援の熱量を現地に行かずに届けたい", "uvp": "遠隔地から選手のバフになる応援体験", "solution": "ハプティックデバイスで現地の振動を再現し、声を届ける", "kgi": "応援参加者数", "tech": "通信遅延解消", "risk": "選手の集中阻害", "timing": "リモート応援", "score_kando": { "k": 4, "s": 3, "n": 3 }, "score_exec": { "feat": 3, "test": 3, "strat": 3 } },
+  { "id": 36, "author": "浜野", "cat": "Life/Health", "title": "バフ効果を自分に付与", "who": "一人だと怠けてしまう人", "pain": "モチベーション維持が難しい", "uvp": "ゲームのバフのように自分を強化", "solution": "ARグラスで視界に「集中力UP」等のエフェクトを表示", "kgi": "タスク達成率", "tech": "AR", "risk": "酔い", "timing": "ゲーミフィケーション", "score_kando": { "k": 3, "s": 3, "n": 4 }, "score_exec": { "feat": 3, "test": 3, "strat": 3 } },
+  { "id": 37, "author": "真田", "cat": "Creative", "title": "透けるカメラ", "who": "撮影者", "pain": "目の前の障害物をよけて撮影したい", "uvp": "障害物を透過して撮影", "solution": "360°カメラ、3D生成、SWIRの組み合わせ", "kgi": "撮影成功率", "tech": "画像処理", "risk": "処理負荷", "timing": "コンピュテーショナルフォトグラフィー", "score_kando": { "k": 4, "s": 5, "n": 4 }, "score_exec": { "feat": 3, "test": 3, "strat": 4 } },
+  { "id": 38, "author": "真田", "cat": "AV/Immersive", "title": "指さない将棋", "who": "将棋ファン", "pain": "駒を並べるのが手間、ルールが難しい", "uvp": "手軽に臨場感のある対戦", "solution": "ディスプレイとハプティック技術の融合", "kgi": "プレイ回数", "tech": "触覚提示", "risk": "打感の再現", "timing": "将棋ブーム", "score_kando": { "k": 3, "s": 4, "n": 3 }, "score_exec": { "feat": 4, "test": 4, "strat": 4 } },
+  { "id": 39, "author": "里平", "cat": "Other", "title": "遮光＋発光ハイブリッドカーテン", "who": "一般家庭", "pain": "カーテンと照明の役割重複", "uvp": "昼は遮光、夜は照明に変身する2in1", "solution": "ソーラー蓄電機能付き発光素材", "kgi": "省エネ効果", "tech": "素材", "risk": "耐久性", "timing": "エコ意識", "score_kando": { "k": 3, "s": 3, "n": 4 }, "score_exec": { "feat": 3, "test": 3, "strat": 3 } },
+  { "id": 40, "author": "伊達", "cat": "Creative", "title": "Behavior Synth", "who": "クリエイター、非専門家", "pain": "作曲スキルがない、自分らしさの表現", "uvp": "日常の振る舞いがそのまま音楽になる", "solution": "行動や生体情報をAIが音楽に変換", "kgi": "楽曲生成数", "tech": "AI音楽生成", "risk": "著作権", "timing": "クリエイターエコノミー", "score_kando": { "k": 4, "s": 5, "n": 4 }, "score_exec": { "feat": 3, "test": 3, "strat": 5 } },
+  { "id": 41, "author": "浜野", "cat": "Life/Health", "title": "ダストナビ", "who": "一般家庭", "pain": "ゴミ分別が面倒、買い忘れ", "uvp": "バーコード管理で分別・在庫管理", "solution": "ゴミ箱にバーコードリーダーとAI搭載", "kgi": "分別ミス削減", "tech": "画像認識", "risk": "衛生面", "timing": "エコ", "score_kando": { "k": 2, "s": 3, "n": 3 }, "score_exec": { "feat": 4, "test": 4, "strat": 4 } },
+  { "id": 42, "author": "浜野", "cat": "Creative", "title": "思い撮り", "who": "一般家庭", "pain": "ふとした瞬間を逃す、構えるのが手間", "uvp": "ハンズフリーで思いがけない瞬間を撮影", "solution": "常時録画しAIが良い瞬間だけを切り出すカメラ", "kgi": "写真保存数", "tech": "AI", "risk": "プライバシー", "timing": "ライフログ", "score_kando": { "k": 4, "s": 4, "n": 3 }, "score_exec": { "feat": 4, "test": 4, "strat": 4 } },
+  { "id": 43, "author": "浜野", "cat": "Communication", "title": "ここ見てスマイル！", "who": "子供の写真を撮る親", "pain": "子供がカメラを見てくれない", "uvp": "カメラじゃないキミと遊ぶ体験", "solution": "背面モニターにキャラ表示、ボイスチェンジャ", "kgi": "笑顔率", "tech": "ディスプレイ", "risk": "飽き", "timing": "SNS写真需要", "score_kando": { "k": 3, "s": 3, "n": 2 }, "score_exec": { "feat": 5, "test": 5, "strat": 3 } },
+  { "id": 44, "author": "浜野", "cat": "Communication", "title": "サウンドアロー", "who": "一般家庭", "pain": "特定の人だけに声をかけたい", "uvp": "超指向性スピーカーで特定の人にだけ声を届ける", "solution": "マイクと指向性スピーカーの一体型", "kgi": "会話成立率", "tech": "超指向性音響", "risk": "音漏れ", "timing": "住環境", "score_kando": { "k": 2, "s": 5, "n": 3 }, "score_exec": { "feat": 4, "test": 4, "strat": 4 } },
+  { "id": 45, "author": "真田", "cat": "AI/Robotics", "title": "可変ハイヒール", "who": "働く女性", "pain": "TPOに合わせて靴を変えるのが面倒", "uvp": "ロボティクス技術でヒールの高さを自動調整", "solution": "靴底に小型のアクチュエーターを搭載", "kgi": "着用頻度", "tech": "ロボティクス", "risk": "耐久性", "timing": "女性活躍", "score_kando": { "k": 4, "s": 3, "n": 4 }, "score_exec": { "feat": 3, "test": 4, "strat": 4 } },
+  { "id": 46, "author": "歌丸", "cat": "Other", "title": "刺さなくてよい日傘", "who": "一般人", "pain": "傘を持つのが面倒", "uvp": "ミストの力で頭上に人工雲を作る", "solution": "超音波振動でミスト散布、カメラで制御", "kgi": "日陰率", "tech": "制御技術", "risk": "風に弱い", "timing": "猛暑", "score_kando": { "k": 4, "s": 5, "n": 4 }, "score_exec": { "feat": 2, "test": 3, "strat": 3 } },
+  { "id": 47, "author": "里平", "cat": "AV/Immersive", "title": "Horizon Navigation", "who": "ドライバー", "pain": "ナビ画面への視線移動が危険", "uvp": "フロントガラスARで道路に直接ルートを描画", "solution": "3層ガラス構造とAR投影フィルム", "kgi": "事故率低下", "tech": "AR/透明ディスプレイ", "risk": "法規制", "timing": "自動運転", "score_kando": { "k": 3, "s": 4, "n": 4 }, "score_exec": { "feat": 3, "test": 4, "strat": 5 } },
+  { "id": 48, "author": "里平", "cat": "AI", "title": "MEMORY SEED", "who": "思い出を大切にする人", "pain": "デジタルの思い出は見返されない", "uvp": "水をあげて思い出を「育てる」デバイス", "solution": "植物の成長と連動して思い出が開示されるIoT", "kgi": "再生回数", "tech": "IoT", "risk": "維持管理", "timing": "デジタルデトックス", "score_kando": { "k": 5, "s": 4, "n": 5 }, "score_exec": { "feat": 3, "test": 5, "strat": 5 } },
+  { "id": 49, "author": "歌丸", "cat": "AV/Immersive", "title": "Memory Book", "who": "一般ユーザー", "pain": "思い出記録、学習拡張", "uvp": "本をめくるとARでコンテンツが表示される", "solution": "白紙の本＋専用ブックカバー＋ARグラス", "kgi": "没入時間", "tech": "RFID/AR", "risk": "タブレットとの差別化", "timing": "教育DX", "score_kando": { "k": 4, "s": 4, "n": 3 }, "score_exec": { "feat": 4, "test": 4, "strat": 3 } },
+  { "id": 50, "author": "中尾", "cat": "AI/Robotics", "title": "ファミメモ", "who": "家族", "pain": "言った言わない問題、忘れ物", "uvp": "家族の会話を記録しToDo化・リマインド", "solution": "集音マイク＋音声解析", "kgi": "タスク完了率", "tech": "音声解析", "risk": "プライバシー", "timing": "スマートホーム", "score_kando": { "k": 3, "s": 3, "n": 3 }, "score_exec": { "feat": 4, "test": 4, "strat": 4 } },
+  { "id": 51, "author": "中尾", "cat": "AI/Robotics", "title": "ミッケくん", "who": "家族", "pain": "家の中での物の置き忘れ", "uvp": "レーザーポインターで探し物の場所を指し示す", "solution": "360度カメラ＋レーザー＋画像解析", "kgi": "発見時間", "tech": "画像解析", "risk": "死角", "timing": "高齢化", "score_kando": { "k": 4, "s": 4, "n": 4 }, "score_exec": { "feat": 4, "test": 4, "strat": 4 } },
+  { "id": 52, "author": "真田", "cat": "AI/Robotics", "title": "PawBot", "who": "片付けが苦手な人", "pain": "部屋が散らかる", "uvp": "かわいさで片付けを促すパートナーロボット", "solution": "SLAM、物体認識、愛着デザイン", "kgi": "部屋の綺麗さ", "tech": "ロボティクス", "risk": "プライバシー", "timing": "家庭用ロボ", "score_kando": { "k": 5, "s": 5, "n": 3 }, "score_exec": { "feat": 4, "test": 3, "strat": 4 } },
+  { "id": 53, "author": "伊達", "cat": "Creative", "title": "Behavior Soundscape", "who": "若年層", "pain": "ありのままの自分を表現したい", "uvp": "心拍・表情・行動を音楽に変換", "solution": "バイタルセンサーとAIで音楽生成", "kgi": "シェア数", "tech": "AI音楽生成", "risk": "著作権", "timing": "クリエイター", "score_kando": { "k": 5, "s": 5, "n": 5 }, "score_exec": { "feat": 3, "test": 4, "strat": 5 } },
+  { "id": 54, "author": "真田", "cat": "Life/Health", "title": "Kokoro Tune", "who": "メンタルケアが必要な人", "pain": "自分の感情に気づけない", "uvp": "鏡が感情を可視化し、環境を最適化して癒やす", "solution": "表情認識AI、環境制御", "kgi": "ストレス値", "tech": "感情認識", "risk": "倫理面", "timing": "メンタルヘルス", "score_kando": { "k": 4, "s": 4, "n": 3 }, "score_exec": { "feat": 4, "test": 3, "strat": 4 } },
+  { "id": 55, "author": "伊達", "cat": "Communication", "title": "人間ETC (Talent Collection)", "who": "イベント運営", "pain": "ゲート混雑", "uvp": "どこでも簡単に仮想ゲート化", "solution": "ポータブルRFIDリーダー", "kgi": "通過人数", "tech": "RFID", "risk": "セキュリティ", "timing": "イベント復活", "score_kando": { "k": 3, "s": 3, "n": 4 }, "score_exec": { "feat": 5, "test": 5, "strat": 4 } },
+  { "id": 56, "author": "歌丸", "cat": "AV/Immersive", "title": "SilentSphere", "who": "ワーカー", "pain": "周囲の雑音", "uvp": "見えない音のバリアを作る", "solution": "超音波＋ノイズキャンセリング", "kgi": "集中力", "tech": "音響制御", "risk": "周囲への影響", "timing": "リモートワーク", "score_kando": { "k": 3, "s": 5, "n": 5 }, "score_exec": { "feat": 5, "test": 4, "strat": 4 } },
+  { "id": 57, "author": "-", "cat": "AI/Robotics", "title": "虫ボーグ", "who": "農家、害虫駆除業者", "pain": "農薬を使わずに効率的に害虫を駆除したい", "uvp": "益虫コントロールで害虫駆除", "solution": "サイボーグ化した昆虫を遠隔操作し、害虫を捕食・駆除させる", "kgi": "駆除成功率", "tech": "昆虫サイボーグ", "risk": "生態系への影響", "timing": "環境保全型農業", "score_kando": { "k": 3, "s": 3, "n": 3 }, "score_exec": { "feat": 3, "test": 3, "strat": 3 } },
+  { "id": 58, "author": "-", "cat": "Creative", "title": "大リーグ養成ギブス", "who": "けん玉をうまくなりたい人、スキル習得を目指す人", "pain": "反復練習が辛く、正しいフォームが身につかない", "uvp": "強制的に正しい動きを体に覚えさせる", "solution": "外骨格型デバイスが動きをガイド・補助する", "kgi": "習得時間短縮", "tech": "ハプティクス/外骨格", "risk": "怪我のリスク", "timing": "スキルシェア", "score_kando": { "k": 3, "s": 3, "n": 3 }, "score_exec": { "feat": 3, "test": 3, "strat": 3 } },
+  { "id": 59, "author": "-", "cat": "Other", "title": "未来予想図", "who": "進路に迷う学生", "pain": "自分の選択が将来どうなるか不安", "uvp": "これからの選択肢をシミュレーション", "solution": "ビッグデータとAIで、選択による未来の分岐を可視化", "kgi": "納得度", "tech": "AI予測", "risk": "決定論への依存", "timing": "キャリア多様化", "score_kando": { "k": 3, "s": 3, "n": 3 }, "score_exec": { "feat": 3, "test": 3, "strat": 3 } },
+  { "id": 60, "author": "-", "cat": "AV/Immersive", "title": "多面VR、アイトラッキング", "who": "トレーダー、監視業務を行う人", "pain": "マルチモニタの物理的スペースが足りない", "uvp": "無限の作業領域を確保", "solution": "高解像度VR内で視線操作によるウィンドウ制御", "kgi": "作業効率", "tech": "視線追跡", "risk": "VR酔い", "timing": "XR進化", "score_kando": { "k": 3, "s": 3, "n": 3 }, "score_exec": { "feat": 3, "test": 3, "strat": 3 } },
+  { "id": 61, "author": "-", "cat": "Other", "title": "だれでもできる念力", "who": "体が不自由な人、面倒くさがりな人", "pain": "声を出すのすらめんどくさい、動けない", "uvp": "剣と魔法の世界へようこそ。念じるだけで家電操作。", "solution": "簡易脳波計(BMI)で思考を読み取りIoT機器を操作", "kgi": "操作成功率", "tech": "BMI", "risk": "精度", "timing": "BMI実用化", "score_kando": { "k": 3, "s": 3, "n": 3 }, "score_exec": { "feat": 3, "test": 3, "strat": 3 } },
+  { "id": 62, "author": "-", "cat": "Other", "title": "自動音調", "who": "快適な室温を求める人", "pain": "寒い、暑いと感じてからリモコン操作するのが面倒", "uvp": "不快を感じる前に先回りして空調制御", "solution": "皮膚温度サーモカメラで体感温度を測定しエアコン連動", "kgi": "快適持続時間", "tech": "サーモセンサ", "risk": "誤動作", "timing": "省エネ", "score_kando": { "k": 3, "s": 3, "n": 3 }, "score_exec": { "feat": 3, "test": 3, "strat": 3 } },
+  { "id": 63, "author": "-", "cat": "Other", "title": "第3の手", "who": "作業員、片付けができない人", "pain": "手が足りない、同時に複数の物を持ちたい", "uvp": "わがままな自分にようこそ。物理的な腕の拡張。", "solution": "背中に装着するウェアラブルロボットアーム", "kgi": "作業効率", "tech": "ロボティクス", "risk": "重量", "timing": "身体拡張", "score_kando": { "k": 3, "s": 3, "n": 3 }, "score_exec": { "feat": 3, "test": 3, "strat": 3 } },
+  { "id": 64, "author": "-", "cat": "Creative", "title": "3Dプリンターミニ四駆シミュ", "who": "F1レーサーをバーチャルで体験したい人", "pain": "オリジナルのマシンを作るのが大変、走らせる場所がない", "uvp": "設計から走行まで完全バーチャル＆フィジカル融合", "solution": "VRで設計し、3Dプリンタで出力、ARで走行シミュレーション", "kgi": "ユーザー数", "tech": "3Dプリント", "risk": "専門知識", "timing": "メイカームーブメント", "score_kando": { "k": 3, "s": 3, "n": 3 }, "score_exec": { "feat": 3, "test": 3, "strat": 3 } },
+  { "id": 65, "author": "-", "cat": "Other", "title": "表情モニター", "who": "コミュニケーションが苦手な人", "pain": "喜怒哀楽を言葉で伝えにくい、相手の感情が読めない", "uvp": "表情の怖さとか感情の数値化", "solution": "相手の表情を解析し「怒りレベル20%」のようにAR表示", "kgi": "トラブル減", "tech": "画像認識", "risk": "人間関係悪化", "timing": "コミュ障対策", "score_kando": { "k": 3, "s": 3, "n": 3 }, "score_exec": { "feat": 3, "test": 3, "strat": 3 } },
+  { "id": 66, "author": "里平", "cat": "Life/Health", "title": "遠隔通信医療", "who": "離島、高齢者", "pain": "病院が遠い、専門医がいない", "uvp": "位置情報アプリと連動して受信可能なソリューション", "solution": "5G通信と高精細映像を用いたリアルタイム診断システム", "kgi": "受診率", "tech": "通信/映像", "risk": "誤診", "timing": "医療DX", "score_kando": { "k": 3, "s": 3, "n": 3 }, "score_exec": { "feat": 3, "test": 3, "strat": 3 } },
+  { "id": 67, "author": "里平", "cat": "Life/Health", "title": "基礎体温健康管理", "who": "病気がちな人、妊活中の人", "pain": "いつ病気になるか分からない、記録が面倒", "uvp": "基礎体温の数値化・予防・警告", "solution": "ウェアラブルデバイスで常時体温測定しAIが予兆検知", "kgi": "健康維持率", "tech": "センシング", "risk": "精度", "timing": "フェムテック", "score_kando": { "k": 3, "s": 3, "n": 3 }, "score_exec": { "feat": 3, "test": 3, "strat": 3 } },
+  { "id": 68, "author": "里平", "cat": "AV/Immersive", "title": "睡眠改善(VR)", "who": "不眠症の人", "pain": "寝ようと思っても寝れない、薬に頼りたくない", "uvp": "映像を見ながらリラックスして睡眠をとれる", "solution": "入眠に特化したVR映像とバイノーラルサウンド", "kgi": "入眠時間", "tech": "VR", "risk": "装着感", "timing": "スリープテック", "score_kando": { "k": 3, "s": 3, "n": 3 }, "score_exec": { "feat": 3, "test": 3, "strat": 3 } }
+];
+
+    // ==========================================
+    // LOGIC SECTION
+    // ==========================================
 
     let currentCategory = 'all';
     let currentAuthor = 'all';
     const LOCAL_STORAGE_KEY = 'personalScores_v13'; 
     const AI_SCORE_TOGGLE_KEY = 'aiScoreHidden';
     let personalScores = {};
+    let teamStats = null;
 
-    // マッピング
     function normalizeCategory(cat) {
         const map = {
             "生活/ヘルスケア": "Life/Health", "AV/没入体験": "AV/Immersive", "AI/ロボット": "AI/Robotics",
@@ -468,6 +519,20 @@
 
     function init() {
         loadPersonalScores();
+        processData();
+
+        const isHidden = localStorage.getItem(AI_SCORE_TOGGLE_KEY) === 'true';
+        document.getElementById('aiScoreToggle').checked = isHidden;
+        document.body.classList.toggle('hide-ai-scores', isHidden);
+
+        const activeTab = document.querySelector('.page-tab-btn.active');
+        if (activeTab) changePage(activeTab.id.replace('tab', '').toLowerCase());
+        else changePage('grid');
+
+        populateAuthorFilter();
+    }
+
+    function processData() {
         rawData.forEach(item => {
             item.cat = normalizeCategory(item.cat);
             item.totalKandoScore = item.score_kando.k + item.score_kando.s + item.score_kando.n;
@@ -485,17 +550,15 @@
             item.personalTotalKando = personal.kando + personal.sony + personal.newness;
             item.personalTotalExec = personal.feat + personal.test + personal.strat;
             item.personalTotal = item.personalTotalKando + item.personalTotalExec;
+
+            if (teamStats && teamStats[item.id]) {
+                item.teamTotalKando = teamStats[item.id].kandoAvg;
+                item.teamTotalExec = teamStats[item.id].execAvg;
+                item.teamTotal = teamStats[item.id].totalAvg;
+            } else {
+                item.teamTotalKando = 0; item.teamTotalExec = 0; item.teamTotal = 0;
+            }
         });
-
-        const isHidden = localStorage.getItem(AI_SCORE_TOGGLE_KEY) === 'true';
-        document.getElementById('aiScoreToggle').checked = isHidden;
-        document.body.classList.toggle('hide-ai-scores', isHidden);
-
-        const activeTab = document.querySelector('.page-tab-btn.active');
-        if (activeTab) changePage(activeTab.id.replace('tab', '').toLowerCase());
-        else changePage('grid');
-
-        populateAuthorFilter();
     }
 
     function loadPersonalScores() {
@@ -509,7 +572,8 @@
             feat: Number(feat)||0, test: Number(test)||0, strat: Number(strat)||0, note: note||'' 
         };
         localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(personalScores));
-        init(); 
+        processData();
+        render(); 
     }
 
     function toggleAIScores() {
@@ -563,22 +627,36 @@
         }
     }
 
+    // AI Analysis Logic
     function getAIAnalysis(item) {
-        const scores = [
-            { key: '実現可能性', val: item.score_exec.feat, advice: '技術的難易度が高い可能性があります。既存技術の転用やMVPの簡素化を検討してください。' },
-            { key: '検証容易性', val: item.score_exec.test, advice: '検証が難しいと判断されています。まずはコア機能のみを切り出したプロトタイプで反応を見ましょう。' },
-            { key: '戦略的適合性', val: item.score_exec.strat, advice: '事業の広がりや優位性が不明確です。Sonyの資産活用や参入障壁の構築を強化してください。' },
-            { key: '感動', val: item.score_kando.k, advice: 'ユーザーの心を動かす「感動」要素が不足しています。機能だけでなく感情価値を訴求しましょう。' },
-            { key: 'Sonyらしさ', val: item.score_kando.s, advice: 'Sonyならではの要素が希薄です。映像・音響・AIなど、技術資産をどう活かすか具体化が必要です。' },
-            { key: '新奇性', val: item.score_kando.n, advice: '新奇性が低く、既存の解決策と差別化できていません。ターゲットや利用シーンをずらしてみましょう。' }
-        ];
-        let minItem = scores[0], maxItem = scores[0];
-        scores.forEach(s => { if (s.val < minItem.val) minItem = s; if (s.val >= maxItem.val) maxItem = s; });
+        // Base analysis on scores
+        let comment = "";
+        
+        if (item.totalScore >= 25) {
+            comment += "🔥 <strong>非常に高いポテンシャルを感じます。</strong>";
+        } else if (item.score_kando.s >= 4) {
+            comment += "👁️ <strong>Sonyの技術資産やブランドをうまく活用できています。</strong>";
+        } else if (item.score_kando.n <= 2) {
+            comment += "⚠️ <strong>既視感があります。ターゲットや利用シーンをずらして差別化を図りましょう。</strong>";
+        } else if (item.score_exec.feat <= 2) {
+            comment += "🛠️ <strong>技術的なハードルが高いです。まずはMVP（最小機能）の定義を見直しましょう。</strong>";
+        } else {
+            comment += "バランスの取れたアイデアですが、尖った特徴（UVP）をさらに強化すると良いでしょう。";
+        }
 
-        let good = `「${maxItem.key}」が高評価です。`;
-        if (maxItem.val === 5) good = `卓越した「${maxItem.key}」があり、非常に魅力的です。`;
-        let bad = `課題は「${minItem.key}」です。${minItem.advice}<br><span style="font-size:0.8rem; color:#666;">(リスク: ${item.risk})</span>`;
-        return { good, bad };
+        // Category specific advice
+        comment += "<br><span style='font-size:0.8rem; color:#555;'>[カテゴリ視点]: ";
+        switch(item.cat) {
+            case 'Life/Health': comment += "プライバシー保護と、医学的根拠（エビデンス）の担保が鍵になります。"; break;
+            case 'AV/Immersive': comment += "体験の没入感と、長時間利用時の快適性（酔い対策など）を両立させましょう。"; break;
+            case 'AI/Robotics': comment += "人とロボットの情緒的なつながりや、安全性・信頼性の確保が重要です。"; break;
+            case 'Communication': comment += "既存のSNSやツールといかに住み分けるか、このツールならではの体験価値を明確に。"; break;
+            case 'Creative': comment += "クリエイターの創作意欲を刺激するUI/UXと、アウトプットの共有しやすさがポイント。"; break;
+            default: comment += "ニッチなニーズを捉えているか、市場規模とのバランスを確認しましょう。";
+        }
+        comment += "</span>";
+
+        return comment;
     }
 
     function render() {
@@ -599,6 +677,7 @@
 
         filtered.sort((a, b) => {
             if (sortType === 'personal_score') return b.personalTotal - a.personalTotal;
+            if (sortType === 'team_score') return b.teamTotal - a.teamTotal;
             if (sortType === 'total_ai_score') return b.totalScore - a.totalScore;
             if (sortType === 'id') return (parseInt(String(a.id))||999) - (parseInt(String(b.id))||999);
             return 0;
@@ -606,15 +685,26 @@
 
         filtered.forEach(item => {
             const card = document.createElement('div');
-            card.className = 'card';
+            
+            // MEMO LOGIC (No.57+)
+            const isMemo = item.id >= 57;
+            const displayId = isMemo ? `Memo-${item.id - 56}` : `No.${item.id}`;
+            const idClass = isMemo ? "tag memo-id" : "tag";
+            
+            card.className = isMemo ? 'card memo-card' : 'card';
             card.setAttribute('onclick', `openModal('${item.id}')`);
 
             let rankHtml = '';
-            if (item.rank === 'S') rankHtml = `<div class="rank-badge rank-s">S Rank</div>`;
-            else if (item.rank === 'A') rankHtml = `<div class="rank-badge rank-a">A Rank</div>`;
+            // Memoにはランクを表示しない
+            if (!isMemo) {
+                if (item.rank === 'S') rankHtml = `<div class="rank-badge rank-s">S Rank</div>`;
+                else if (item.rank === 'A') rankHtml = `<div class="rank-badge rank-a">A Rank</div>`;
+            }
 
             const wPersonalKando = (item.personalTotalKando / 30) * 100;
             const wPersonalExec = (item.personalTotalExec / 30) * 100;
+            const wTeamKando = (item.teamTotalKando / 30) * 100;
+            const wTeamExec = (item.teamTotalExec / 30) * 100;
             const wAIKando = (item.totalKandoScore / 30) * 100;
             const wAIExec = (item.totalExecScore / 30) * 100;
 
@@ -624,32 +714,50 @@
                 commentHtml = `<div style="margin-top:6px; font-size:0.8rem; color:#444; background:#E0F2F1; padding:4px 6px; border-radius:4px;">📝 ${noteText}</div>`;
             }
 
-            const personalScoreSection = `
-                <div class="score-detail-text">
-                    <span class="score-label-personal">あなた: ${item.personalTotal}点</span>
-                    ${item.personalTotal > 0 ? `<span style="font-size:0.7rem;">(情:${item.personalTotalKando}/実:${item.personalTotalExec})</span>` : '<span style="color:#999;">(未評価)</span>'}
+            const personalBar = `
+                <div class="score-bar-row">
+                    <div class="score-bar-label" style="color:var(--personal)">あなた</div>
+                    <div class="score-bar-container bar-personal">
+                        <div class="bar-segment-emotional" style="width:${wPersonalKando}%"></div>
+                        <div class="bar-segment-execution" style="width:${wPersonalExec}%"></div>
+                    </div>
+                    <div class="score-val">${item.personalTotal}</div>
                 </div>
-                <div class="score-bar-container personal-score-container">
-                    <div class="bar-segment-emotional" style="width:${wPersonalKando}%"></div>
-                    <div class="bar-segment-execution" style="width:${wPersonalExec}%"></div>
+            `;
+
+            let teamBar = '';
+            if (teamStats) {
+                teamBar = `
+                    <div class="score-bar-row">
+                        <div class="score-bar-label" style="color:var(--team)">チーム</div>
+                        <div class="score-bar-container bar-team">
+                            <div class="bar-segment-emotional" style="width:${wTeamKando}%"></div>
+                            <div class="bar-segment-execution" style="width:${wTeamExec}%"></div>
+                        </div>
+                        <div class="score-val">${item.teamTotal.toFixed(1)}</div>
+                    </div>
+                `;
+            }
+
+            const aiBar = `
+                <div class="score-bar-row bar-row-ai">
+                    <div class="score-bar-label" style="color:var(--ai)">AI</div>
+                    <div class="score-bar-container bar-ai">
+                        <div class="bar-segment-emotional" style="width:${wAIKando}%"></div>
+                        <div class="bar-segment-execution" style="width:${wAIExec}%"></div>
+                    </div>
+                    <div class="score-val">${item.totalScore}</div>
                 </div>
             `;
             
-            const aiScoreSection = `
-                <div class="score-detail-text score-label-ai">
-                    <span>AI評価: ${item.totalScore}点</span>
-                </div>
-                <div class="score-bar-container ai-total-score-container">
-                    <div class="bar-segment-emotional" style="width:${wAIKando}%"></div>
-                    <div class="bar-segment-execution" style="width:${wAIExec}%"></div>
-                </div>
-            `;
+            // Card view simplified comment logic
+            let simpleComment = "詳細を見る"; 
+            if(item.totalScore >= 25) simpleComment = "✨ 高評価アイデア";
+            else if(item.score_kando.n <= 2) simpleComment = "⚠️ 新奇性に課題";
             
-            const analysis = getAIAnalysis(item);
             const aiCommentHtml = `
                 <div class="ai-comment-box">
-                    <div class="ai-comment-row good"><span class="ai-comment-icon">✨</span><span>${analysis.good}</span></div>
-                    <div class="ai-comment-row bad"><span class="ai-comment-icon">⚡</span><span style="color:#C53030; font-weight:bold;">${analysis.bad}</span></div>
+                    <div class="ai-comment-row good"><span class="ai-comment-icon">🤖</span><span>${simpleComment}</span></div>
                 </div>
             `;
 
@@ -657,14 +765,17 @@
                 ${rankHtml}
                 <div class="card-header">
                     <div class="meta-row">
-                        <span class="tag">No.${item.id}</span>
+                        <span class="${idClass}">${displayId}</span>
                         <span class="tag author">${item.author === '-' ? '不明' : item.author}</span>
                         <span class="tag cat">${item.cat}</span>
                     </div>
                     <h3 class="card-title">${item.title}</h3>
-                    ${personalScoreSection}
+                    <div class="score-bar-group">
+                        ${personalBar}
+                        ${teamBar}
+                        ${aiBar}
+                    </div>
                     ${commentHtml}
-                    ${aiScoreSection}
                     ${aiCommentHtml}
                 </div>
                 <div class="card-body">
@@ -680,7 +791,11 @@
         const item = rawData.find(d => (String(d.id) === id));
         if (!item) return;
 
-        document.getElementById('modalTitle').textContent = item.title;
+        // Memo display logic for Modal
+        const isMemo = item.id >= 57;
+        const displayId = isMemo ? `Memo-${item.id - 56}` : `No.${item.id}`;
+
+        document.getElementById('modalTitle').textContent = `${displayId} ${item.title}`;
         document.getElementById('modalMeta').innerHTML = `<span class="tag author">記入者: ${item.author}</span><span class="tag cat">カテゴリ: ${item.cat}</span>`;
         document.getElementById('modalUVP').textContent = item.uvp;
         document.getElementById('modalWho').textContent = item.who || '-';
@@ -691,8 +806,11 @@
         document.getElementById('modalRisk').textContent = item.risk || '-';
         document.getElementById('modalTiming').textContent = item.timing || '-';
 
-        document.getElementById('modalAIScoreKando').innerHTML = `感動: <strong>${item.score_kando.k}</strong>, Sony: <strong>${item.score_kando.s}</strong>, 新奇: <strong>${item.score_kando.n}</strong>`;
-        document.getElementById('modalAIScoreExec').innerHTML = `実現性: <strong>${item.score_exec.feat}</strong>, 検証: <strong>${item.score_exec.test}</strong>, 戦略: <strong>${item.score_exec.strat}</strong>`;
+        // AI Comment
+        const aiAnalysis = getAIAnalysis(item);
+        document.getElementById('modalAIComment').innerHTML = aiAnalysis;
+        document.getElementById('modalAIScoreKando').innerText = item.totalKandoScore;
+        document.getElementById('modalAIScoreExec').innerText = item.totalExecScore;
 
         document.getElementById('modalIdeaId').value = item.id;
         const p = item.personalScore;
@@ -746,9 +864,9 @@
         const dataUri = 'data:application/json;charset=utf-8,' + encodeURIComponent(dataStr);
         const link = document.createElement('a');
         link.setAttribute('href', dataUri);
-        link.setAttribute('download', `FutureProductLab_Scores_${new Date().toISOString().slice(0,10)}.json`);
+        link.setAttribute('download', `MyScore_${new Date().toISOString().slice(0,10)}.json`);
         link.click();
-        alert("保存しました。");
+        alert("あなたの評価データを保存しました。\nこのファイルをチームメンバーに送ると、合意形成に使えます。");
     }
 
     function importPersonalScoresFromFile(file) {
@@ -757,10 +875,11 @@
         reader.onload = function(e) {
             try {
                 const data = JSON.parse(e.target.result);
-                if (confirm("現在の内容を上書きして読み込みますか？")) {
+                if (confirm("現在のあなたの評価を上書きして読み込みますか？")) {
                     personalScores = data;
                     localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(personalScores));
                     alert("読み込みました。");
+                    processData();
                     init();
                 }
             } catch (e) { alert("読み込み失敗"); }
@@ -769,19 +888,83 @@
         reader.readAsText(file);
     }
 
-    // Summary Charts
-    let radarChartInstance, categoryBarChartInstance, portfolioChartInstance;
+    async function importTeamScores(files) {
+        if (!files || files.length === 0) return;
+        
+        const fileReaders = [];
+        const loadedData = [];
+
+        for (let i = 0; i < files.length; i++) {
+            fileReaders.push(new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onload = (e) => resolve(JSON.parse(e.target.result));
+                reader.onerror = reject;
+                reader.readAsText(files[i]);
+            }));
+        }
+
+        try {
+            const results = await Promise.all(fileReaders);
+            const aggregator = {}; 
+            
+            results.forEach(userScores => {
+                Object.keys(userScores).forEach(id => {
+                    const s = userScores[id];
+                    const total = (s.kando||0)+(s.sony||0)+(s.newness||0)+(s.feat||0)+(s.test||0)+(s.strat||0);
+                    if(total === 0) return;
+
+                    if (!aggregator[id]) aggregator[id] = { sumKando:0, sumExec:0, count:0 };
+                    
+                    const kVal = (s.kando||0)+(s.sony||0)+(s.newness||0);
+                    const eVal = (s.feat||0)+(s.test||0)+(s.strat||0);
+                    
+                    aggregator[id].sumKando += kVal;
+                    aggregator[id].sumExec += eVal;
+                    aggregator[id].count++;
+                });
+            });
+
+            teamStats = {};
+            Object.keys(aggregator).forEach(id => {
+                const agg = aggregator[id];
+                teamStats[id] = {
+                    kandoAvg: agg.sumKando / agg.count,
+                    execAvg: agg.sumExec / agg.count,
+                    totalAvg: (agg.sumKando + agg.sumExec) / agg.count,
+                    count: agg.count
+                };
+            });
+
+            document.getElementById('teamMemberCount').innerText = files.length;
+            document.getElementById('teamActiveAlert').style.display = 'block';
+            alert(`${files.length}人分のデータを統合しました。\n一覧ボードと分析レポートに「チーム平均」が表示されます。`);
+            
+            processData(); 
+            render();
+            document.getElementById('teamImportInput').value = '';
+
+        } catch (e) {
+            console.error(e);
+            alert("ファイルの読み込みに失敗しました。JSON形式を確認してください。");
+        }
+    }
 
     function renderSummary() {
         let aiSums = {k:0, s:0, n:0, f:0, t:0, st:0, count:0};
         let pSums = {k:0, s:0, n:0, f:0, t:0, st:0, count:0};
-        let cats = {}; let userCats = {};
+        let tSums = {kando:0, exec:0, count:0}; 
+        let cats = {}; let userCats = {}; let teamCats = {};
         let scatterData = [];
 
         rawData.forEach(d => {
+            // AI
             aiSums.k += d.score_kando.k; aiSums.s += d.score_kando.s; aiSums.n += d.score_kando.n;
             aiSums.f += d.score_exec.feat; aiSums.t += d.score_exec.test; aiSums.st += d.score_exec.strat;
             aiSums.count++;
+            
+            if(!cats[d.cat]) cats[d.cat] = {sum:0, count:0};
+            cats[d.cat].sum += d.totalScore;
+            cats[d.cat].count++;
 
             if(d.personalTotal > 0) {
                 pSums.k += d.personalScore.kando; pSums.s += d.personalScore.sony; pSums.n += d.personalScore.newness;
@@ -800,19 +983,23 @@
                 });
             }
 
-            if(!cats[d.cat]) cats[d.cat] = {sum:0, count:0};
-            cats[d.cat].sum += d.totalScore;
-            cats[d.cat].count++;
+            if(d.teamTotal > 0) {
+                tSums.kando += d.teamTotalKando;
+                tSums.exec += d.teamTotalExec;
+                tSums.count++;
+
+                if(!teamCats[d.cat]) teamCats[d.cat] = {sum:0, count:0};
+                teamCats[d.cat].sum += d.teamTotal;
+                teamCats[d.cat].count++;
+            }
         });
 
         const aiAvg = [aiSums.k, aiSums.s, aiSums.n, aiSums.f, aiSums.t, aiSums.st].map(v => v/aiSums.count);
         const pAvg = pSums.count ? [pSums.k, pSums.s, pSums.n, pSums.f, pSums.t, pSums.st].map(v => v/pSums.count) : [0,0,0,0,0,0];
-        document.getElementById('personalScoreCount').innerText = pSums.count;
-
-        // Analysis Text
+        
         const analysisEl = document.getElementById('userAnalysisText');
         if (pSums.count === 0) {
-            analysisEl.innerHTML = "まだ採点データがありません。気になるアイデアを評価すると、ここに分析結果が表示されます。";
+            analysisEl.innerHTML = "まだ採点データがありません。";
         } else {
             let maxCatName = ""; let maxCatScore = -1;
             for (let c in userCats) {
@@ -832,24 +1019,23 @@
             `;
         }
 
-        // 1. Category Bar Chart
         if(categoryBarChartInstance) categoryBarChartInstance.destroy();
         const catKeys = Object.keys(cats).sort((a,b) => (cats[b].sum/cats[b].count) - (cats[a].sum/cats[a].count));
-        const userCatData = catKeys.map(k => userCats[k] ? (userCats[k].sum/userCats[k].count) : 0);
         
+        const datasets = [
+            { label:'あなたの平均', data:catKeys.map(k => userCats[k] ? (userCats[k].sum/userCats[k].count) : 0), backgroundColor:'#009688' }
+        ];
+        if (teamStats) {
+            datasets.push({ label:'チーム平均', data:catKeys.map(k => teamCats[k] ? (teamCats[k].sum/teamCats[k].count) : 0), backgroundColor:'#4F46E5' });
+        }
+        datasets.push({ label:'AI平均(参考)', data:catKeys.map(k=>cats[k].sum/cats[k].count), backgroundColor:'#E0E0E0' });
+
         categoryBarChartInstance = new Chart(document.getElementById('categoryBarChart'), {
             type: 'bar',
-            data: {
-                labels: catKeys,
-                datasets: [
-                    { label:'あなたの平均', data:userCatData, backgroundColor:'#009688' },
-                    { label:'AI平均(参考)', data:catKeys.map(k=>cats[k].sum/cats[k].count), backgroundColor:'#E0E0E0' }
-                ]
-            },
+            data: { labels: catKeys, datasets: datasets },
             options: { scales:{y:{min:0, max:30}} }
         });
 
-        // 2. Radar
         if(radarChartInstance) radarChartInstance.destroy();
         radarChartInstance = new Chart(document.getElementById('radarChart'), {
             type: 'radar',
@@ -863,7 +1049,6 @@
             options: { scales: { r: { min:0, max:5, ticks:{stepSize:1} } } }
         });
 
-        // 3. Portfolio Chart
         if(portfolioChartInstance) portfolioChartInstance.destroy();
         portfolioChartInstance = new Chart(document.getElementById('portfolioChart'), {
             type: 'scatter',
