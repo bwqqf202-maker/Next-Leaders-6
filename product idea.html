@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Future Product Lab | Team Sync Edition (Ver. 34)</title>
+    <title>Future Product Lab | Mobile Card Edition (Ver. 38)</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
     <style>
         :root {
@@ -12,24 +12,23 @@
             --primary: #0066CC;
             --primary-dark: #0056b3;
             --personal: #009688; /* Teal: 自分 */
-            --team: #4F46E5;     /* Indigo: チーム */
             --ai: #718096;       /* Gray: AI */
             --memo: #F57C00;     /* Orange: Memo */
             --memo-bg: #FFF3E0;
-            --text-main: #333;
-            --text-sub: #666;
+            --text-main: #2D3748;
+            --text-sub: #718096;
             --rank-s: #FFD700;
             --rank-a: #A0AEC0;
         }
 
         body {
-            font-family: "Helvetica Neue", Arial, sans-serif;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
             background-color: var(--bg);
             color: var(--text-main);
             margin: 0;
             line-height: 1.5;
             font-size: 14px;
-            /* ヘッダー固定用の余白（PC） */
+            /* ヘッダー固定用の余白（JSで動的に調整も可能だがCSSで安全マージン確保） */
             padding-top: 180px; 
         }
 
@@ -47,7 +46,7 @@
         .header-inner {
             max-width: 1200px;
             margin: 0 auto;
-            padding: 0.8rem 1rem;
+            padding: 0.5rem 1rem 0 1rem;
         }
 
         /* Top Row */
@@ -55,64 +54,75 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 0.8rem;
-            padding-bottom: 8px;
+            margin-bottom: 0.5rem;
+            padding-bottom: 5px;
             border-bottom: 1px solid #eee;
         }
         .header-top-row h1 {
             margin: 0;
-            font-size: 1.3rem;
+            font-size: 1.1rem;
             color: var(--primary-dark);
             display: flex;
             align-items: center;
-            gap: 10px;
+            gap: 8px;
         }
         .ver-badge {
-            font-size: 0.7rem; background: #eee; padding: 2px 6px; border-radius: 4px; color: #666; font-weight: normal;
+            font-size: 0.65rem; background: #eee; padding: 2px 6px; border-radius: 4px; color: #666; font-weight: normal;
         }
         .file-actions {
             display: flex;
-            gap: 8px;
+            gap: 6px;
         }
         .btn-file {
-            display: flex; align-items: center; gap: 4px;
-            padding: 5px 12px; border-radius: 6px; border: 1px solid #ccc;
-            font-size: 0.85rem; font-weight: bold; cursor: pointer; background: white;
+            display: flex; align-items: center; gap: 3px;
+            padding: 4px 10px; border-radius: 6px; border: 1px solid #ccc;
+            font-size: 0.8rem; font-weight: bold; cursor: pointer; background: white;
             white-space: nowrap; transition: all 0.2s;
         }
         .btn-file:hover { transform: translateY(-1px); box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
         .btn-file.save { background: var(--personal); color: white; border-color: var(--personal); }
+        .btn-file.csv { background: #2E7D32; color: white; border-color: #2E7D32; }
         .btn-file.load { background: #fff; color: #333; border-color: #ccc; }
-        .btn-file.team-load { background: var(--team); color: white; border-color: var(--team); }
+        .btn-file.help { background: #fff; color: #0066CC; border-color: #0066CC; }
 
         /* Controls */
         .controls-row {
-            display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; margin-bottom: 5px;
+            display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px; margin-bottom: 5px;
         }
         .page-tabs {
             display: flex; gap: 4px; background: #f0f2f5; padding: 3px; border-radius: 6px; align-items: center;
         }
         .page-tab-btn {
-            padding: 6px 14px; border: none; background: none; cursor: pointer;
-            font-size: 0.9rem; font-weight: bold; color: #666; border-radius: 4px;
+            padding: 5px 12px; border: none; background: none; cursor: pointer;
+            font-size: 0.85rem; font-weight: bold; color: #666; border-radius: 4px;
         }
         .page-tab-btn.active {
             background: white; color: var(--primary); box-shadow: 0 1px 3px rgba(0,0,0,0.1);
         }
         .count-badge {
             margin-left: 8px; margin-right: 4px; background: #CBD5E0; color: #2D3748;
-            padding: 3px 10px; border-radius: 12px; font-size: 0.8rem; font-weight: bold; white-space: nowrap;
+            padding: 2px 8px; border-radius: 12px; font-size: 0.75rem; font-weight: bold; white-space: nowrap;
         }
 
         .control-group-right {
-            display: flex; gap: 10px; align-items: center; flex-wrap: wrap;
+            display: flex; gap: 8px; align-items: center; flex-wrap: wrap; flex: 1; justify-content: flex-end;
         }
+        
+        /* Search Box */
+        .search-box { position: relative; }
+        .search-box input {
+            padding: 5px 10px 5px 28px; border-radius: 20px; border: 1px solid #ccc; font-size: 0.85rem; width: 140px;
+        }
+        .search-box::before {
+            content: "🔍"; position: absolute; left: 8px; top: 50%; transform: translateY(-50%); font-size: 0.8rem; opacity: 0.6;
+        }
+
         .toggle-section {
-            display: flex; align-items: center; font-size: 0.8rem; color: #666;
-            background: #fff; padding: 2px 8px; border-radius: 15px; border: 1px solid #eee; white-space: nowrap;
+            display: flex; align-items: center; font-size: 0.75rem; color: #666;
+            background: #fff; padding: 2px 6px; border-radius: 15px; border: 1px solid #eee; white-space: nowrap;
         }
         .switch-label {
-            position: relative; display: inline-block; width: 28px; height: 16px; margin-left: 6px;
+            position: relative; display: inline-block; width: 28px; height: 16px; margin-left: 4px;
         }
         .switch-label input { opacity: 0; width: 0; height: 0; }
         .slider {
@@ -124,84 +134,93 @@
         input:checked + .slider { background-color: var(--ai); }
         input:checked + .slider:before { transform: translateX(12px); }
 
-        .controls-selectors { display: flex; gap: 5px; }
+        .controls-selectors { display: flex; gap: 4px; }
         .controls-selectors select {
-            padding: 5px 8px; border-radius: 4px; border: 1px solid #ddd; font-size: 0.8rem; background: #fff; max-width: 140px;
+            padding: 4px 6px; border-radius: 4px; border: 1px solid #ddd; font-size: 0.8rem; background: #fff; max-width: 120px;
         }
 
         .filter-tabs {
-            display: flex; gap: 6px; overflow-x: auto; padding-bottom: 5px; margin-top: 5px; scrollbar-width: none;
+            display: flex; gap: 6px; overflow-x: auto; padding-bottom: 5px; margin-top: 5px; scrollbar-width: none; align-items: center;
         }
         .filter-tabs::-webkit-scrollbar { display: none; }
         .tab-btn {
-            white-space: nowrap; padding: 4px 12px; border-radius: 20px; border: 1px solid #ddd;
-            background: #fff; color: #666; font-size: 0.8rem; cursor: pointer; transition: all 0.2s;
+            white-space: nowrap; padding: 4px 10px; border-radius: 20px; border: 1px solid #ddd;
+            background: #fff; color: #666; font-size: 0.75rem; cursor: pointer; transition: all 0.2s;
         }
         .tab-btn.active {
             background: var(--primary); color: #fff; border-color: var(--primary); font-weight: bold;
+        }
+        .btn-random {
+            white-space: nowrap; padding: 4px 10px; border-radius: 20px; border: 1px solid #FF9800;
+            background: #FFF3E0; color: #E65100; font-size: 0.75rem; cursor: pointer; font-weight: bold; margin-left: auto;
         }
 
         /* Grid & Card */
         .container { max-width: 1200px; margin: 0 auto; padding: 0 1rem 1.5rem 1rem; }
         .grid {
-            display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 1.2rem;
+            display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 1rem;
         }
         .card {
-            background: var(--surface); border-radius: 12px;
-            box-shadow: 0 2px 6px rgba(0,0,0,0.04); border: 1px solid #e0e0e0;
+            background: var(--surface); border-radius: 10px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05); border: 1px solid #e0e0e0;
             display: flex; flex-direction: column; overflow: hidden;
-            transition: transform 0.2s; position: relative; cursor: pointer;
+            transition: transform 0.15s; position: relative; cursor: pointer;
         }
-        .card:active { transform: scale(0.98); }
+        .card:active { transform: scale(0.98); background-color: #f9f9f9; }
         .card.memo-card { background-color: #FAFAFA; border: 1px dashed #ccc; }
         .card.memo-card .card-title { color: #555; }
 
         .rank-badge {
-            position: absolute; top: 0; right: 0; padding: 3px 10px;
-            font-weight: bold; font-size: 0.75rem; color: #000;
-            border-radius: 0 0 0 10px; z-index: 10;
+            position: absolute; top: 0; right: 0; padding: 2px 8px;
+            font-weight: bold; font-size: 0.7rem; color: #000;
+            border-radius: 0 0 0 8px; z-index: 10;
         }
         .rank-s { background: var(--rank-s); box-shadow: 0 2px 4px rgba(0,0,0,0.15); }
         .rank-a { background: var(--rank-a); color: #fff; }
         
-        .card-header { padding: 1rem; background: #fff; border-bottom: 1px solid #f5f5f5; }
+        .card-header { padding: 0.8rem; background: #fff; border-bottom: 1px solid #f0f0f0; }
         .card.memo-card .card-header { background: #FAFAFA; }
 
-        .meta-row { display: flex; gap: 6px; margin-bottom: 6px; flex-wrap: wrap; }
-        .tag { font-size: 0.7rem; padding: 2px 6px; border-radius: 4px; background: #f0f0f0; color: #555; }
+        .meta-row { display: flex; gap: 4px; margin-bottom: 4px; flex-wrap: wrap; }
+        .tag { font-size: 0.65rem; padding: 2px 6px; border-radius: 4px; background: #f0f0f0; color: #555; }
         .tag.cat { background: #E3F2FD; color: var(--primary); }
         .tag.author { background: #ffebee; color: #C53030; }
         .tag.memo-id { background: var(--memo-bg); color: var(--memo); border: 1px solid #FFE0B2; font-weight: bold; }
 
-        .card-title { font-size: 1.1rem; font-weight: bold; margin: 0; line-height: 1.35; }
+        .card-title { font-size: 1rem; font-weight: bold; margin: 2px 0 6px 0; line-height: 1.4; color: var(--text-main); }
         
         /* Bar Styles */
-        .score-bar-group { margin-top: 8px; }
-        .score-bar-row { display: flex; align-items: center; margin-bottom: 4px; }
-        .score-bar-label { width: 50px; font-size: 0.7rem; font-weight: bold; text-align: right; margin-right: 6px; }
+        .score-bar-group { margin-top: 6px; }
+        .score-bar-row { display: flex; align-items: center; margin-bottom: 3px; }
+        .score-bar-label { width: 40px; font-size: 0.65rem; font-weight: bold; text-align: right; margin-right: 5px; color: #666; }
         .score-bar-container {
-            flex-grow: 1; height: 6px; background: #EDF2F7; border-radius: 3px; display: flex; overflow: hidden;
+            flex-grow: 1; height: 5px; background: #EDF2F7; border-radius: 3px; display: flex; overflow: hidden;
         }
         .bar-personal .bar-segment-emotional { background-color: #26A69A; }
         .bar-personal .bar-segment-execution { background-color: #80CBC4; }
-        .bar-team .bar-segment-emotional { background-color: #5C6BC0; }
-        .bar-team .bar-segment-execution { background-color: #9FA8DA; }
         .bar-ai .bar-segment-emotional { background-color: #A0AEC0; }
         .bar-ai .bar-segment-execution { background-color: #CBD5E0; }
 
-        .score-val { width: 30px; font-size: 0.7rem; text-align: left; margin-left: 6px; color: #555; }
+        .score-val { width: 25px; font-size: 0.65rem; text-align: left; margin-left: 5px; color: #555; }
 
         .ai-comment-box {
-            margin-top: 10px; padding: 8px; background: #F8FAFC; border-radius: 6px; border: 1px solid #EDF2F7; font-size: 0.8rem;
+            margin-top: 8px; padding: 6px; background: #F8FAFC; border-radius: 6px; border: 1px solid #EDF2F7; font-size: 0.75rem;
         }
-        .ai-comment-row { display: flex; align-items: flex-start; margin-bottom: 4px; line-height: 1.4; }
-        .ai-comment-row:last-child { margin-bottom: 0; }
-        .ai-comment-icon { margin-right: 6px; font-size: 0.9rem; min-width: 18px; text-align: center; }
+        .ai-comment-row { display: flex; align-items: flex-start; margin-bottom: 0; line-height: 1.3; }
+        .ai-comment-icon { margin-right: 5px; font-size: 0.85rem; }
 
-        .card-body { padding: 1rem; flex: 1; font-size: 0.85rem; color: #444; }
-        .uvp-box {
-            margin-top: auto; padding: 8px; background: #f8fbff; border-left: 3px solid var(--primary); color: var(--primary); font-size: 0.8rem; border-radius: 0 4px 4px 0;
+        /* Card Body Improvements for Mobile */
+        .card-body { padding: 0.8rem; flex: 1; font-size: 0.8rem; color: #444; display: flex; flex-direction: column; gap: 6px; }
+        
+        .card-info-row { display: flex; align-items: flex-start; line-height: 1.4; }
+        .info-icon { min-width: 18px; margin-right: 4px; font-size: 0.9rem; text-align: center; }
+        .info-label { font-weight: bold; color: #555; margin-right: 4px; font-size: 0.7rem; min-width: 30px; display:none; /* アイコンのみで省スペース化 */ }
+        .info-text { 
+            color: #333; word-break: break-all;
+            /* 2行で省略するCSS */
+            display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
         }
+        .info-text.uvp { color: var(--primary); font-weight: bold; background: #f0f7ff; padding: 2px 4px; border-radius: 4px; display:inline-block; -webkit-line-clamp: 3; }
 
         /* Modal */
         .modal {
@@ -211,32 +230,56 @@
         .modal-content {
             background-color: #fefefe; margin: auto; padding: 20px; border-radius: 12px;
             width: 95%; max-width: 650px; box-shadow: 0 10px 30px rgba(0,0,0,0.3); position: relative;
-            max-height: 90vh; overflow-y: auto;
+            max-height: 85vh; overflow-y: auto;
         }
         .close-btn { float: right; font-size: 24px; font-weight: bold; color: #aaa; padding: 0 5px; cursor: pointer; }
         .modal-score-section h3 {
-            border-bottom: 2px solid #eee; padding-bottom: 5px; margin-top: 15px; font-size: 1.1rem; color: var(--primary);
+            border-bottom: 2px solid #eee; padding-bottom: 5px; margin-top: 20px; font-size: 1rem; color: var(--primary);
         }
         .modal-score-section.personal-score h3 { color: var(--personal); }
+        
+        /* Modal Detail Styles */
+        .detail-row { margin-bottom: 10px; border-bottom: 1px dashed #eee; padding-bottom: 8px; }
+        .detail-label { font-weight: bold; color: #555; display: block; font-size: 0.85rem; margin-bottom: 4px; }
+        .detail-text { font-size: 0.95rem; line-height: 1.6; color: #2D3748; }
+        .detail-uvp-box { background: #f0f7ff; border-left: 4px solid var(--primary); padding: 10px; border-radius: 4px; margin-bottom: 15px; }
+
         .score-input-group { display: flex; align-items: center; margin-bottom: 10px; }
-        .score-input-group label { width: 90px; font-weight: bold; color: #555; font-size: 0.9rem; }
+        .score-input-group label { width: 90px; font-weight: bold; color: #555; font-size: 0.85rem; }
         .score-input-group input[type="number"] {
-            width: 50px; padding: 6px; border: 1px solid #ddd; border-radius: 4px; text-align: center; margin-right: 8px;
+            width: 50px; padding: 8px; border: 1px solid #ddd; border-radius: 4px; text-align: center; margin-right: 8px; font-size: 1rem;
         }
         textarea {
-            width: calc(100% - 16px); min-height: 80px; padding: 8px; border: 1px solid #ddd; border-radius: 4px; resize: vertical;
+            width: calc(100% - 16px); min-height: 80px; padding: 8px; border: 1px solid #ddd; border-radius: 4px; resize: vertical; font-family: inherit;
         }
         .modal-save-btn {
-            background-color: var(--personal); color: white; padding: 10px 20px; border: none; border-radius: 6px; cursor: pointer; font-size: 1rem; margin-top: 15px; width: 100%;
+            background-color: var(--personal); color: white; padding: 12px 20px; border: none; border-radius: 6px; cursor: pointer; font-size: 1rem; margin-top: 15px; width: 100%; font-weight: bold;
         }
         .personal-score-summary {
-            padding: 8px; background: #E0F2F1; border-radius: 4px; margin-top: 8px; font-weight: bold; color: var(--personal); text-align: center;
+            padding: 10px; background: #E0F2F1; border-radius: 4px; margin-top: 8px; font-weight: bold; color: var(--personal); text-align: center; font-size: 1rem;
         }
         .score-input-section-divider { margin-top: 15px; padding-top: 10px; border-top: 1px solid #ddd; }
 
+        /* Guide Table */
+        .guide-table { width: 100%; border-collapse: collapse; font-size: 0.8rem; margin-top: 10px; }
+        .guide-table th, .guide-table td { border: 1px solid #ddd; padding: 6px; text-align: left; }
+        .guide-table th { background-color: #f5f5f5; color: #333; }
+        .guide-cat-header { background-color: #e0f2f1; color: var(--personal); font-weight: bold; text-align: center; }
+
+        /* Analyst Box in Modal */
+        .analyst-box {
+            background: #FAFAFA; border: 1px solid #E0E0E0; border-left: 4px solid #718096;
+            padding: 12px; border-radius: 4px; font-size: 0.9rem; line-height: 1.6; color: #333;
+        }
+        .analyst-row { margin-bottom: 8px; display: flex; align-items: flex-start; }
+        .analyst-row:last-child { margin-bottom: 0; }
+        .analyst-icon { font-size: 1.2rem; margin-right: 8px; min-width: 24px; }
+        .analyst-label { font-weight: bold; color: #555; display: block; font-size: 0.8rem; margin-bottom: 2px; }
+
         /* Hiding logic */
         body.hide-ai-scores .bar-row-ai,
-        body.hide-ai-scores .ai-comment-box { display: none !important; }
+        body.hide-ai-scores .ai-comment-box,
+        body.hide-ai-scores .analyst-box { display: none !important; }
         
         /* Summary Page */
         .summary-header { text-align: center; margin-bottom: 2rem; border-bottom: 2px solid #ddd; padding-bottom: 1rem; }
@@ -252,25 +295,18 @@
             background: #E0F2F1; border-left: 5px solid var(--personal); padding: 15px; border-radius: 4px; margin-bottom: 20px;
         }
         .analysis-text-box h3 { color: var(--personal); margin-top: 0; }
-        .team-active-alert {
-            background: #E8EAF6; border-left: 5px solid var(--team); padding: 10px; border-radius: 4px; margin-bottom: 15px; color: var(--team); font-weight: bold; display: none;
-        }
 
+        /* Mobile specific adjustments */
         @media (max-width: 768px) {
-            body { padding-top: 250px; } /* Header gets taller on mobile */
-            .header-inner { padding: 0.8rem; }
-            .header-top-row { flex-wrap: wrap; gap: 10px; }
-            .header-top-row h1 { font-size: 1.1rem; width: 100%; }
-            .file-actions { width: 100%; justify-content: flex-start; overflow-x: auto; padding-bottom: 4px; }
-            .controls-row { flex-direction: column; align-items: flex-start; gap: 8px; }
-            .page-tabs { width: 100%; justify-content: space-between; }
-            .page-tab-btn { flex-grow: 1; text-align: center; padding: 6px 4px; font-size: 0.85rem; }
-            .count-badge { position: absolute; top: 60px; right: 15px; background: transparent; color: #666; padding: 0; font-size: 0.8rem; }
-            .control-group-right { width: 100%; justify-content: space-between; }
+            body { padding-top: 260px; } /* Header padding for mobile */
+            .header-inner { padding: 0.5rem; }
+            .header-top-row h1 { font-size: 1rem; }
+            .control-group-right { width: 100%; justify-content: space-between; flex-direction: row-reverse; }
             .controls-selectors { flex-grow: 1; justify-content: flex-end; }
-            .controls-selectors select { width: 100%; max-width: none; }
-            .grid { grid-template-columns: 1fr; }
+            .search-box input { width: 100%; }
+            .grid { grid-template-columns: 1fr; gap: 0.8rem; }
             .modal-content { width: 92%; padding: 15px; }
+            .info-text { font-size: 0.85rem; }
         }
     </style>
 </head>
@@ -279,40 +315,41 @@
 <header>
     <div class="header-inner">
         <div class="header-top-row">
-            <h1>プロダクトアイデア評価ボード <span class="ver-badge">Ver.34 Team Sync</span></h1>
+            <h1>プロダクトアイデア評価ボード <span class="ver-badge">Ver.38 Mobile</span></h1>
             <div class="file-actions">
+                <button onclick="openGuideModal()" class="btn-file help"><span>❓</span> 基準</button>
                 <button onclick="exportPersonalScores()" class="btn-file save"><span>💾</span> 保存</button>
+                <button onclick="exportCSV()" class="btn-file csv"><span>📊</span> CSV</button>
                 <button onclick="document.getElementById('importInput').click();" class="btn-file load"><span>📂</span> 読込</button>
                 <input type="file" id="importInput" accept="application/json" onchange="importPersonalScoresFromFile(this.files[0])" style="display:none;">
-                
-                <button onclick="document.getElementById('teamImportInput').click();" class="btn-file team-load"><span>👥</span> チーム読込(複数)</button>
-                <input type="file" id="teamImportInput" accept="application/json" multiple onchange="importTeamScores(this.files)" style="display:none;">
             </div>
         </div>
 
         <div class="controls-row">
             <div class="page-tabs">
-                <button class="page-tab-btn active" id="tabGrid" onclick="changePage('grid')">一覧ボード</button>
-                <button class="page-tab-btn" id="tabSummary" onclick="changePage('summary')">分析レポート</button>
+                <button class="page-tab-btn active" id="tabGrid" onclick="changePage('grid')">一覧</button>
+                <button class="page-tab-btn" id="tabSummary" onclick="changePage('summary')">分析</button>
             </div>
-            <div class="count-badge" id="displayCount">全 0 件</div>
+            <div class="count-badge" id="displayCount">0件</div>
             
             <div class="control-group-right">
-                <div class="toggle-section">
+                <div class="search-box">
+                    <input type="text" id="searchInput" placeholder="検索..." oninput="render()">
+                </div>
+                <div class="toggle-section" style="margin-left: 4px;">
                     <span>AI隠す</span>
                     <label class="switch-label">
                         <input type="checkbox" id="aiScoreToggle" onchange="toggleAIScores()">
                         <span class="slider"></span>
                     </label>
                 </div>
-                <div class="controls-selectors">
+                <div class="controls-selectors" style="margin-left: 4px;">
                     <select class="author-select" id="authorSelect" onchange="render()">
-                        <option value="all">作成者: 全員</option>
+                        <option value="all">全員</option>
                     </select>
                     <select class="sort-select" id="sortSelect" onchange="render()">
-                        <option value="personal_score">あなた評価順</option>
-                        <option value="team_score">チーム評価順</option>
-                        <option value="total_ai_score">AI評価順</option>
+                        <option value="personal_score">あなた順</option>
+                        <option value="total_ai_score">AI順</option>
                         <option value="id">ID順</option>
                     </select>
                 </div>
@@ -321,45 +358,44 @@
 
         <div id="filterSection">
             <div class="filter-tabs" id="categoryTabs">
-                <button class="tab-btn active" onclick="setCategory('all', this)">すべて</button>
-                <button class="tab-btn" onclick="setCategory('AV/Immersive', this)">AV/没入</button>
-                <button class="tab-btn" onclick="setCategory('AI/Robotics', this)">AI/ロボ</button>
-                <button class="tab-btn" onclick="setCategory('Life/Health', this)">生活/ヘルス</button>
-                <button class="tab-btn" onclick="setCategory('Communication', this)">通信/交流</button>
+                <button class="tab-btn active" onclick="setCategory('all', this)">全て</button>
+                <button class="tab-btn" onclick="setCategory('AV/Immersive', this)">AV</button>
+                <button class="tab-btn" onclick="setCategory('AI/Robotics', this)">AI</button>
+                <button class="tab-btn" onclick="setCategory('Life/Health', this)">生活</button>
+                <button class="tab-btn" onclick="setCategory('Communication', this)">通信</button>
                 <button class="tab-btn" onclick="setCategory('Creative', this)">創造</button>
-                <button class="tab-btn" onclick="setCategory('Other', this)">その他</button>
+                <button class="tab-btn" onclick="setCategory('Other', this)">他</button>
+                
+                <button class="btn-random" onclick="pickRandom()">🎲 Pick</button>
             </div>
         </div>
     </div>
 </header>
 
 <div class="container" id="gridPage">
-    <div id="teamActiveAlert" class="team-active-alert">
-        👥 チーム合意形成モード: <span id="teamMemberCount">0</span>人分のデータを統合中
-    </div>
     <div class="grid" id="grid"></div>
 </div>
 
 <div class="container" id="summaryPage" style="display:none;">
     <div class="summary-header">
         <h2>分析レポート</h2>
-        <p>自己評価、チーム平均、AI評価の比較分析を行います。</p>
+        <p>自己評価とAI評価の比較分析を行います。</p>
     </div>
 
     <div class="analysis-text-box">
         <h3>📊 興味プロファイル (あなた)</h3>
         <div id="userAnalysisText">
-            データが不足しています。まずは一覧ボードで気になるアイデアをいくつか評価（採点）してください。
+            データが不足しています。一覧ボードでアイデアを評価してください。
         </div>
     </div>
 
     <div class="chart-container-grid">
         <div class="chart-box full-width">
-            <h3>カテゴリー別 平均評価 (あなた vs チーム)</h3>
+            <h3>カテゴリー別 平均評価 (あなた)</h3>
             <canvas id="categoryBarChart"></canvas>
         </div>
         <div class="chart-box">
-            <h3>評価軸の傾向 (あなた vs チーム vs AI)</h3>
+            <h3>評価軸の傾向 (あなた vs AI)</h3>
             <canvas id="radarChart"></canvas>
         </div>
         <div class="chart-box">
@@ -376,50 +412,118 @@
         <span class="close-btn" onclick="closeModal()">&times;</span>
         <h2 id="modalTitle"></h2>
         <p id="modalMeta"></p>
-        <div class="modal-uvp-box">
-            <h4>独自の価値提案 (UVP)</h4>
-            <p id="modalUVP"></p>
-        </div>
         
-        <div class="modal-score-section">
-            <h3>詳細情報</h3>
-            <p><strong>🎯 ターゲット:</strong> <span id="modalWho"></span></p>
-            <p><strong>💔 課題:</strong> <span id="modalPain"></span></p>
-            <p><strong>💡 解決策:</strong> <span id="modalSolution"></span></p>
-            <p><strong>📈 KGI:</strong> <span id="modalKGI"></span></p>
-            <p><strong>🌟 Sony技術:</strong> <span id="modalTech"></span></p>
-            <p><strong>⚠️ リスク:</strong> <span id="modalRisk"></span></p>
-            <p><strong>🕰️ タイミング:</strong> <span id="modalTiming"></span></p>
+        <div class="modal-score-section" style="margin-top: 10px;">
+            <div class="detail-uvp-box">
+                <span class="detail-label">💎 独自の価値提案 (What/UVP)</span>
+                <div class="detail-text" id="modalUVP"></div>
+            </div>
+            
+            <div class="detail-row">
+                <span class="detail-label">🎯 ターゲット (Who)</span>
+                <div class="detail-text" id="modalWho"></div>
+            </div>
+            <div class="detail-row">
+                <span class="detail-label">💔 課題 (Why)</span>
+                <div class="detail-text" id="modalPain"></div>
+            </div>
+            <div class="detail-row">
+                <span class="detail-label">🛠️ 解決策 (How)</span>
+                <div class="detail-text" id="modalSolution"></div>
+            </div>
+            
+            <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px; margin-top:10px;">
+                <div><span class="detail-label">📈 KGI</span><span style="font-size:0.85rem;" id="modalKGI"></span></div>
+                <div><span class="detail-label">🌟 技術</span><span style="font-size:0.85rem;" id="modalTech"></span></div>
+                <div><span class="detail-label">⚠️ リスク</span><span style="font-size:0.85rem;" id="modalRisk"></span></div>
+                <div><span class="detail-label">🕰️ タイミング</span><span style="font-size:0.85rem;" id="modalTiming"></span></div>
+            </div>
         </div>
 
         <div class="modal-score-section">
-            <h3 style="color:#718096;">【AIプロダクト分析】</h3>
-            <p id="modalAIComment" style="font-weight: bold; color:#444; line-height:1.6;"></p>
-            <p style="font-size:0.85rem; color:#666; margin-top:5px;">(参考スコア: 情緒<span id="modalAIScoreKando"></span> / 実行<span id="modalAIScoreExec"></span>)</p>
+            <h3 style="color:#718096; border-bottom-color:#718096;">AI辛口アナリスト分析</h3>
+            <div class="analyst-box" id="modalAICommentBox">
+                </div>
+            <p style="font-size:0.8rem; color:#888; text-align:right; margin-top:4px;">
+                (AI参考スコア: 情緒<span id="modalAIScoreKando"></span> / 実行<span id="modalAIScoreExec"></span>)
+            </p>
         </div>
 
         <div class="modal-score-section personal-score">
-            <h3>📝 メンバー評価 (あなたの採点)</h3>
+            <div style="display:flex; justify-content:space-between; align-items:center;">
+                <h3>📝 メンバー評価 (あなたの採点)</h3>
+                <button type="button" onclick="openGuideModal()" style="background:none; border:none; color:var(--personal); cursor:pointer; font-size:0.85rem; text-decoration:underline;">ℹ️ 基準を見る</button>
+            </div>
             <form id="personalScoreForm">
                 <input type="hidden" id="modalIdeaId">
                 <div class="score-input-section-divider" style="border-top: none;">
-                    <h4>情緒的価値（感動・新奇性など）</h4>
+                    <h4>情緒的価値</h4>
                     <div class="score-input-group"><label>感動</label><input type="number" id="personalKando" min="1" max="5" oninput="updatePersonalTotal()"><span class="score-value">/5</span></div>
                     <div class="score-input-group"><label>Sonyらしさ</label><input type="number" id="personalSony" min="1" max="5" oninput="updatePersonalTotal()"><span class="score-value">/5</span></div>
                     <div class="score-input-group"><label>新奇性</label><input type="number" id="personalNewness" min="1" max="5" oninput="updatePersonalTotal()"><span class="score-value">/5</span></div>
                 </div>
                 <div class="score-input-section-divider">
-                    <h4>実行価値（事業実現性など）</h4>
+                    <h4>実行価値</h4>
                     <div class="score-input-group"><label>実現性</label><input type="number" id="personalFeat" min="1" max="5" oninput="updatePersonalTotal()"><span class="score-value">/5</span></div>
                     <div class="score-input-group"><label>検証容易性</label><input type="number" id="personalTest" min="1" max="5" oninput="updatePersonalTotal()"><span class="score-value">/5</span></div>
                     <div class="score-input-group"><label>戦略性</label><input type="number" id="personalStrat" min="1" max="5" oninput="updatePersonalTotal()"><span class="score-value">/5</span></div>
                 </div>
                 <div class="personal-score-summary">あなたの総合評価 合計: <span id="personalTotalDisplay">0</span> / 30点</div>
-                <h4>メモ・コメント</h4>
-                <textarea id="personalNote" placeholder="コメントや懸念点などを入力..."></textarea>
+                <h4>メモ</h4>
+                <textarea id="personalNote" placeholder="コメント..."></textarea>
                 <button type="button" class="modal-save-btn" onclick="savePersonalScore()">評価を保存</button>
             </form>
         </div>
+    </div>
+</div>
+
+<div id="guideModal" class="modal">
+    <div class="modal-content">
+        <span class="close-btn" onclick="closeGuideModal()">&times;</span>
+        <h2 style="color:var(--primary);">評価基準ガイド</h2>
+        <p>各項目 1〜5点で評価してください。3点が「標準」です。</p>
+        
+        <table class="guide-table">
+            <tr class="guide-cat-header"><th colspan="3">💖 情緒的価値 (Emotional Value)</th></tr>
+            <tr>
+                <th width="20%">項目</th>
+                <th width="40%">低い (1-2)</th>
+                <th width="40%">高い (4-5)</th>
+            </tr>
+            <tr>
+                <td><strong>感動</strong></td>
+                <td>便利だが心は動かない。事務的。</td>
+                <td>ワクワクする。誰かに言いたくなる。エモい。</td>
+            </tr>
+            <tr>
+                <td><strong>Sonyらしさ</strong></td>
+                <td>他社でも作れる。汎用技術のみ。</td>
+                <td>Sonyの技術(映像/音/センサ)や文化が必須。</td>
+            </tr>
+            <tr>
+                <td><strong>新奇性</strong></td>
+                <td>既にあるものの改善。既視感がある。</td>
+                <td>見たことがない。常識を覆す発想。</td>
+            </tr>
+
+            <tr class="guide-cat-header"><th colspan="3">🛠 実行価値 (Execution Value)</th></tr>
+            <tr>
+                <td><strong>実現性</strong></td>
+                <td>物理法則や現在の技術では不可能。</td>
+                <td>既存技術の組み合わせですぐ作れる(MVP)。</td>
+            </tr>
+            <tr>
+                <td><strong>検証容易性</strong></td>
+                <td>検証に数年かかる。大規模インフラが必要。</td>
+                <td>明日からプロトタイプで実験できる。</td>
+            </tr>
+            <tr>
+                <td><strong>戦略性</strong></td>
+                <td>儲かる仕組みが見えない。ニッチすぎる。</td>
+                <td>市場が大きい、または独自のエコシステムが作れる。</td>
+            </tr>
+        </table>
+        <button onclick="closeGuideModal()" style="margin-top:20px; width:100%; padding:10px; background:#ddd; border:none; border-radius:6px; cursor:pointer;">閉じる</button>
     </div>
 </div>
 
@@ -507,7 +611,6 @@
     const LOCAL_STORAGE_KEY = 'personalScores_v13'; 
     const AI_SCORE_TOGGLE_KEY = 'aiScoreHidden';
     let personalScores = {};
-    let teamStats = null;
 
     function normalizeCategory(cat) {
         const map = {
@@ -550,14 +653,6 @@
             item.personalTotalKando = personal.kando + personal.sony + personal.newness;
             item.personalTotalExec = personal.feat + personal.test + personal.strat;
             item.personalTotal = item.personalTotalKando + item.personalTotalExec;
-
-            if (teamStats && teamStats[item.id]) {
-                item.teamTotalKando = teamStats[item.id].kandoAvg;
-                item.teamTotalExec = teamStats[item.id].execAvg;
-                item.teamTotal = teamStats[item.id].totalAvg;
-            } else {
-                item.teamTotalKando = 0; item.teamTotalExec = 0; item.teamTotal = 0;
-            }
         });
     }
 
@@ -584,7 +679,7 @@
 
     function populateAuthorFilter() {
         const authorSelect = document.getElementById('authorSelect');
-        authorSelect.innerHTML = '<option value="all">作成者: 全員</option>';
+        authorSelect.innerHTML = '<option value="all">全員</option>';
         const allAuthors = [...new Set(rawData.map(item => item.author))].filter(a => a !== 'all');
         
         let hamanoAuthor = [], unknownAuthorArray = [], others = [];
@@ -627,36 +722,66 @@
         }
     }
 
-    // AI Analysis Logic
     function getAIAnalysis(item) {
-        // Base analysis on scores
-        let comment = "";
-        
-        if (item.totalScore >= 25) {
-            comment += "🔥 <strong>非常に高いポテンシャルを感じます。</strong>";
-        } else if (item.score_kando.s >= 4) {
-            comment += "👁️ <strong>Sonyの技術資産やブランドをうまく活用できています。</strong>";
+        let good = [];
+        let bad = [];
+        let advice = [];
+
+        if (item.totalScore >= 26) {
+            good.push("総合力が非常に高く、事業化のポテンシャルを感じます。");
+        }
+        if (item.score_kando.s >= 4) {
+            good.push("Sonyの資産（技術・ブランド）との親和性が高く、説得力があります。");
+        } else if (item.score_kando.s <= 2) {
+            bad.push("「なぜSonyがやるのか？」が不明確です。他社でも可能です。");
+        }
+
+        if (item.score_kando.n >= 4) {
+            good.push("目の付け所がユニークで、既存市場に風穴を開ける可能性があります。");
         } else if (item.score_kando.n <= 2) {
-            comment += "⚠️ <strong>既視感があります。ターゲットや利用シーンをずらして差別化を図りましょう。</strong>";
-        } else if (item.score_exec.feat <= 2) {
-            comment += "🛠️ <strong>技術的なハードルが高いです。まずはMVP（最小機能）の定義を見直しましょう。</strong>";
-        } else {
-            comment += "バランスの取れたアイデアですが、尖った特徴（UVP）をさらに強化すると良いでしょう。";
+            bad.push("既視感が強いです。差別化要素が必要です。");
         }
 
-        // Category specific advice
-        comment += "<br><span style='font-size:0.8rem; color:#555;'>[カテゴリ視点]: ";
+        if (item.score_exec.feat <= 2) {
+            bad.push("技術的な実現ハードルが高すぎます。PoCすら困難な恐れがあります。");
+        }
+        
         switch(item.cat) {
-            case 'Life/Health': comment += "プライバシー保護と、医学的根拠（エビデンス）の担保が鍵になります。"; break;
-            case 'AV/Immersive': comment += "体験の没入感と、長時間利用時の快適性（酔い対策など）を両立させましょう。"; break;
-            case 'AI/Robotics': comment += "人とロボットの情緒的なつながりや、安全性・信頼性の確保が重要です。"; break;
-            case 'Communication': comment += "既存のSNSやツールといかに住み分けるか、このツールならではの体験価値を明確に。"; break;
-            case 'Creative': comment += "クリエイターの創作意欲を刺激するUI/UXと、アウトプットの共有しやすさがポイント。"; break;
-            default: comment += "ニッチなニーズを捉えているか、市場規模とのバランスを確認しましょう。";
+            case 'Life/Health':
+                advice.push("「安心感」と「医学的根拠」の担保が鍵です。");
+                break;
+            case 'AV/Immersive':
+                advice.push("日常的に使いたくなる「必然性」が必要です。");
+                break;
+            case 'AI/Robotics':
+                advice.push("愛着が湧くような「キャラクター性」や「振る舞い」が必要です。");
+                break;
+            case 'Communication':
+                advice.push("既存SNSとどう住み分けるか、戦略を練ってください。");
+                break;
+            default:
+                advice.push("ターゲットの課題（Pain）をもう一度深掘りしましょう。");
         }
-        comment += "</span>";
 
-        return comment;
+        if (item.id >= 57) {
+            good = ["（メモ段階のアイデアです）"];
+            bad = ["詳細情報が不足しています。ターゲットと課題を深掘りしてください。"];
+            advice = ["まずは「誰の」「どんな痛み」を解決するのか、一言で言えるようにしましょう。"];
+        }
+
+        let html = "";
+        if(good.length) html += `<div class="analyst-row"><span class="analyst-icon">👍</span><div><span class="analyst-label">評価できる点</span>${good.join("<br>")}</div></div>`;
+        if(bad.length) html += `<div class="analyst-row"><span class="analyst-icon">⚠️</span><div><span class="analyst-label">懸念・課題</span>${bad.join("<br>")}</div></div>`;
+        if(advice.length) html += `<div class="analyst-row"><span class="analyst-icon">⚔️</span><div><span class="analyst-label">アナリストの提言</span>${advice.join("<br>")}</div></div>`;
+        
+        return html;
+    }
+
+    function pickRandom() {
+        const unrated = rawData.filter(d => d.personalTotal === 0);
+        const candidates = unrated.length > 0 ? unrated : rawData;
+        const randomItem = candidates[Math.floor(Math.random() * candidates.length)];
+        openModal(String(randomItem.id));
     }
 
     function render() {
@@ -666,18 +791,22 @@
 
         currentAuthor = document.getElementById('authorSelect').value;
         const sortType = document.getElementById('sortSelect').value;
+        const searchText = document.getElementById('searchInput').value.toLowerCase();
 
         let filtered = rawData.filter(item => {
             if (currentCategory !== 'all' && item.cat !== currentCategory) return false;
             if (currentAuthor !== 'all' && item.author !== currentAuthor) return false;
+            if (searchText) {
+                const text = `${item.title} ${item.who} ${item.pain} ${item.solution} ${item.uvp}`.toLowerCase();
+                if (!text.includes(searchText)) return false;
+            }
             return true;
         });
         
-        document.getElementById('displayCount').innerText = `全 ${filtered.length} 件`;
+        document.getElementById('displayCount').innerText = `${filtered.length}件`;
 
         filtered.sort((a, b) => {
             if (sortType === 'personal_score') return b.personalTotal - a.personalTotal;
-            if (sortType === 'team_score') return b.teamTotal - a.teamTotal;
             if (sortType === 'total_ai_score') return b.totalScore - a.totalScore;
             if (sortType === 'id') return (parseInt(String(a.id))||999) - (parseInt(String(b.id))||999);
             return 0;
@@ -685,8 +814,6 @@
 
         filtered.forEach(item => {
             const card = document.createElement('div');
-            
-            // MEMO LOGIC (No.57+)
             const isMemo = item.id >= 57;
             const displayId = isMemo ? `Memo-${item.id - 56}` : `No.${item.id}`;
             const idClass = isMemo ? "tag memo-id" : "tag";
@@ -695,7 +822,6 @@
             card.setAttribute('onclick', `openModal('${item.id}')`);
 
             let rankHtml = '';
-            // Memoにはランクを表示しない
             if (!isMemo) {
                 if (item.rank === 'S') rankHtml = `<div class="rank-badge rank-s">S Rank</div>`;
                 else if (item.rank === 'A') rankHtml = `<div class="rank-badge rank-a">A Rank</div>`;
@@ -703,15 +829,12 @@
 
             const wPersonalKando = (item.personalTotalKando / 30) * 100;
             const wPersonalExec = (item.personalTotalExec / 30) * 100;
-            const wTeamKando = (item.teamTotalKando / 30) * 100;
-            const wTeamExec = (item.teamTotalExec / 30) * 100;
             const wAIKando = (item.totalKandoScore / 30) * 100;
             const wAIExec = (item.totalExecScore / 30) * 100;
 
             let commentHtml = '';
             if (item.personalScore.note && item.personalScore.note.trim() !== '') {
-                const noteText = item.personalScore.note.length > 40 ? item.personalScore.note.substring(0, 40) + '...' : item.personalScore.note;
-                commentHtml = `<div style="margin-top:6px; font-size:0.8rem; color:#444; background:#E0F2F1; padding:4px 6px; border-radius:4px;">📝 ${noteText}</div>`;
+                commentHtml = `<div style="margin-top:6px; font-size:0.75rem; color:#444; background:#E0F2F1; padding:2px 6px; border-radius:4px;">📝 メモあり</div>`;
             }
 
             const personalBar = `
@@ -725,20 +848,6 @@
                 </div>
             `;
 
-            let teamBar = '';
-            if (teamStats) {
-                teamBar = `
-                    <div class="score-bar-row">
-                        <div class="score-bar-label" style="color:var(--team)">チーム</div>
-                        <div class="score-bar-container bar-team">
-                            <div class="bar-segment-emotional" style="width:${wTeamKando}%"></div>
-                            <div class="bar-segment-execution" style="width:${wTeamExec}%"></div>
-                        </div>
-                        <div class="score-val">${item.teamTotal.toFixed(1)}</div>
-                    </div>
-                `;
-            }
-
             const aiBar = `
                 <div class="score-bar-row bar-row-ai">
                     <div class="score-bar-label" style="color:var(--ai)">AI</div>
@@ -750,14 +859,14 @@
                 </div>
             `;
             
-            // Card view simplified comment logic
-            let simpleComment = "詳細を見る"; 
-            if(item.totalScore >= 25) simpleComment = "✨ 高評価アイデア";
-            else if(item.score_kando.n <= 2) simpleComment = "⚠️ 新奇性に課題";
+            let simpleComment = "詳細分析"; 
+            if(item.totalScore >= 25) simpleComment = "🔥 高評価";
+            else if(item.score_kando.n <= 2) simpleComment = "⚠️ 新奇性↓";
+            else if(item.score_kando.s <= 2) simpleComment = "⚠️ Sonyらしさ↓";
             
             const aiCommentHtml = `
                 <div class="ai-comment-box">
-                    <div class="ai-comment-row good"><span class="ai-comment-icon">🤖</span><span>${simpleComment}</span></div>
+                    <div class="ai-comment-row good"><span class="ai-comment-icon">📊</span><span>${simpleComment}</span></div>
                 </div>
             `;
 
@@ -772,15 +881,28 @@
                     <h3 class="card-title">${item.title}</h3>
                     <div class="score-bar-group">
                         ${personalBar}
-                        ${teamBar}
                         ${aiBar}
                     </div>
                     ${commentHtml}
                     ${aiCommentHtml}
                 </div>
                 <div class="card-body">
-                    <div style="font-size:0.8rem; color:#666; margin-bottom:5px;"><strong>ターゲット:</strong> ${item.who || '-'}</div>
-                    <div class="uvp-box"><strong>価値:</strong> ${item.uvp}</div>
+                    <div class="card-info-row">
+                        <span class="info-icon">💎</span>
+                        <div class="info-text uvp">${item.uvp || '-'}</div>
+                    </div>
+                    <div class="card-info-row">
+                        <span class="info-icon">🎯</span>
+                        <div class="info-text">${item.who || '-'}</div>
+                    </div>
+                    <div class="card-info-row">
+                        <span class="info-icon">💔</span>
+                        <div class="info-text">${item.pain || '-'}</div>
+                    </div>
+                    <div class="card-info-row">
+                        <span class="info-icon">🛠️</span>
+                        <div class="info-text">${item.solution || '-'}</div>
+                    </div>
                 </div>
             `;
             grid.appendChild(card);
@@ -791,7 +913,6 @@
         const item = rawData.find(d => (String(d.id) === id));
         if (!item) return;
 
-        // Memo display logic for Modal
         const isMemo = item.id >= 57;
         const displayId = isMemo ? `Memo-${item.id - 56}` : `No.${item.id}`;
 
@@ -806,9 +927,8 @@
         document.getElementById('modalRisk').textContent = item.risk || '-';
         document.getElementById('modalTiming').textContent = item.timing || '-';
 
-        // AI Comment
         const aiAnalysis = getAIAnalysis(item);
-        document.getElementById('modalAIComment').innerHTML = aiAnalysis;
+        document.getElementById('modalAICommentBox').innerHTML = aiAnalysis;
         document.getElementById('modalAIScoreKando').innerText = item.totalKandoScore;
         document.getElementById('modalAIScoreExec').innerText = item.totalExecScore;
 
@@ -828,6 +948,14 @@
 
     function closeModal() {
         document.getElementById('evaluationModal').style.display = 'none';
+    }
+
+    function openGuideModal() {
+        document.getElementById('guideModal').style.display = 'flex';
+    }
+
+    function closeGuideModal() {
+        document.getElementById('guideModal').style.display = 'none';
     }
 
     function updatePersonalTotal() {
@@ -857,6 +985,7 @@
 
     window.onclick = function(event) {
         if (event.target === document.getElementById('evaluationModal')) closeModal();
+        if (event.target === document.getElementById('guideModal')) closeGuideModal();
     }
 
     function exportPersonalScores() {
@@ -866,7 +995,48 @@
         link.setAttribute('href', dataUri);
         link.setAttribute('download', `MyScore_${new Date().toISOString().slice(0,10)}.json`);
         link.click();
-        alert("あなたの評価データを保存しました。\nこのファイルをチームメンバーに送ると、合意形成に使えます。");
+        alert("あなたの評価データを保存しました。");
+    }
+
+    function exportCSV() {
+        let csvContent = "\uFEFF"; 
+        csvContent += "ID,Category,Title,Author,Personal_Total,P_Emotion,P_Execution,AI_Total,AI_Emotion,AI_Execution,Target,Pain,Solution,UVP,Note\n";
+
+        rawData.forEach(item => {
+            const p = item.personalScore || {kando:0,sony:0,newness:0,feat:0,test:0,strat:0,note:""};
+            const pTotal = item.personalTotal || 0;
+            const pEmo = (p.kando||0)+(p.sony||0)+(p.newness||0);
+            const pExec = (p.feat||0)+(p.test||0)+(p.strat||0);
+            
+            const clean = (str) => `"${String(str||'').replace(/"/g, '""').replace(/\n/g, ' ')}"`;
+
+            const row = [
+                item.id,
+                clean(item.cat),
+                clean(item.title),
+                clean(item.author),
+                pTotal,
+                pEmo,
+                pExec,
+                item.totalScore,
+                item.totalKandoScore,
+                item.totalExecScore,
+                clean(item.who),
+                clean(item.pain),
+                clean(item.solution),
+                clean(item.uvp),
+                clean(p.note)
+            ].join(",");
+            csvContent += row + "\n";
+        });
+
+        const encodedUri = encodeURI("data:text/csv;charset=utf-8," + csvContent);
+        const link = document.createElement("a");
+        link.setAttribute("href", encodedUri);
+        link.setAttribute("download", `ProductIdeas_Evaluation_${new Date().toISOString().slice(0,10)}.csv`);
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
     }
 
     function importPersonalScoresFromFile(file) {
@@ -875,7 +1045,7 @@
         reader.onload = function(e) {
             try {
                 const data = JSON.parse(e.target.result);
-                if (confirm("現在のあなたの評価を上書きして読み込みますか？")) {
+                if (confirm("現在の評価データを上書きして読み込みますか？")) {
                     personalScores = data;
                     localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(personalScores));
                     alert("読み込みました。");
@@ -888,76 +1058,13 @@
         reader.readAsText(file);
     }
 
-    async function importTeamScores(files) {
-        if (!files || files.length === 0) return;
-        
-        const fileReaders = [];
-        const loadedData = [];
-
-        for (let i = 0; i < files.length; i++) {
-            fileReaders.push(new Promise((resolve, reject) => {
-                const reader = new FileReader();
-                reader.onload = (e) => resolve(JSON.parse(e.target.result));
-                reader.onerror = reject;
-                reader.readAsText(files[i]);
-            }));
-        }
-
-        try {
-            const results = await Promise.all(fileReaders);
-            const aggregator = {}; 
-            
-            results.forEach(userScores => {
-                Object.keys(userScores).forEach(id => {
-                    const s = userScores[id];
-                    const total = (s.kando||0)+(s.sony||0)+(s.newness||0)+(s.feat||0)+(s.test||0)+(s.strat||0);
-                    if(total === 0) return;
-
-                    if (!aggregator[id]) aggregator[id] = { sumKando:0, sumExec:0, count:0 };
-                    
-                    const kVal = (s.kando||0)+(s.sony||0)+(s.newness||0);
-                    const eVal = (s.feat||0)+(s.test||0)+(s.strat||0);
-                    
-                    aggregator[id].sumKando += kVal;
-                    aggregator[id].sumExec += eVal;
-                    aggregator[id].count++;
-                });
-            });
-
-            teamStats = {};
-            Object.keys(aggregator).forEach(id => {
-                const agg = aggregator[id];
-                teamStats[id] = {
-                    kandoAvg: agg.sumKando / agg.count,
-                    execAvg: agg.sumExec / agg.count,
-                    totalAvg: (agg.sumKando + agg.sumExec) / agg.count,
-                    count: agg.count
-                };
-            });
-
-            document.getElementById('teamMemberCount').innerText = files.length;
-            document.getElementById('teamActiveAlert').style.display = 'block';
-            alert(`${files.length}人分のデータを統合しました。\n一覧ボードと分析レポートに「チーム平均」が表示されます。`);
-            
-            processData(); 
-            render();
-            document.getElementById('teamImportInput').value = '';
-
-        } catch (e) {
-            console.error(e);
-            alert("ファイルの読み込みに失敗しました。JSON形式を確認してください。");
-        }
-    }
-
     function renderSummary() {
         let aiSums = {k:0, s:0, n:0, f:0, t:0, st:0, count:0};
         let pSums = {k:0, s:0, n:0, f:0, t:0, st:0, count:0};
-        let tSums = {kando:0, exec:0, count:0}; 
-        let cats = {}; let userCats = {}; let teamCats = {};
+        let cats = {}; let userCats = {};
         let scatterData = [];
 
         rawData.forEach(d => {
-            // AI
             aiSums.k += d.score_kando.k; aiSums.s += d.score_kando.s; aiSums.n += d.score_kando.n;
             aiSums.f += d.score_exec.feat; aiSums.t += d.score_exec.test; aiSums.st += d.score_exec.strat;
             aiSums.count++;
@@ -981,16 +1088,6 @@
                     title: d.title,
                     id: d.id
                 });
-            }
-
-            if(d.teamTotal > 0) {
-                tSums.kando += d.teamTotalKando;
-                tSums.exec += d.teamTotalExec;
-                tSums.count++;
-
-                if(!teamCats[d.cat]) teamCats[d.cat] = {sum:0, count:0};
-                teamCats[d.cat].sum += d.teamTotal;
-                teamCats[d.cat].count++;
             }
         });
 
@@ -1019,16 +1116,13 @@
             `;
         }
 
-        if(categoryBarChartInstance) categoryBarChartInstance.destroy();
+        if(typeof categoryBarChartInstance !== 'undefined') categoryBarChartInstance.destroy();
         const catKeys = Object.keys(cats).sort((a,b) => (cats[b].sum/cats[b].count) - (cats[a].sum/cats[a].count));
         
         const datasets = [
-            { label:'あなたの平均', data:catKeys.map(k => userCats[k] ? (userCats[k].sum/userCats[k].count) : 0), backgroundColor:'#009688' }
+            { label:'あなたの平均', data:catKeys.map(k => userCats[k] ? (userCats[k].sum/userCats[k].count) : 0), backgroundColor:'#009688' },
+            { label:'AI平均(参考)', data:catKeys.map(k=>cats[k].sum/cats[k].count), backgroundColor:'#E0E0E0' }
         ];
-        if (teamStats) {
-            datasets.push({ label:'チーム平均', data:catKeys.map(k => teamCats[k] ? (teamCats[k].sum/teamCats[k].count) : 0), backgroundColor:'#4F46E5' });
-        }
-        datasets.push({ label:'AI平均(参考)', data:catKeys.map(k=>cats[k].sum/cats[k].count), backgroundColor:'#E0E0E0' });
 
         categoryBarChartInstance = new Chart(document.getElementById('categoryBarChart'), {
             type: 'bar',
@@ -1036,7 +1130,7 @@
             options: { scales:{y:{min:0, max:30}} }
         });
 
-        if(radarChartInstance) radarChartInstance.destroy();
+        if(typeof radarChartInstance !== 'undefined') radarChartInstance.destroy();
         radarChartInstance = new Chart(document.getElementById('radarChart'), {
             type: 'radar',
             data: {
@@ -1049,7 +1143,7 @@
             options: { scales: { r: { min:0, max:5, ticks:{stepSize:1} } } }
         });
 
-        if(portfolioChartInstance) portfolioChartInstance.destroy();
+        if(typeof portfolioChartInstance !== 'undefined') portfolioChartInstance.destroy();
         portfolioChartInstance = new Chart(document.getElementById('portfolioChart'), {
             type: 'scatter',
             data: {
@@ -1081,6 +1175,7 @@
         });
     }
 
+    let categoryBarChartInstance, radarChartInstance, portfolioChartInstance;
     init();
 </script>
 </body>
