@@ -175,6 +175,11 @@
             color: #fff !important;
         }
 
+        /* Hide CTA on mobile as nav is hidden anyway, but good for cleanup */
+        @media (max-width: 768px) {
+            nav { display: none; } 
+        }
+
         /* --- VISUAL COMPARISON (VS GENERIC) --- */
         .vision-compare-container {
             display: flex;
@@ -1128,7 +1133,7 @@
                     <li><a href="#ecosystem">拡張機能</a></li>
                     <li><a href="#tech">技術仕様</a></li>
                     <li><a href="#compare">競合比較</a></li>
-                    <li><a href="#contact" class="nav-cta">お問い合わせ</a></li>
+                    <!-- Contact Link Removed -->
                 </ul>
             </nav>
         </div>
@@ -1356,38 +1361,38 @@
             <p>視聴体験を「体感」へと昇華させる、専用周辺機器ラインナップ。</p>
             
             <!-- Tier 1: SENSORY ENHANCEMENT -->
-            <h4 style="font-size: 0.9rem; color: #888; margin: 30px 0 15px; border-left: 3px solid #666; padding-left: 10px;">SENSORY (感覚拡張)</h4>
+            <h4 style="font-size: 0.9rem; color: #888; margin: 30px 0 15px; border-left: 3px solid #666; padding-left: 10px;">感覚拡張 (SENSORY)</h4>
             <div class="eco-grid">
                 <div class="eco-card">
                     <i class="fa-solid fa-wave-square eco-icon"></i>
-                    <h3 style="color:#fff; font-size:1.1rem; margin-bottom:10px;">4D Rumble Mat (振動)</h3>
+                    <h3 style="color:#fff; font-size:1.1rem; margin-bottom:10px;">4Dランブルマット (振動)</h3>
                     <p style="font-size:0.85rem;"><strong>背中で感じる衝撃</strong><br>マットレスの下に敷く振動ユニット。爆発音やエンジンの鼓動を全身に伝達。</p>
                 </div>
                 <div class="eco-card">
                     <i class="fa-solid fa-wind eco-icon"></i>
-                    <h3 style="color:#fff; font-size:1.1rem; margin-bottom:10px;">Silent Breeze (風)</h3>
+                    <h3 style="color:#fff; font-size:1.1rem; margin-bottom:10px;">サイレントブリーズ (風)</h3>
                     <p style="font-size:0.85rem;"><strong>風と空気の循環</strong><br>ドーム下部に装着する静音ファン。シーンに合わせた風演出と、夏場の快適なエアフローを提供。</p>
                 </div>
                 <div class="eco-card">
                     <i class="fa-solid fa-spray-can-sparkles eco-icon"></i>
-                    <h3 style="color:#fff; font-size:1.1rem; margin-bottom:10px;">Aroma Module (香り)</h3>
+                    <h3 style="color:#fff; font-size:1.1rem; margin-bottom:10px;">アロマモジュール (香り)</h3>
                     <p style="font-size:0.85rem;"><strong>情景を彩る香り</strong><br>アーム基部に装着。森林、海、雨など、映像のシーンに合わせて香りを微細に噴霧。</p>
                 </div>
             </div>
 
             <!-- Tier 2: AUTOMATION & AMBIENCE (NEW) -->
-            <h4 style="font-size: 0.9rem; color: var(--accent-cyan); margin: 40px 0 15px; border-left: 3px solid var(--accent-cyan); padding-left: 10px;">ULTIMATE (究極の自動化・空間演出)</h4>
+            <h4 style="font-size: 0.9rem; color: var(--accent-cyan); margin: 40px 0 15px; border-left: 3px solid var(--accent-cyan); padding-left: 10px;">究極の自動化・空間演出 (ULTIMATE)</h4>
             <div class="eco-grid expanded">
                 <div class="eco-card premium">
                     <i class="fa-solid fa-hand-sparkles eco-icon" style="background: -webkit-linear-gradient(#fff, var(--accent-cyan)); -webkit-background-clip: text; -webkit-text-fill-color: transparent;"></i>
-                    <h3 style="color:#fff; font-size:1.2rem; margin-bottom:10px;">Smart Moto-Arm (電動アーム)</h3>
+                    <h3 style="color:#fff; font-size:1.2rem; margin-bottom:10px;">スマート・モトアーム (電動アーム)</h3>
                     <p style="font-size:0.9rem;"><strong>ジェスチャー制御 & 自動追従</strong><br>
                     指一本触れる必要はありません。ハンドジェスチャーで位置調整や退避が可能。<br>
                     さらに、寝返りを打っても顔の位置を追従(Face Tracking)し、常にベストポジションを維持します。</p>
                 </div>
                 <div class="eco-card premium">
                     <i class="fa-solid fa-lightbulb eco-icon" style="background: -webkit-linear-gradient(#fff, var(--brand-blue)); -webkit-background-clip: text; -webkit-text-fill-color: transparent;"></i>
-                    <h3 style="color:#fff; font-size:1.2rem; margin-bottom:10px;">Halo Ambience (拡張照明)</h3>
+                    <h3 style="color:#fff; font-size:1.2rem; margin-bottom:10px;">ヘイロー・アンビエンス (拡張照明)</h3>
                     <p style="font-size:0.9rem;"><strong>部屋ごと没入する</strong><br>
                     ドーム背面から壁に向かって、映像と同期したアンビエントライトを投射。<br>
                     視界の外側（周辺視野）までもが映像の世界観で染まり、ドームの境界線が完全に消滅します。</p>
@@ -1454,7 +1459,7 @@
                             </div>
                             <div class="detail-block">
                                 <span class="detail-label">お気に入り機能</span>
-                                <p style="margin:0;"><strong>4D Rumble Mat:</strong> ゲーム内の爆発や衝撃が背中に直接響く。この臨場感はモニターでは味わえない。</p>
+                                <p style="margin:0;"><strong>4Dランブルマット:</strong> ゲーム内の爆発や衝撃が背中に直接響く。この臨場感はモニターでは味わえない。</p>
                             </div>
                         </div>
                     </details>
@@ -1578,15 +1583,7 @@
         </div>
     </section>
 
-    <!-- CONTACT -->
-    <section id="contact" style="padding: 120px 0; text-align: center;">
-        <div class="container">
-            <span class="en-label">休息の未来 (The Future of Rest)</span>
-            <h2 style="font-size: 4rem; margin: 20px 0 40px; border:none; padding:0;">XOME</h2>
-            <a href="#" class="btn-primary" style="background: #fff; color: #000; padding: 15px 50px;">プロジェクト詳細を問い合わせる</a>
-            <p style="margin-top: 30px; font-size: 0.9rem;">事業化予定: 2026年 第2四半期</p>
-        </div>
-    </section>
+    <!-- CONTACT Section Removed -->
 
     <!-- ====== SECRET APPENDIX SECTION (HIDDEN INITIALLY) ====== -->
     <section id="secret-appendix">
@@ -1982,27 +1979,27 @@
                             </thead>
                             <tbody>
                                 <tr>
-                                    <td style="color:#fff;"><strong>XOME CORE (ベースユニット)</strong><br><span style="font-size:0.7rem; color:#888;">34インチ有機EL / 手動アーム / 2.1ch音響</span></td>
+                                    <td style="color:#fff;"><strong>XOME コア (ベースユニット)</strong><br><span style="font-size:0.7rem; color:#888;">34インチ有機EL / 手動アーム / 2.1ch音響</span></td>
                                     <td style="font-family:var(--font-mono); font-size:1.1rem;">¥148,000</td>
                                 </tr>
                                 <tr>
-                                    <td style="color:var(--accent-cyan);"><strong>[OP] 4D Rumble Mat (振動)</strong></td>
+                                    <td style="color:var(--accent-cyan);"><strong>[OP] 4Dランブルマット (振動)</strong></td>
                                     <td style="font-family:var(--font-mono);">¥24,800</td>
                                 </tr>
                                 <tr>
-                                    <td style="color:var(--accent-cyan);"><strong>[OP] Silent Breeze (風)</strong></td>
+                                    <td style="color:var(--accent-cyan);"><strong>[OP] サイレントブリーズ (風)</strong></td>
                                     <td style="font-family:var(--font-mono);">¥8,500</td>
                                 </tr>
                                 <tr>
-                                    <td style="color:var(--accent-cyan);"><strong>[OP] Aroma Diffuser (香り)</strong></td>
+                                    <td style="color:var(--accent-cyan);"><strong>[OP] アロマモジュール (香り)</strong></td>
                                     <td style="font-family:var(--font-mono);">¥12,000</td>
                                 </tr>
                                 <tr>
-                                    <td style="color:var(--brand-blue); background:rgba(255,255,255,0.05);"><strong>[OP] Smart Moto-Arm (電動化)</strong><br><span style="font-size:0.7rem; color:#888;">ジェスチャー制御・自動追従モーター</span></td>
+                                    <td style="color:var(--brand-blue); background:rgba(255,255,255,0.05);"><strong>[OP] スマート・モトアーム (電動化)</strong><br><span style="font-size:0.7rem; color:#888;">ジェスチャー制御・自動追従モーター</span></td>
                                     <td style="font-family:var(--font-mono); background:rgba(255,255,255,0.05);">¥85,000</td>
                                 </tr>
                                 <tr>
-                                    <td style="color:var(--brand-blue); background:rgba(255,255,255,0.05);"><strong>[OP] Halo Ambience (照明)</strong><br><span style="font-size:0.7rem; color:#888;">背面投射型アンビエントライト</span></td>
+                                    <td style="color:var(--brand-blue); background:rgba(255,255,255,0.05);"><strong>[OP] ヘイロー・アンビエンス (照明)</strong><br><span style="font-size:0.7rem; color:#888;">背面投射型アンビエントライト</span></td>
                                     <td style="font-family:var(--font-mono); background:rgba(255,255,255,0.05);">¥18,000</td>
                                 </tr>
                             </tbody>
@@ -2053,28 +2050,28 @@
                                 <tr>
                                     <td style="color:var(--accent-cyan);"><strong>モニターパネル</strong><br><span style="font-size:0.7rem; color:#888;">ドナー製品</span></td>
                                     <td>
-                                        <strong>Samsung Odyssey G5 (34")</strong><br>
+                                        <strong><a href="https://www.amazon.co.jp/s?k=Samsung+Odyssey+G5+34" target="_blank" style="color:#fff; text-decoration:underline;">サムスン Odyssey G5 (34")</a></strong><br>
                                         <span style="color:#888;">理由: 1000R湾曲かつ安価。分解しやすく軽量化可能。</span>
                                     </td>
                                 </tr>
                                 <tr>
                                     <td style="color:var(--accent-cyan);"><strong>アーム機構</strong><br><span style="font-size:0.7rem; color:#888;">メカニズム</span></td>
                                     <td>
-                                        <strong>Ergotron LX / HX</strong><br>
+                                        <strong><a href="https://www.ergotron.com/ja-jp/products/product-details/45-241" target="_blank" style="color:#fff; text-decoration:underline;">エルゴトロン LX / HX</a></strong><br>
                                         <span style="color:#888;">理由: 信頼性。アーム部のみ流用し、ベースとヘッドを3Dプリントパーツで置換。</span>
                                     </td>
                                 </tr>
                                 <tr>
                                     <td style="color:var(--accent-cyan);"><strong>音響加振器</strong><br><span style="font-size:0.7rem; color:#888;">アクチュエーター</span></td>
                                     <td>
-                                        <strong>Dayton Audio DAEX25</strong><br>
+                                        <strong><a href="https://www.daytonaudio.com/category/133/exciters" target="_blank" style="color:#fff; text-decoration:underline;">デイトンオーディオ DAEX25</a></strong><br>
                                         <span style="color:#888;">理由: パネル背面に貼り付けるだけで「画面から音」を再現可能。</span>
                                     </td>
                                 </tr>
                                 <tr>
                                     <td style="color:var(--accent-cyan);"><strong>センサー</strong><br><span style="font-size:0.7rem; color:#888;">ロジック制御</span></td>
                                     <td>
-                                        <strong>M5Stack / Arduino + ToF Unit</strong><br>
+                                        <strong><a href="https://docs.m5stack.com/ja/unit/tof" target="_blank" style="color:#fff; text-decoration:underline;">M5Stack Unit ToF</a></strong><br>
                                         <span style="color:#888;">理由: 距離検知によるON/OFFロジックの実装検証用。</span>
                                     </td>
                                 </tr>
@@ -2196,7 +2193,7 @@
                     <a href="#">ニュース</a>
                     <a href="#">プライバシーポリシー</a>
                     <a href="#" id="toggle-secret" style="color:#333;">関係者用リンク (Relations)</a> <!-- Secret Trigger -->
-                    <a href="#">お問い合わせ</a>
+                    <!-- Contact Link Removed -->
                 </div>
             </div>
             <div style="margin-top: 20px; border-top: 1px solid #222; padding-top: 20px;">
