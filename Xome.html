@@ -40,7 +40,7 @@
             line-height: 1.8;
             overflow-x: hidden;
             font-weight: 300;
-            -webkit-text-size-adjust: 100%; /* Prevent font scaling in landscape on iOS */
+            -webkit-text-size-adjust: 100%;
         }
 
         /* --- 2. TYPOGRAPHY --- */
@@ -175,11 +175,6 @@
             color: #fff !important;
         }
 
-        /* Hide CTA on mobile as nav is hidden anyway, but good for cleanup */
-        @media (max-width: 768px) {
-            nav { display: none; } 
-        }
-
         /* --- VISUAL COMPARISON (VS GENERIC) --- */
         .vision-compare-container {
             display: flex;
@@ -265,7 +260,7 @@
         
         /* Grid adjustment for more items */
         .eco-grid.expanded {
-            grid-template-columns: repeat(2, 1fr); /* 2 columns for larger feature cards */
+            grid-template-columns: repeat(2, 1fr);
         }
         
         .eco-card {
@@ -654,7 +649,7 @@
             position: absolute;
             top: 10px;
             left: 10px;
-            font-family: var(--font-jp); /* Changed to JP font */
+            font-family: var(--font-jp);
             font-size: 0.8rem;
             color: #666;
         }
@@ -689,264 +684,6 @@
             font-family: var(--font-mono);
             margin: -20px 0 20px 0;
             width: 100%;
-        }
-
-        /* Top View Dimension Visuals */
-        .top-view-container {
-            display: flex;
-            justify-content: space-around;
-            align-items: flex-end;
-            margin-top: 40px;
-            padding: 20px 0;
-            border-bottom: 1px dashed #333;
-        }
-
-        .monitor-view {
-            position: relative;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-        }
-
-        /* 34 inch R1000 */
-        .monitor-shape-34 {
-            width: 200px; /* Scaled width ~80cm -> 200px */
-            height: 40px; /* Depth ~8-10cm */
-            border: 4px solid var(--text-sub);
-            border-bottom: none;
-            border-radius: 200px 200px 0 0 / 40px 40px 0 0; /* Elliptical arc */
-            margin-bottom: 20px;
-        }
-
-        /* 45 inch R800 */
-        .monitor-shape-45 {
-            width: 260px; /* Scaled width ~100cm -> 260px */
-            height: 80px; /* Depth ~16cm (Deep Curve) */
-            border: 4px solid var(--accent-cyan);
-            border-bottom: none;
-            border-radius: 130px 130px 0 0; /* Semi-circle like arc */
-            margin-bottom: 20px;
-            box-shadow: 0 0 15px rgba(46,154,254,0.2);
-        }
-
-        .human-head-top {
-            width: 40px;
-            height: 40px;
-            background: #555;
-            border-radius: 50%;
-            position: absolute;
-            bottom: -60px; /* Viewing distance approx 50cm */
-        }
-
-        .dim-label {
-            font-family: var(--font-mono);
-            font-size: 0.75rem;
-            color: #888;
-            margin-top: 5px;
-        }
-
-        /* Arm Necessity Visuals */
-        .arm-comparison {
-            display: flex;
-            justify-content: space-around;
-            align-items: center;
-            gap: 40px;
-            margin-top: 30px;
-        }
-
-        .arm-scenario {
-            text-align: center;
-            flex: 1;
-            padding: 20px;
-            background: rgba(255,255,255,0.02);
-            border-radius: 8px;
-        }
-
-        .visual-box {
-            height: 150px;
-            position: relative;
-            margin-bottom: 20px;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-        }
-
-        /* Scenario A: With Arm */
-        .head-icon {
-            width: 50px; height: 50px; background: #666; border-radius: 50%;
-        }
-        
-        .floating-dome {
-            width: 120px; height: 60px;
-            border: 4px solid var(--accent-cyan);
-            border-bottom: none;
-            border-radius: 60px 60px 0 0;
-            position: absolute;
-            top: 20px; /* Floating high */
-        }
-        
-        .arm-line {
-            position: absolute;
-            right: 0; top: 50px;
-            width: 50px; height: 4px; background: #fff;
-        }
-
-        /* Scenario B: No Arm */
-        .resting-dome {
-            width: 120px; height: 60px;
-            border: 4px solid var(--alert-red);
-            border-bottom: none;
-            border-radius: 60px 60px 0 0;
-            position: absolute;
-            top: 55px; /* Resting on face */
-        }
-        
-        .vibration-lines {
-            position: absolute;
-            top: 40px; left: 10px;
-            color: var(--alert-red);
-            font-weight: bold;
-            font-size: 1.5rem;
-            animation: shake 0.5s infinite;
-        }
-
-        @keyframes shake {
-            0% { transform: translate(1px, 1px) rotate(0deg); }
-            10% { transform: translate(-1px, -2px) rotate(-1deg); }
-            20% { transform: translate(-3px, 0px) rotate(1deg); }
-            30% { transform: translate(3px, 2px) rotate(0deg); }
-            40% { transform: translate(1px, -1px) rotate(1deg); }
-            50% { transform: translate(-1px, 2px) rotate(-1deg); }
-            60% { transform: translate(-3px, 1px) rotate(0deg); }
-            70% { transform: translate(3px, 1px) rotate(-1deg); }
-            80% { transform: translate(-1px, -1px) rotate(1deg); }
-            90% { transform: translate(1px, 2px) rotate(0deg); }
-            100% { transform: translate(1px, -2px) rotate(-1deg); }
-        }
-
-        /* Concept Diagram Styling (CSS Drawing) */
-        .concept-visual {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 300px;
-            position: relative;
-            background: #111;
-            margin: 20px 0;
-            overflow: hidden;
-        }
-        
-        .user-head {
-            width: 60px;
-            height: 60px;
-            background: #555;
-            border-radius: 50%;
-            position: absolute;
-            bottom: 50px;
-            z-index: 2;
-        }
-        
-        .dome-screen {
-            width: 300px;
-            height: 300px;
-            border: 4px solid var(--accent-cyan);
-            border-bottom: none;
-            border-radius: 150px 150px 0 0;
-            position: absolute;
-            bottom: 50px;
-            z-index: 3;
-            box-shadow: 0 0 20px rgba(46, 154, 254, 0.3);
-        }
-        
-        .vision-field {
-            width: 0;
-            height: 0;
-            border-left: 100px solid transparent;
-            border-right: 100px solid transparent;
-            border-top: 150px solid rgba(46, 154, 254, 0.1);
-            position: absolute;
-            bottom: 80px;
-            z-index: 1;
-        }
-
-        .timeline {
-            border-left: 2px solid var(--border-color);
-            padding-left: 30px;
-            margin: 40px 0 40px 10px;
-        }
-
-        .timeline-item {
-            position: relative;
-            margin-bottom: 40px;
-        }
-
-        .timeline-item::before {
-            content: '';
-            position: absolute;
-            left: -37px;
-            top: 5px;
-            width: 12px;
-            height: 12px;
-            background: #000;
-            border: 2px solid #fff;
-            border-radius: 50%;
-        }
-
-        .phase-tag {
-            font-family: var(--font-mono);
-            background: #222;
-            padding: 2px 8px;
-            font-size: 0.8rem;
-            color: var(--text-sub);
-            margin-bottom: 5px;
-            display: inline-block;
-        }
-
-        .qa-block {
-            margin-bottom: 30px;
-            border-bottom: 1px solid #222;
-            padding-bottom: 30px;
-        }
-        
-        .qa-category {
-            font-family: var(--font-jp); /* Changed to JP */
-            color: var(--accent-cyan);
-            font-size: 0.9rem;
-            margin-bottom: 10px;
-            display: block;
-            border-left: 3px solid var(--accent-cyan);
-            padding-left: 10px;
-        }
-
-        .qa-q {
-            color: #fff;
-            font-weight: 500;
-            margin-bottom: 10px;
-            display: flex;
-            gap: 10px;
-        }
-        
-        .qa-a {
-            color: var(--text-sub);
-            padding-left: 25px;
-            font-size: 0.95rem;
-        }
-
-        .close-appendix-btn {
-            display: inline-block;
-            margin-top: 40px;
-            color: var(--text-sub);
-            text-decoration: none;
-            font-size: 0.9rem;
-            border: 1px solid var(--border-color);
-            padding: 10px 20px;
-            cursor: pointer;
-            transition: all 0.3s;
-        }
-        
-        .close-appendix-btn:hover {
-            border-color: #fff;
-            color: #fff;
         }
 
         /* --- ABSTRACT VISUALS (CSS REPLACEMENT) --- */
@@ -1046,6 +783,175 @@
         .relax-icon-box i { font-size: 3rem; margin-bottom: 10px; color: #444; transition: color 0.3s; }
         .visual-relax:hover .relax-icon-box i { color: #fff; }
 
+        /* Appendix Layouts */
+        /* Posture & Shape Comparison Containers */
+        .posture-container, .shape-compare-container {
+            display: flex;
+            justify-content: space-around;
+            align-items: flex-end;
+            gap: 10px;
+            padding-top: 40px;
+            text-align: center;
+        }
+        
+        .posture-item, .shape-item {
+            flex: 1;
+            max-width: 300px;
+        }
+
+        /* Top View Dimension Visuals */
+        .top-view-container {
+            display: flex;
+            justify-content: space-around;
+            align-items: flex-end;
+            margin-top: 40px;
+            padding: 20px 0;
+            border-bottom: 1px dashed #333;
+        }
+
+        .monitor-view {
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        /* 34 inch R1000 */
+        .monitor-shape-34 {
+            width: 200px; /* Scaled width ~80cm -> 200px */
+            height: 40px; /* Depth ~8-10cm */
+            border: 4px solid var(--text-sub);
+            border-bottom: none;
+            border-radius: 200px 200px 0 0 / 40px 40px 0 0; /* Elliptical arc */
+            margin-bottom: 20px;
+        }
+
+        /* 45 inch R800 */
+        .monitor-shape-45 {
+            width: 260px; /* Scaled width ~100cm -> 260px */
+            height: 80px; /* Depth ~16cm (Deep Curve) */
+            border: 4px solid var(--accent-cyan);
+            border-bottom: none;
+            border-radius: 130px 130px 0 0; /* Semi-circle like arc */
+            margin-bottom: 20px;
+            box-shadow: 0 0 15px rgba(46,154,254,0.2);
+        }
+
+        .human-head-top {
+            width: 40px;
+            height: 40px;
+            background: #555;
+            border-radius: 50%;
+            position: absolute;
+            bottom: -60px; /* Viewing distance approx 50cm */
+        }
+
+        .dim-label {
+            font-family: var(--font-mono);
+            font-size: 0.75rem;
+            color: #888;
+            margin-top: 5px;
+        }
+        
+        /* Interface Diagram */
+        .interface-container {
+            display:flex; 
+            justify-content:center; 
+            gap:40px; 
+            flex-wrap:wrap;
+        }
+        
+        .dome-rear-view {
+            position:relative; 
+            width:300px; 
+            height:220px; 
+            background:#222; 
+            border-radius:100px 100px 40px 40px; 
+            border:2px solid #444; 
+            box-shadow:inset 0 0 20px #000;
+        }
+
+        /* Timeline & Other */
+        .timeline {
+            border-left: 2px solid var(--border-color);
+            padding-left: 30px;
+            margin: 40px 0 40px 10px;
+        }
+
+        .timeline-item {
+            position: relative;
+            margin-bottom: 40px;
+        }
+
+        .timeline-item::before {
+            content: '';
+            position: absolute;
+            left: -37px;
+            top: 5px;
+            width: 12px;
+            height: 12px;
+            background: #000;
+            border: 2px solid #fff;
+            border-radius: 50%;
+        }
+
+        .phase-tag {
+            font-family: var(--font-mono);
+            background: #222;
+            padding: 2px 8px;
+            font-size: 0.8rem;
+            color: var(--text-sub);
+            margin-bottom: 5px;
+            display: inline-block;
+        }
+
+        .qa-block {
+            margin-bottom: 30px;
+            border-bottom: 1px solid #222;
+            padding-bottom: 30px;
+        }
+        
+        .qa-category {
+            font-family: var(--font-jp);
+            color: var(--accent-cyan);
+            font-size: 0.9rem;
+            margin-bottom: 10px;
+            display: block;
+            border-left: 3px solid var(--accent-cyan);
+            padding-left: 10px;
+        }
+
+        .qa-q {
+            color: #fff;
+            font-weight: 500;
+            margin-bottom: 10px;
+            display: flex;
+            gap: 10px;
+        }
+        
+        .qa-a {
+            color: var(--text-sub);
+            padding-left: 25px;
+            font-size: 0.95rem;
+        }
+
+        .close-appendix-btn {
+            display: inline-block;
+            margin-top: 40px;
+            color: var(--text-sub);
+            text-decoration: none;
+            font-size: 0.9rem;
+            border: 1px solid var(--border-color);
+            padding: 10px 20px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .close-appendix-btn:hover {
+            border-color: #fff;
+            color: #fff;
+        }
+
         /* --- MOBILE RESPONSIVE STYLES --- */
         @media (max-width: 768px) {
             /* General Layout */
@@ -1054,36 +960,6 @@
             .grid-2, .grid-3, .eco-grid, .eco-grid.expanded, .persona-grid { 
                 grid-template-columns: 1fr !important; /* Force single column */
                 gap: 40px;
-            }
-            
-            /* Visual Comparison (Vision) */
-            .vision-compare-container {
-                flex-direction: column;
-            }
-            
-            /* Diagram Containers */
-            .diagram-container {
-                padding: 20px 10px;
-            }
-            
-            /* Size Comparison (Top View) */
-            .top-view-container {
-                flex-direction: column;
-                align-items: center;
-                gap: 40px;
-            }
-            
-            /* Arm Comparison */
-            .arm-comparison {
-                flex-direction: column;
-                gap: 30px;
-            }
-            
-            /* Architecture Study Visuals */
-            .diagram-container > div[style*="display:flex"] {
-                flex-direction: column;
-                align-items: center;
-                gap: 20px;
             }
             
             /* Hero Text */
@@ -1106,16 +982,35 @@
                 min-width: 600px; /* Force scroll for tables */
             }
             
-            /* Diagram/Visual elements */
-            .monitor-view, .arm-scenario {
+            /* Visuals */
+            .abstract-visual { height: 250px; }
+            .vision-compare-container { flex-direction: column; }
+
+            /* Appendix Diagram Layouts (Vertical Stack) */
+            .posture-container, .shape-compare-container {
+                flex-direction: column;
+                align-items: center;
+                height: auto;
+                gap: 40px;
+            }
+            .posture-item, .shape-item {
                 width: 100%;
                 max-width: 100%;
             }
-            
-            /* Adjust visual frame height for mobile */
-            .abstract-visual {
-                height: 250px;
+
+            /* Shape & Interface Diagrams */
+            .top-view-container, .interface-container {
+                flex-direction: column;
+                align-items: center;
+                gap: 40px;
             }
+            .monitor-view, .dome-rear-view {
+                width: 100%;
+                max-width: 300px; /* Max width for diagram */
+            }
+            
+            /* General Diagram Container */
+            .diagram-container { padding: 20px 10px; }
         }
 
     </style>
@@ -1635,10 +1530,9 @@
                 <div class="diagram-container">
                     <div class="diagram-title">図 1.0 - 姿勢による負荷比較 (Nachemson Data ref.)</div>
                     
-                    <div style="display:flex; justify-content:space-around; align-items:flex-end; height:250px; padding-top:40px; text-align:center;">
-                        
+                    <div class="posture-container">
                         <!-- Standing -->
-                        <div style="width:25%;">
+                        <div class="posture-item">
                             <div style="font-size:3rem; color:#666; margin-bottom:10px;"><i class="fa-solid fa-person"></i></div>
                             <div style="height:100px; display:flex; align-items:flex-end; justify-content:center; margin-bottom:10px;">
                                 <div style="width:40px; height:70%; background:#666;"></div> <!-- 100% baseline -->
@@ -1651,7 +1545,7 @@
                         </div>
 
                         <!-- Sitting -->
-                        <div style="width:25%;">
+                        <div class="posture-item">
                             <div style="font-size:3rem; color:var(--alert-red); margin-bottom:10px;"><i class="fa-solid fa-chair"></i></div>
                             <div style="height:100px; display:flex; align-items:flex-end; justify-content:center; margin-bottom:10px;">
                                 <div style="width:40px; height:100%; background:var(--alert-red);"></div> <!-- 140% load -->
@@ -1664,7 +1558,7 @@
                         </div>
 
                         <!-- Lying (XOME) -->
-                        <div style="width:25%;">
+                        <div class="posture-item">
                             <div style="font-size:3rem; color:var(--accent-cyan); margin-bottom:10px;"><i class="fa-solid fa-bed"></i></div>
                             <div style="height:100px; display:flex; align-items:flex-end; justify-content:center; margin-bottom:10px;">
                                 <div style="width:40px; height:18%; background:var(--accent-cyan);"></div> <!-- 25% load -->
@@ -1691,10 +1585,10 @@
                 <div class="diagram-container" style="text-align:center; padding: 30px;">
                     <div class="diagram-title">図 2.0 - 形状検討スタディ (Form Factor Study)</div>
                     
-                    <div style="display:flex; justify-content:space-around; align-items:flex-end; gap:10px;">
+                    <div class="shape-compare-container">
                         
                         <!-- OPTION A: ARM TYPE (WINNER) -->
-                        <div style="flex:1; max-width:300px;">
+                        <div class="shape-item">
                             <div style="border:1px solid var(--accent-cyan); background:rgba(0,0,0,0.5); padding:15px; height:200px; position:relative; overflow:hidden;">
                                 <div style="position:absolute; top:5px; left:5px; color:var(--accent-cyan); font-weight:bold; font-size:0.7rem;">案A: アーム型 (採用)</div>
                                 <div style="position:absolute; bottom:20px; left:50%; transform:translateX(-50%); width:80%; height:10px; background:#444; border-radius:5px;"></div>
@@ -1709,7 +1603,7 @@
                         </div>
 
                         <!-- OPTION B: SIDE LEGS (REJECTED) -->
-                        <div style="flex:1; max-width:300px; opacity:0.6;">
+                        <div class="shape-item" style="opacity:0.6;">
                             <div style="border:1px solid #444; background:rgba(0,0,0,0.5); padding:15px; height:200px; position:relative; overflow:hidden;">
                                 <div style="position:absolute; top:5px; left:5px; color:#888; font-weight:bold; font-size:0.7rem;">案B: サイドレッグ型</div>
                                 <div style="position:absolute; bottom:20px; left:50%; transform:translateX(-50%); width:80%; height:10px; background:#444; border-radius:5px; animation: mattress-shake 2s infinite;"></div>
@@ -1725,7 +1619,7 @@
                         </div>
 
                         <!-- OPTION C: PILLOW (REJECTED) -->
-                        <div style="flex:1; max-width:300px; opacity:0.6;">
+                        <div class="shape-item" style="opacity:0.6;">
                             <div style="border:1px solid #444; background:rgba(0,0,0,0.5); padding:15px; height:200px; position:relative; overflow:hidden;">
                                 <div style="position:absolute; top:5px; left:5px; color:#888; font-weight:bold; font-size:0.7rem;">案C: 枕一体型</div>
                                 <div style="position:absolute; bottom:20px; left:50%; transform:translateX(-50%); width:80%; height:10px; background:#444; border-radius:5px; animation: mattress-shake 2s infinite;"></div>
@@ -1888,10 +1782,10 @@
                 <div class="diagram-container" style="margin-top: 40px; padding: 30px;">
                     <div class="diagram-title">図 3.3 - インターフェース & 3-Way配線 (Rear View)</div>
                     
-                    <div style="display:flex; justify-content:center; gap:40px; flex-wrap:wrap;">
+                    <div class="interface-container">
                         
                         <!-- Visual: Back of Dome (Updated Layout) -->
-                        <div style="position:relative; width:300px; height:220px; background:#222; border-radius:100px 100px 40px 40px; border:2px solid #444; box-shadow:inset 0 0 20px #000;">
+                        <div class="dome-rear-view">
                             
                             <!-- 1. Center Arm Mount (Weight Balance) -->
                             <div style="position:absolute; top:40%; left:50%; transform:translate(-50%, -50%); width:70px; height:70px; border:3px solid #fff; border-radius:50%; display:flex; justify-content:center; align-items:center; background:#333; z-index:2;">
