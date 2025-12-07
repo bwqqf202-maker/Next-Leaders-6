@@ -1,0 +1,469 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Behavior Soundscape | 新規事業企画案</title>
+    <style>
+        :root {
+            --bg-color: #050508;
+            --card-bg: rgba(255, 255, 255, 0.03);
+            --text-main: #e0e0e0;
+            --text-muted: #888;
+            --accent-cyan: #00f2ff;
+            --accent-pink: #ff0055;
+            --accent-purple: #bd00ff;
+            --border-color: rgba(255, 255, 255, 0.1);
+        }
+
+        body {
+            font-family: 'Helvetica Neue', Arial, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            margin: 0;
+            padding: 0;
+            line-height: 1.7;
+            overflow-x: hidden;
+        }
+
+        /* --- Utilities --- */
+        .container {
+            max-width: 1100px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+
+        h2 {
+            font-size: 2rem;
+            margin-bottom: 40px;
+            border-left: 5px solid var(--accent-cyan);
+            padding-left: 15px;
+            letter-spacing: 1px;
+        }
+
+        h3 {
+            color: var(--accent-cyan);
+            margin-bottom: 15px;
+        }
+
+        strong {
+            color: #fff;
+        }
+
+        /* --- Header / Hero --- */
+        header {
+            text-align: center;
+            padding: 100px 20px 60px;
+            background: radial-gradient(circle at center, #1a1a2e 0%, var(--bg-color) 80%);
+            position: relative;
+        }
+
+        h1 {
+            font-size: 3.5rem;
+            margin: 0;
+            background: linear-gradient(90deg, var(--accent-cyan), var(--accent-purple), var(--accent-pink));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            letter-spacing: -1px;
+        }
+
+        .subtitle {
+            font-size: 1.5rem;
+            color: var(--text-muted);
+            margin-top: 10px;
+            font-weight: 300;
+        }
+
+        .meta-info {
+            margin-top: 40px;
+            font-size: 0.9rem;
+            color: #666;
+            border-top: 1px solid var(--border-color);
+            display: inline-block;
+            padding-top: 10px;
+        }
+
+        /* --- CSS Art: System Visual --- */
+        .visual-container {
+            display: flex;
+            justify-content: center;
+            margin: 60px 0;
+        }
+
+        .stage-visual {
+            position: relative;
+            width: 320px;
+            height: 320px;
+            border: 2px dashed #333;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background: rgba(255,255,255,0.01);
+            box-shadow: 0 0 50px rgba(0,0,0,0.5);
+        }
+
+        .user-dot {
+            width: 24px;
+            height: 24px;
+            background-color: #fff;
+            border-radius: 50%;
+            z-index: 10;
+            box-shadow: 0 0 20px rgba(255,255,255,0.8);
+            animation: breathe 3s infinite ease-in-out;
+        }
+
+        .wave {
+            position: absolute;
+            top: 50%; left: 50%;
+            transform: translate(-50%, -50%);
+            border: 2px solid var(--accent-cyan);
+            border-radius: 50%;
+            opacity: 0;
+            z-index: 1;
+        }
+        .wave:nth-child(1) { animation: ripple 3s infinite linear; }
+        .wave:nth-child(2) { animation: ripple 3s infinite linear 1s; border-color: var(--accent-purple); }
+        .wave:nth-child(3) { animation: ripple 3s infinite linear 2s; border-color: var(--accent-pink); }
+
+        .sensor {
+            position: absolute;
+            width: 40px; height: 26px;
+            background: #222;
+            border: 1px solid #555;
+            border-radius: 4px;
+            color: #fff;
+            font-size: 9px;
+            display: flex; align-items: center; justify-content: center;
+            z-index: 5;
+        }
+        .beam {
+            position: absolute;
+            width: 0; height: 0;
+            border-left: 20px solid transparent;
+            border-right: 20px solid transparent;
+            border-bottom: 100px solid rgba(0, 242, 255, 0.08);
+            z-index: 2; pointer-events: none;
+        }
+        /* Positioning */
+        .s-t { top: -13px; left: 50%; transform: translateX(-50%); }
+        .b-t { top: 13px; left: 50%; transform: translateX(-50%) rotate(180deg); }
+        .s-b { bottom: -13px; left: 50%; transform: translateX(-50%); }
+        .b-b { bottom: 13px; left: 50%; transform: translateX(-50%); }
+        .s-l { left: -20px; top: 50%; transform: translateY(-50%) rotate(90deg); }
+        .b-l { left: 7px; top: 50%; transform: translateY(-50%) rotate(90deg); }
+        .s-r { right: -20px; top: 50%; transform: translateY(-50%) rotate(-90deg); }
+        .b-r { right: 7px; top: 50%; transform: translateY(-50%) rotate(-90deg); }
+
+        /* --- Sections --- */
+        section { padding: 60px 0; border-bottom: 1px solid rgba(255,255,255,0.05); }
+
+        .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 40px; }
+        .grid-3 { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 30px; }
+
+        .card {
+            background: var(--card-bg);
+            padding: 30px;
+            border-radius: 12px;
+            border: 1px solid var(--border-color);
+            transition: transform 0.3s;
+        }
+        .card:hover { transform: translateY(-5px); background: rgba(255,255,255,0.05); }
+
+        /* --- Tables --- */
+        .table-wrap { overflow-x: auto; }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+            background: var(--card-bg);
+            border-radius: 8px;
+            overflow: hidden;
+        }
+        th, td { padding: 15px; border-bottom: 1px solid #333; text-align: left; }
+        th { background: rgba(0,0,0,0.5); color: #888; text-transform: uppercase; font-size: 0.85rem; }
+        
+        .highlight-col { background: rgba(0, 242, 255, 0.05); border-left: 2px solid var(--accent-cyan); border-right: 2px solid var(--accent-cyan); }
+        .highlight-cell { color: var(--accent-cyan); font-weight: bold; }
+        .profit { color: var(--accent-cyan); font-weight: bold; }
+        .loss { color: var(--accent-pink); }
+
+        /* --- Comparison Icons --- */
+        .check { color: var(--accent-cyan); }
+        .cross { color: #555; }
+        .warn { color: var(--accent-pink); }
+
+        /* --- Team --- */
+        .team-role { font-size: 0.8rem; color: #888; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 5px; display: block;}
+        .team-title { font-size: 1.2rem; font-weight: bold; margin: 0 0 10px 0; color: #fff; }
+
+        /* --- Roadmap --- */
+        .roadmap {
+            position: relative;
+            padding-left: 40px;
+            border-left: 2px solid #333;
+        }
+        .milestone { margin-bottom: 40px; position: relative; }
+        .milestone::before {
+            content: ''; position: absolute; left: -47px; top: 6px;
+            width: 12px; height: 12px; background: var(--accent-pink);
+            border-radius: 50%; box-shadow: 0 0 10px var(--accent-pink);
+            border: 2px solid var(--bg-color);
+        }
+
+        /* --- Animations --- */
+        @keyframes ripple { 0% { width: 20px; height: 20px; opacity: 0.8; border-width: 3px; } 100% { width: 300px; height: 300px; opacity: 0; border-width: 0px; } }
+        @keyframes breathe { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.2); background: var(--accent-cyan); } }
+
+        /* --- Mobile --- */
+        @media (max-width: 768px) {
+            h1 { font-size: 2.2rem; }
+            .grid-2 { grid-template-columns: 1fr; }
+            .stage-visual { width: 260px; height: 260px; }
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <div class="container">
+            <div class="subtitle">新規事業企画提案書</div>
+            <h1>Behavior Soundscape</h1>
+            <div class="subtitle">〜私が音になる。没入型身体拡張インターフェース〜</div>
+            
+            <div class="visual-container">
+                <div class="stage-visual">
+                    <div class="user-dot"></div>
+                    <div class="wave"></div><div class="wave"></div><div class="wave"></div>
+                    <div class="sensor s-t">VL53</div><div class="beam b-t"></div>
+                    <div class="sensor s-b">VL53</div><div class="beam b-b"></div>
+                    <div class="sensor s-l">VL53</div><div class="beam b-l"></div>
+                    <div class="sensor s-r">VL53</div><div class="beam b-r"></div>
+                </div>
+            </div>
+
+            <p style="max-width: 600px; margin: 0 auto; color: #aaa;">
+                「音楽に合わせて踊る」から「踊りが音楽になる」へ。<br>
+                カメラを使わず、暗闇でも動作する、新しいホームエンターテインメント。
+            </p>
+
+            <div class="meta-info">
+                起案：新規事業開発チーム / 期間：2025年9月〜（6ヶ月研修）
+            </div>
+        </div>
+    </header>
+
+    <div class="container">
+
+        <section>
+            <h2>01. Executive Summary</h2>
+            <div class="card">
+                <p>
+                    本事業は、STMicroelectronics社のToFセンサー技術を活用し、ユーザーの身体動作（Behavior）をリアルタイムで音響空間（Soundscape）へと変換するシステムです。<br><br>
+                    カメラを一切使用しない<strong>「プライバシー保護」</strong>と、暗闇でも動作する<strong>「高精度センシング」</strong>を強みに、自宅でのリラックス需要やクリエイターの自己表現需要を開拓します。
+                    3年後に売上7.7億円、国内インタラクティブ・ガジェット市場でのシェア確立を目指します。
+                </p>
+            </div>
+        </section>
+
+        <section>
+            <h2>02. Background & Solution</h2>
+            <div class="grid-2">
+                <div>
+                    <h3>Market Pain Points</h3>
+                    <ul style="list-style: none; padding: 0; color: #aaa;">
+                        <li style="margin-bottom: 15px;">
+                            <strong style="color:var(--accent-pink);">⚠ 羞恥心とプライバシー</strong><br>
+                            カメラを使う既存製品は「部屋が汚い」「化粧していない」時に使えない。
+                        </li>
+                        <li style="margin-bottom: 15px;">
+                            <strong style="color:var(--accent-pink);">⚠ 浅い没入感</strong><br>
+                            画面を見るだけの受動的な体験が多く、創造性が発揮できない。
+                        </li>
+                    </ul>
+                </div>
+                <div>
+                    <h3>Our Solution</h3>
+                    <ul style="list-style: none; padding: 0; color: #aaa;">
+                        <li style="margin-bottom: 15px;">
+                            <strong style="color:var(--accent-cyan);">✓ Privacy First</strong><br>
+                            カメラ不使用。距離データのみ取得するため、どんな場所でも安心。
+                        </li>
+                        <li style="margin-bottom: 15px;">
+                            <strong style="color:var(--accent-cyan);">✓ Night Vision Immersion</strong><br>
+                            暗闇でも動作。視覚を遮断し、音と身体に没入する深い体験。
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <section>
+            <h2>03. Competitive Advantage</h2>
+            <div class="table-wrap">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>比較項目</th>
+                            <th class="highlight-col" style="color:var(--accent-cyan); font-size:1rem;">MotionMuse (本案)</th>
+                            <th>RGBカメラ (スマホ等)</th>
+                            <th>ウェアラブル</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>プライバシー</td>
+                            <td class="highlight-col highlight-cell"><span class="check">◎</span> 安全 (距離のみ)</td>
+                            <td><span class="warn">⚠</span> リスク有 (撮影)</td>
+                            <td><span class="check">◎</span> 安全</td>
+                        </tr>
+                        <tr>
+                            <td>暗所性能</td>
+                            <td class="highlight-col highlight-cell"><span class="check">◎</span> 完璧 (暗闇OK)</td>
+                            <td><span class="cross">×</span> 不可 (照明必須)</td>
+                            <td><span class="check">◎</span> 可能</td>
+                        </tr>
+                        <tr>
+                            <td>ユーザー負担</td>
+                            <td class="highlight-col highlight-cell"><span class="check">◎</span> なし (置くだけ)</td>
+                            <td><span class="warn">△</span> 固定が必要</td>
+                            <td><span class="cross">×</span> 装着・充電</td>
+                        </tr>
+                        <tr>
+                            <td>体験の没入感</td>
+                            <td class="highlight-col highlight-cell"><span class="check">◎</span> 全身・空間連動</td>
+                            <td><span class="cross">△</span> 画面内のみ</td>
+                            <td><span class="cross">△</span> 手足のみ</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <section>
+            <h2>04. Business Plan</h2>
+            <p style="margin-bottom: 30px;">ハードウェア普及を起点に、高利益率なソフトウェア課金へ移行するモデル。</p>
+            
+            <div class="grid-3" style="margin-bottom: 40px;">
+                <div class="card">
+                    <h3>1. Hardware</h3>
+                    <p>センサーキット販売<br><strong>¥29,800</strong></p>
+                    <small>一般消費者向けエントリーモデル</small>
+                </div>
+                <div class="card">
+                    <h3>2. Subscription</h3>
+                    <p>音源/エフェクト追加<br><strong>¥980 /月</strong></p>
+                    <small>継続的なストック収益</small>
+                </div>
+                <div class="card">
+                    <h3>3. B2B License</h3>
+                    <p>空間演出プロデュース<br><strong>¥500,000〜</strong></p>
+                    <small>イベント・商業施設向け</small>
+                </div>
+            </div>
+
+            <h3>3カ年収益シミュレーション</h3>
+            <div class="table-wrap">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>年度</th>
+                            <th>フェーズ</th>
+                            <th>販売台数</th>
+                            <th>サブスク会員</th>
+                            <th>売上高</th>
+                            <th>営業利益</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>1年目</td>
+                            <td>開発・PoC</td>
+                            <td>100台</td>
+                            <td>-</td>
+                            <td>300万円</td>
+                            <td class="loss">▲2,000万円</td>
+                        </tr>
+                        <tr>
+                            <td>2年目</td>
+                            <td>市場投入</td>
+                            <td>5,000台</td>
+                            <td>2,500人</td>
+                            <td>1.8億円</td>
+                            <td class="profit">1,000万円</td>
+                        </tr>
+                        <tr>
+                            <td>3年目</td>
+                            <td>拡大期</td>
+                            <td>20,000台</td>
+                            <td>15,000人</td>
+                            <td>7.7億円</td>
+                            <td class="profit">1.5億円</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <section>
+            <h2>05. Team Organization</h2>
+            <div class="grid-3">
+                <div class="card">
+                    <span class="team-role">Project Owner</span>
+                    <div class="team-title">リーダー</div>
+                    <p style="font-size: 0.9rem;">事業全体の意思決定、ビジョン管理、予算管理。</p>
+                </div>
+                <div class="card">
+                    <span class="team-role">Tech Lead (HW)</span>
+                    <div class="team-title">ハードウェア</div>
+                    <p style="font-size: 0.9rem;">VL53L5CX制御、回路設計、筐体試作(3D)。</p>
+                </div>
+                <div class="card">
+                    <span class="team-role">Tech Lead (SW)</span>
+                    <div class="team-title">ソフトウェア</div>
+                    <p style="font-size: 0.9rem;">解析アルゴリズム構築、スマホアプリUI実装。</p>
+                </div>
+                <div class="card">
+                    <span class="team-role">Sound Designer</span>
+                    <div class="team-title">サウンド設計</div>
+                    <p style="font-size: 0.9rem;">動きと音のマッピング設計、生成エンジンの調整。</p>
+                </div>
+                <div class="card">
+                    <span class="team-role">Creative Dir.</span>
+                    <div class="team-title">クリエイティブ</div>
+                    <p style="font-size: 0.9rem;">映像エフェクト、世界観構築、PV制作。</p>
+                </div>
+                <div class="card">
+                    <span class="team-role">BizDev / Marketer</span>
+                    <div class="team-title">マーケティング</div>
+                    <p style="font-size: 0.9rem;">クラファン準備、SNS運用、アライアンス開拓。</p>
+                </div>
+            </div>
+        </section>
+
+        <section>
+            <h2>06. Development Roadmap</h2>
+            <div class="roadmap">
+                <div class="milestone">
+                    <h4 style="margin:0; color:var(--accent-pink);">Month 1-2: Prototype (PoC)</h4>
+                    <p style="color:#aaa;">センサー1基での動作検証。手の距離で音程が変わる基本機能の実装。</p>
+                </div>
+                <div class="milestone">
+                    <h4 style="margin:0; color:var(--accent-pink);">Month 3-4: Alpha Integration</h4>
+                    <p style="color:#aaa;">4基連携アルゴリズムの実装。前後左右の動きの判別と、音楽生成エンジンの結合。</p>
+                </div>
+                <div class="milestone">
+                    <h4 style="margin:0; color:var(--accent-pink);">Month 5-6: Beta & Polish</h4>
+                    <p style="color:#aaa;">レイテンシ（遅延）短縮、映像同期。投資判断（デモデイ）に向けた最終調整。</p>
+                </div>
+            </div>
+        </section>
+
+    </div>
+
+    <footer style="text-align: center; padding: 40px; color: #555; font-size: 0.8rem;">
+        <p>New Product Development Team Project<br>© 2025 Behavior Soundscape Planning</p>
+    </footer>
+
+</body>
+</html>
