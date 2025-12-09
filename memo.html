@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-    <meta charset="UTF-8"> 
+    <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>展示会ブース チェックリスト＆メモ</title>
     <style>
@@ -11,9 +11,10 @@
             --card-bg: #ffffff;
             --border-color: #ddd;
             --text-color: #333;
+            --error-color: #dc3545;
         }
         body {
-            font-family: "Helvetica Neue", Arial, "Hiragino Kaku Gothic ProN", "Hiragino Sans", Meiryo, sans-serif;
+            font-family: "Helvetica Neue", Arial, sans-serif;
             background-color: var(--bg-color);
             color: var(--text-color);
             margin: 0;
@@ -27,6 +28,17 @@
             text-align: center;
             margin-bottom: 20px;
             color: #444;
+        }
+        /* Error Box */
+        #error-box {
+            display: none;
+            background-color: #f8d7da;
+            color: #721c24;
+            padding: 15px;
+            margin-bottom: 20px;
+            border: 1px solid #f5c6cb;
+            border-radius: 5px;
+            white-space: pre-wrap;
         }
         .controls {
             display: flex;
@@ -42,24 +54,29 @@
             border: 1px solid #ccc;
             border-radius: 4px;
         }
-        button.download-btn {
-            padding: 10px 20px;
-            background-color: #28a745;
-            color: white;
+        .btn-group {
+            display: flex;
+            gap: 10px;
+        }
+        button {
+            padding: 10px 15px;
             border: none;
             border-radius: 4px;
             cursor: pointer;
             font-size: 14px;
         }
-        button.download-btn:hover {
-            background-color: #218838;
+        button.download-btn {
+            background-color: #28a745;
+            color: white;
         }
-        
+        button.reset-btn {
+            background-color: #6c757d;
+            color: white;
+        }
+        button:hover { opacity: 0.9; }
+
         /* List Styles */
-        .booth-list {
-            list-style: none;
-            padding: 0;
-        }
+        .booth-list { list-style: none; padding: 0; }
         .booth-item {
             background: var(--card-bg);
             border: 1px solid var(--border-color);
@@ -69,28 +86,19 @@
             display: flex;
             flex-direction: column;
             box-shadow: 0 2px 4px rgba(0,0,0,0.05);
-            transition: all 0.2s;
         }
         .booth-item.checked {
             background-color: #e9ecef;
-            opacity: 0.8;
+            border-color: #bbc1c7;
         }
         .booth-header {
             display: flex;
             align-items: flex-start;
             gap: 15px;
-            margin-bottom: 10px;
         }
-        .checkbox-wrapper {
-            padding-top: 5px;
-        }
-        input[type="checkbox"] {
-            transform: scale(1.5);
-            cursor: pointer;
-        }
-        .booth-info {
-            flex-grow: 1;
-        }
+        .checkbox-wrapper { padding-top: 5px; }
+        input[type="checkbox"] { transform: scale(1.5); cursor: pointer; }
+        .booth-info { flex-grow: 1; }
         .booth-id {
             font-weight: bold;
             color: var(--primary-color);
@@ -99,31 +107,11 @@
             border-radius: 4px;
             font-size: 0.9em;
             margin-right: 8px;
-            display: inline-block;
         }
-        .booth-title {
-            font-size: 1.1em;
-            font-weight: bold;
-            display: inline;
-        }
-        .booth-summary {
-            margin-top: 5px;
-            font-size: 0.95em;
-            color: #555;
-            line-height: 1.5;
-        }
-        .booth-theme {
-            margin-top: 5px;
-            font-size: 0.85em;
-            color: #888;
-            font-style: italic;
-        }
-        
-        /* Memo Area */
-        .memo-area {
-            margin-top: 10px;
-            width: 100%;
-        }
+        .booth-title { font-weight: bold; font-size: 1.1em; }
+        .booth-summary { margin-top: 5px; font-size: 0.95em; color: #555; }
+        .booth-theme { margin-top: 5px; font-size: 0.85em; color: #888; font-style: italic; }
+        .memo-area { margin-top: 10px; width: 100%; }
         textarea {
             width: 100%;
             height: 60px;
@@ -131,35 +119,15 @@
             box-sizing: border-box;
             border: 1px solid #ccc;
             border-radius: 4px;
-            font-family: inherit;
             resize: vertical;
             background-color: #fafafa;
         }
-        textarea:focus {
-            background-color: #fff;
-            border-color: var(--primary-color);
-            outline: none;
-        }
-
-        /* Responsive */
+        
         @media (min-width: 768px) {
-            .booth-item {
-                flex-direction: row;
-                align-items: flex-start;
-            }
-            .booth-header {
-                flex: 2;
-                margin-bottom: 0;
-                margin-right: 20px;
-            }
-            .memo-area {
-                flex: 1;
-                margin-top: 0;
-            }
-            textarea {
-                height: 100%;
-                min-height: 80px;
-            }
+            .booth-item { flex-direction: row; align-items: flex-start; }
+            .booth-header { flex: 2; margin-right: 20px; }
+            .memo-area { flex: 1; margin-top: 0; }
+            textarea { height: 100%; min-height: 80px; }
         }
     </style>
 </head>
@@ -168,17 +136,32 @@
 <div class="container">
     <h1>展示会ブース チェックリスト</h1>
     
+    <div id="error-box"></div>
+
     <div class="controls">
         <input type="text" id="search" placeholder="検索（番号、タイトル、キーワード...）" onkeyup="filterList()">
-        <button class="download-btn" onclick="exportCSV()">CSVで保存(メモ含む)</button>
+        <div class="btn-group">
+            <button class="reset-btn" onclick="resetData()">全データ削除(リセット)</button>
+            <button class="download-btn" onclick="exportCSV()">CSV保存</button>
+        </div>
     </div>
 
     <ul id="boothList" class="booth-list">
-        </ul>
+        <li>読み込み中...</li>
+    </ul>
 </div>
 
 <script>
-    // データ定義（クオート処理修正済み）
+    // エラーハンドリング
+    window.onerror = function(message, source, lineno, colno, error) {
+        const errorBox = document.getElementById('error-box');
+        errorBox.style.display = 'block';
+        errorBox.textContent = `エラーが発生しました:\n${message}\n行: ${lineno}`;
+    };
+
+    const STORAGE_KEY = 'sony_exhibition_memo_data_v2'; // キーを変更して古い破損データの影響を回避
+
+    // データ定義
     const rawData = [
         {id: "No.01", title: "XYN 空間コンテンツ制作ソリューションと関連技術", summary: "効率的に超高精細・フォトリアルな空間コンテンツを制作", theme: "Creative Entertainment Vision の実現を目指す技術"},
         {id: "No.02", title: "リハビリゲーム", summary: "コントローラー不要で楽しめるゲーミフィケーション", theme: "多様な事業の成長を実現する技術"},
@@ -200,7 +183,7 @@
         {id: "No.18", title: "Location Based Entertainment SDK", summary: "デバイス装着不要のインタラクティブな没入体験", theme: "Creative Entertainment Vision の実現を目指す技術"},
         {id: "No.18 PCL", title: "多感覚イマーシブ体験、LBE SDK、VR", summary: "ソニーの多感覚技術（映像・音響・触覚・におい・風）を統合して構築した、五感で感じる没入型XR体験。", theme: "Creative Entertainment Vision の実現を目指す技術"},
         {id: "No.19", title: "音のXR体験", summary: "インタラクティブゲームサウンドエンジンでつくる立体音響ソリューション", theme: "Creative Entertainment Vision の実現を目指す技術"},
-        {id: "E-01", title: "Gaze-based user-content interaction", summary: "視線情報に基づいた, ユーザーとコンテンツの新しいインタラクション", theme: "Creative Entertainment Vision の実現を目指す技術"},
+        {id: "E-01", title: "Gaze-based user-content interaction", summary: "視線情報に基づいた、ユーザーとコンテンツの新しいインタラクション", theme: "Creative Entertainment Vision の実現を目指す技術"},
         {id: "E-02", title: "AIコメンタリー生成", summary: "実況・解説・速報・記事を自動生成し、データを即座にコンテンツ化", theme: "Creative Entertainment Vision の実現を目指す技術"},
         {id: "E-03", title: "Sports Fan Engagement", summary: "スポーツIPを活用した新たなファンエンゲージメントサービス", theme: "Creative Entertainment Vision の実現を目指す技術"},
         {id: "E-04", title: "PRISM", summary: "AI-powered suite for creating digital artifacts like descriptions, subtitles, videos & images enhancing content discovery", theme: "Creative Entertainment Vision の実現を目指す技術"},
@@ -208,7 +191,7 @@
         {id: "E-06", title: "Force & Touch LBE", summary: "自在な力提示×力触覚センシングで、LBEに新しい体験を創出", theme: "Creative Entertainment Vision の実現を目指す技術"},
         {id: "E-07", title: "実世界行動支援プラットフォーム", summary: "行動履歴・空間情報と連携したAIによりコンテンツ制作や日常行動をリアルタイムに支援", theme: "Creative Entertainment Vision の実現を目指す技術"},
         {id: "E-08", title: "MIMoSA", summary: "AIが作業効率を高め、クリエイターが創造的な制作に没頭できる3DCG映像制作ツール", theme: "Creative Entertainment Vision の実現を目指す技術"},
-        {id: "E-09", title: "3D ハプティック デバイス", summary: "３D仮想オブジェクトに直接インタラクションするハプティックシミュレーター", theme: "多様な事業の成長を実現する技術"},
+        {id: "E-09", title: "3D ハプティック デバイス", summary: "3D仮想オブジェクトに直接インタラクションするハプティックシミュレーター", theme: "多様な事業の成長を実現する技術"},
         {id: "E-10", title: "Podcast Video Studio", summary: "Low-cost Podcast Video Studio solution for Sony Alpha/Cinema-Line/SDK cameras", theme: "Creative Entertainment Vision の実現を目指す技術"},
         {id: "E-11", title: "Tanuki: Robotic Craftsman’s Assistant", summary: "Scalable End-effector Platform for Fine Manipulation in Craftsmanship", theme: "Creative Entertainment Vision の実現を目指す技術"},
         {id: "E-12", title: "In-Camera Apps", summary: "撮影現場を「制約との戦い」から開放し「純粋なクリエイティブワーク」に変革する", theme: "多様な事業の成長を実現する技術"},
@@ -276,4 +259,4 @@
         {id: "Online＆Poster", title: "生成AIによるソフトウエア単体テスト自動生成システム", summary: "手直し不要の単体テスト自動生成システムでソフトウエアエンジニアの付帯作業を削減", theme: "多様な事業の成長を実現する技術"},
         {id: "Online＆Poster", title: "デジタルツインラーニング", summary: "実世界と仮想環境を活用することで、自動運転AIなどのPhysical AI開発の効率改善と性能向上を実現する技術", theme: "多様な事業の成長を実現する技術"},
         {id: "Online＆Poster", title: "Sense beyond", summary: "距離だけでなく速度・振動などの動きをセンシング可能にする新たなソリューション", theme: "Creative Entertainment Vision の実現を目指す技術"},
-        {id: "Online＆Poster", title: "Face Image Enhancement", summary: "Advanced facial rendering enhancement technologies for Digital Human", theme: "Creative Entertainment Vision の実現を目指す技術"},
+        {id: "Online＆Poster", title: "Face Image Enhancement", summary: "Advance
