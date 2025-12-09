@@ -3,260 +3,348 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>展示会ブース チェックリスト＆メモ</title>
+    <title>STEF 展示会リスト Pro</title>
     <style>
-        :root {
-            --primary-color: #007bff;
-            --bg-color: #f4f4f9;
-            --card-bg: #ffffff;
-            --border-color: #ddd;
-            --text-color: #333;
-            --error-color: #dc3545;
-        }
         body {
-            font-family: "Helvetica Neue", Arial, sans-serif;
-            background-color: var(--bg-color);
-            color: var(--text-color);
+            font-family: -apple-system, BlinkMacSystemFont, "Helvetica Neue", "Segoe UI", sans-serif;
+            background-color: #f0f2f5;
             margin: 0;
-            padding: 20px;
+            padding: 10px;
+            color: #333;
         }
         .container {
-            max-width: 1000px;
+            max-width: 1200px;
             margin: 0 auto;
-        }
-        h1 {
-            text-align: center;
-            margin-bottom: 20px;
-            color: #444;
-        }
-        /* Error Box */
-        #error-box {
-            display: none;
-            background-color: #f8d7da;
-            color: #721c24;
+            background: white;
             padding: 15px;
-            margin-bottom: 20px;
-            border: 1px solid #f5c6cb;
-            border-radius: 5px;
-            white-space: pre-wrap;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
         }
-        .controls {
+        
+        /* ヘッダー・集計エリア */
+        .header-area {
             display: flex;
             justify-content: space-between;
-            margin-bottom: 20px;
+            align-items: center;
             flex-wrap: wrap;
-            gap: 10px;
+            margin-bottom: 15px;
+            border-bottom: 2px solid #eee;
+            padding-bottom: 10px;
         }
-        input[type="text"]#search {
-            flex-grow: 1;
-            padding: 10px;
-            font-size: 16px;
-            border: 1px solid #ccc;
-            border-radius: 4px;
+        h1 { margin: 0; font-size: 20px; color: #444; }
+        .stats {
+            font-size: 14px;
+            font-weight: bold;
+            color: #555;
+            background: #e9ecef;
+            padding: 5px 12px;
+            border-radius: 20px;
         }
-        .btn-group {
+
+        /* ツールバー（検索・フィルタ） */
+        .toolbar {
             display: flex;
             gap: 10px;
+            margin-bottom: 15px;
+            flex-wrap: wrap;
+            align-items: center;
         }
-        button {
-            padding: 10px 15px;
+        .search-box {
+            flex-grow: 1;
+            position: relative;
+        }
+        .search-box input {
+            width: 100%;
+            padding: 10px 10px 10px 35px;
+            box-sizing: border-box;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 16px;
+        }
+        .search-icon {
+            position: absolute;
+            left: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #aaa;
+        }
+
+        /* フィルタボタン群 */
+        .filter-group {
+            display: flex;
+            background: #f1f3f5;
+            padding: 3px;
+            border-radius: 6px;
+        }
+        .filter-btn {
+            padding: 8px 16px;
+            border: none;
+            background: none;
+            cursor: pointer;
+            border-radius: 4px;
+            font-size: 14px;
+            font-weight: bold;
+            color: #666;
+            transition: 0.2s;
+        }
+        .filter-btn.active {
+            background: white;
+            color: #007bff;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        /* アクションボタン */
+        .action-btns {
+            display: flex;
+            gap: 8px;
+        }
+        .btn {
+            padding: 8px 12px;
             border: none;
             border-radius: 4px;
             cursor: pointer;
+            font-size: 13px;
+            color: white;
+        }
+        .btn-csv { background-color: #28a745; }
+        .btn-reset { background-color: #6c757d; }
+        
+        /* テーブル設定 */
+        .table-wrapper {
+            overflow-x: auto;
+            border: 1px solid #eee;
+            border-radius: 6px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            min-width: 900px; /* スマホで横スクロールさせる */
+        }
+        th, td {
+            padding: 12px 8px;
+            border-bottom: 1px solid #eee;
+            vertical-align: top;
             font-size: 14px;
         }
-        button.download-btn {
-            background-color: #28a745;
-            color: white;
+        th {
+            background-color: #f8f9fa;
+            color: #495057;
+            text-align: left;
+            position: sticky;
+            top: 0;
+            z-index: 10;
         }
-        button.reset-btn {
-            background-color: #6c757d;
-            color: white;
-        }
-        button:hover { opacity: 0.9; }
 
-        /* List Styles */
-        .booth-list { list-style: none; padding: 0; }
-        .booth-item {
-            background: var(--card-bg);
-            border: 1px solid var(--border-color);
-            border-radius: 8px;
-            margin-bottom: 15px;
-            padding: 15px;
-            display: flex;
-            flex-direction: column;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        /* 列幅調整 */
+        .col-star { width: 40px; text-align: center; }
+        .col-check { width: 50px; text-align: center; }
+        .col-no { width: 70px; }
+        .col-name { width: 25%; font-weight: bold; color: #2b2b2b; }
+        .col-summary { width: 30%; color: #555; }
+        .col-theme { width: 12%; font-size: 12px; color: #888; }
+        .col-memo { width: 20%; }
+
+        /* 行の状態 */
+        tr.visited { background-color: #f0fff4; opacity: 0.8; }
+        tr.visited td { color: #888; }
+        
+        /* スターアイコン */
+        .star-btn {
+            cursor: pointer;
+            font-size: 20px;
+            color: #ddd;
+            transition: color 0.2s;
+            background: none;
+            border: none;
+            padding: 0;
         }
-        .booth-item.checked {
-            background-color: #e9ecef;
-            border-color: #bbc1c7;
+        .star-btn.active { color: #ffc107; } /* 黄色 */
+
+        /* チェックボックス */
+        input[type="checkbox"] {
+            transform: scale(1.6);
+            cursor: pointer;
+            margin-top: 5px;
         }
-        .booth-header {
-            display: flex;
-            align-items: flex-start;
-            gap: 15px;
-        }
-        .checkbox-wrapper { padding-top: 5px; }
-        input[type="checkbox"] { transform: scale(1.5); cursor: pointer; }
-        .booth-info { flex-grow: 1; }
-        .booth-id {
-            font-weight: bold;
-            color: var(--primary-color);
-            background: #e7f1ff;
-            padding: 2px 6px;
-            border-radius: 4px;
-            font-size: 0.9em;
-            margin-right: 8px;
-        }
-        .booth-title { font-weight: bold; font-size: 1.1em; }
-        .booth-summary { margin-top: 5px; font-size: 0.95em; color: #555; }
-        .booth-theme { margin-top: 5px; font-size: 0.85em; color: #888; font-style: italic; }
-        .memo-area { margin-top: 10px; width: 100%; }
+
+        /* メモ欄 */
         textarea {
             width: 100%;
-            height: 60px;
-            padding: 8px;
-            box-sizing: border-box;
-            border: 1px solid #ccc;
+            height: 50px;
+            border: 1px solid #ddd;
             border-radius: 4px;
             resize: vertical;
-            background-color: #fafafa;
+            font-family: inherit;
+            font-size: 13px;
+            padding: 4px;
         }
+        textarea:focus { border-color: #007bff; outline: none; }
         
-        @media (min-width: 768px) {
-            .booth-item { flex-direction: row; align-items: flex-start; }
-            .booth-header { flex: 2; margin-right: 20px; }
-            .memo-area { flex: 1; margin-top: 0; }
-            textarea { height: 100%; min-height: 80px; }
+        /* バッジ */
+        .badge {
+            display: inline-block;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 11px;
+            margin-bottom: 4px;
+            background: #e7f5ff;
+            color: #007bff;
         }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <h1>展示会ブース チェックリスト</h1>
-    
-    <div id="error-box"></div>
+    <div class="header-area">
+        <h1>STEF チェックリスト</h1>
+        <div class="stats" id="statsDisplay">訪問: 0 / 0 (0%) | ★: 0</div>
+    </div>
 
-    <div class="controls">
-        <input type="text" id="search" placeholder="検索（番号、タイトル、キーワード...）" onkeyup="filterList()">
-        <div class="btn-group">
-            <button class="reset-btn" onclick="resetData()">全データ削除(リセット)</button>
-            <button class="download-btn" onclick="exportCSV()">CSV保存</button>
+    <div class="toolbar">
+        <div class="search-box">
+            <span class="search-icon">🔍</span>
+            <input type="text" id="searchInput" placeholder="検索: AI, センサー, 番号..." onkeyup="applyFilter()">
+        </div>
+        
+        <div class="filter-group">
+            <button class="filter-btn active" onclick="setFilter('all', this)">全て</button>
+            <button class="filter-btn" onclick="setFilter('star', this)">★候補</button>
+            <button class="filter-btn" onclick="setFilter('unvisited', this)">未訪問</button>
+        </div>
+
+        <div class="action-btns">
+            <button class="btn btn-csv" onclick="downloadCSV()">CSV保存</button>
+            <button class="btn btn-reset" onclick="resetData()">リセット</button>
         </div>
     </div>
 
-    <ul id="boothList" class="booth-list">
-        <li>読み込み中...</li>
-    </ul>
+    <div class="table-wrapper">
+        <table id="mainTable">
+            <thead>
+                <tr>
+                    <th class="col-star">★</th>
+                    <th class="col-check">済</th>
+                    <th class="col-no">No.</th>
+                    <th class="col-name">出展名</th>
+                    <th class="col-summary">要約</th>
+                    <th class="col-theme">テーマ</th>
+                    <th class="col-memo">メモ</th>
+                </tr>
+            </thead>
+            <tbody id="tableBody">
+                </tbody>
+        </table>
+    </div>
 </div>
 
 <script>
-    // エラーハンドリング
-    window.onerror = function(message, source, lineno, colno, error) {
-        const errorBox = document.getElementById('error-box');
-        errorBox.style.display = 'block';
-        errorBox.textContent = `エラーが発生しました:\n${message}\n行: ${lineno}`;
-    };
+    // ▼ データ定義 ▼
+    const db = [
+        {no: "No.01", name: "XYN 空間コンテンツ制作ソリューションと関連技術", summary: "効率的に超高精細・フォトリアルな空間コンテンツを制作", theme: "Creative Entertainment Vision"},
+        {no: "No.02", name: "リハビリゲーム", summary: "コントローラー不要で楽しめるゲーミフィケーション", theme: "多様な事業の成長"},
+        {no: "No.03", name: "エンタテインメント向け群ロボット", summary: "群ロボットと演者や観客との協調動作が生む新たなステージ体験", theme: "Creative Entertainment Vision"},
+        {no: "No.04", name: "Creation with Search, Generation and Separation", summary: "映像、音、テキストを用いた直感的なアセット検索・効果音生成・音源分離", theme: "Creative Entertainment Vision"},
+        {no: "No.05", name: "4D Capture Technology", summary: "シングルカメラで動きも形状もリアルに撮影", theme: "Creative Entertainment Vision"},
+        {no: "No.06", name: "Interactive Music UX for Performers", summary: "アーティストやダンサーなど多様なパフォーマーのためのインタラクティブな演奏・鑑賞体験のための技術", theme: "Creative Entertainment Vision"},
+        {no: "No.07", name: "Creator Economy", summary: "ブロックチェーンが高める作品の価値", theme: "Creative Entertainment Vision"},
+        {no: "No.08", name: "Emotion Estimation", summary: "脳波による情動推定でコンテンツ体験中のユーザー反応を評価", theme: "Creative Entertainment Vision"},
+        {no: "No.09", name: "Electric Stabilizer Cam", summary: "迫力の主観視点をリアルタイム伝送", theme: "Creative Entertainment Vision"},
+        {no: "No.10", name: "Immersive Music Hapitcs Chair", summary: "身体が楽器となり、音楽と一体化する新体験", theme: "Creative Entertainment Vision"},
+        {no: "No.11", name: "Sony Bank CONNECT 2025", summary: "デジタル資産の所有による新たな体験と価値", theme: "Creative Entertainment Vision"},
+        {no: "No.12", name: "Wwise Similar Sound Search", summary: "大規模オーディオコレクションから目的とする音源を直感的に検索", theme: "Creative Entertainment Vision"},
+        {no: "No.13", name: "Sensory Re:Fusion for LBE", summary: "視覚、聴覚、嗅覚、触覚を刺激する没入型体験", theme: "Creative Entertainment Vision"},
+        {no: "No.14", name: "Beyond HDR", summary: "リアルな光の煌めきを映し出す", theme: "Creative Entertainment Vision"},
+        {no: "No.15", name: "Advanced Super Resolution", summary: "あらゆるコンテンツを超解像で鮮明に", theme: "Creative Entertainment Vision"},
+        {no: "No.16", name: "Feel So Music", summary: "音楽に触れる驚きが、心震わせる", theme: "Creative Entertainment Vision"},
+        {no: "No.17", name: "Virtual Theater + 360VME", summary: "シアターの音と画をリモート環境で再現。高精度な空間音響確認作業が可能", theme: "Creative Entertainment Vision"},
+        {no: "No.18", name: "Location Based Entertainment SDK", summary: "デバイス装着不要のインタラクティブな没入体験", theme: "Creative Entertainment Vision"},
+        {no: "No.18 PCL", name: "多感覚イマーシブ体験、LBE SDK、VR", summary: "映像・音響・触覚・におい・風を統合した五感で感じる没入型XR体験", theme: "Creative Entertainment Vision"},
+        {no: "No.19", name: "音のXR体験", summary: "インタラクティブゲームサウンドエンジンでつくる立体音響ソリューション", theme: "Creative Entertainment Vision"},
+        {no: "E-01", name: "Gaze-based user-content interaction", summary: "視線情報に基づいた、ユーザーとコンテンツの新しいインタラクション", theme: "Creative Entertainment Vision"},
+        {no: "E-02", name: "AIコメンタリー生成", summary: "実況・解説・速報・記事を自動生成し、データを即座にコンテンツ化", theme: "Creative Entertainment Vision"},
+        {no: "E-03", name: "Sports Fan Engagement", summary: "スポーツIPを活用した新たなファンエンゲージメントサービス", theme: "Creative Entertainment Vision"},
+        {no: "E-04", name: "PRISM", summary: "AIを用いた説明、字幕、ビデオ、画像のデジタルアーティファクト作成スイート", theme: "Creative Entertainment Vision"},
+        {no: "E-05", name: "On-set VFX Creation", summary: "空間センシング（デプス・カメラトラッキング）でVFX制作を加速", theme: "Creative Entertainment Vision"},
+        {no: "E-06", name: "Force & Touch LBE", summary: "自在な力提示×力触覚センシングで、LBEに新しい体験を創出", theme: "Creative Entertainment Vision"},
+        {no: "E-07", name: "実世界行動支援プラットフォーム", summary: "行動履歴・空間情報と連携したAIによりコンテンツ制作や日常行動を支援", theme: "Creative Entertainment Vision"},
+        {no: "E-08", name: "MIMoSA", summary: "AIが作業効率を高める3DCG映像制作ツール", theme: "Creative Entertainment Vision"},
+        {no: "E-09", name: "3D ハプティック デバイス", summary: "3D仮想オブジェクトに直接インタラクションするハプティックシミュレーター", theme: "多様な事業の成長"},
+        {no: "E-10", name: "Podcast Video Studio", summary: "Sony製カメラ向けの低コストなポッドキャストビデオスタジオソリューション", theme: "Creative Entertainment Vision"},
+        {no: "E-11", name: "Tanuki: Robotic Craftsman’s Assistant", summary: "職人技のための微細操作可能なスケーラブルなエンドエフェクタ", theme: "Creative Entertainment Vision"},
+        {no: "E-12", name: "In-Camera Apps", summary: "撮影現場を「制約との戦い」から開放し「純粋なクリエイティブワーク」へ", theme: "多様な事業の成長"},
+        {no: "E-13", name: "Immersive 3D experience", summary: "安価な偏光メガネだけで複数人での高品位な3D映像体験を可能にする", theme: "多様な事業の成長"},
+        {no: "E-14", name: "Reimagine. Reinvent. Recreate—with AI", summary: "DeepTechによるローカライズコンテンツ作成、リーチ向上、ファン分析", theme: "Creative Entertainment Vision"},
+        {no: "E-15", name: "Creative Agent Hub", summary: "エッジデバイスに話しかけるだけで様々な機器を制御できるAIフレームワーク", theme: "Creative Entertainment Vision"},
+        {no: "E-16", name: "Sony Financial Group × Technologies", summary: "ソニーフィナンシャルグループの成長を支援する技術群", theme: "多様な事業の成長"},
+        {no: "E-17", name: "CATSeye", summary: "物理ディスプレイ上のマルチメディア再生忠実度を検証する精密センサー", theme: "Creative Entertainment Vision"},
+        {no: "E-18", name: "ARグラス向け超低遅延6DoFトラッキング", summary: "センサとディスプレイ連動で超低遅延・高精度なトラッキングを実現", theme: "Creative Entertainment Vision"},
+        {no: "E-19", name: "sVisionが実現する世界", summary: "キャプチャからクリエーションまでオールインワンコンテンツ制作", theme: "Creative Entertainment Vision"},
+        {no: "E-20", name: "One Shot LOFIC Vision", summary: "世界最小画素で、あらゆるシーンを1回の撮影で映し出すHDRセンサー", theme: "Creative Entertainment Vision"},
+        {no: "E-21", name: "4D イマーシブコンテンツクリエーション", summary: "フォトリアルな3DCGと物理シミュレーションが融合する4D制作技術", theme: "Creative Entertainment Vision"},
+        {no: "FO-01", name: "Location-based Digital-Twin World", summary: "位置センシングを用いたエンタメ空間の3D可視化とAIフィードバック", theme: "Creative Entertainment Vision"},
+        {no: "FO-02", name: "Origanoid：オリガノイド", summary: "数ミクロン精度の精密操作ができる手のひらサイズの医療用折り紙ロボット", theme: "多様な事業の成長"},
+        {no: "FO-03", name: "AIロボティクス エンタメフィットネス", summary: "ユーザーの動きに合わせ物理負荷をリアルタイム制御するフィットネス", theme: "多様な事業の成長"},
+        {no: "G-01", name: "AI Gameplay Helper", summary: "ゲームプレイにおける困りごとを解決するAI Agent技術", theme: "Creative Entertainment Vision"},
+        {no: "G-02", name: "Gen-NSA", summary: "クラウドゲーミングの画質を向上させるAIベースの映像処理システム", theme: "Creative Entertainment Vision"},
+        {no: "G-03", name: "Autonomous Agents", summary: "機械学習を通じてゲームプレイを習得する自律型エージェント", theme: "多様な事業の成長"},
+        {no: "G-04", name: "Peregrine", summary: "ビデオゲーム・リアルタイムグラフィックス向けの超高速・高品質テクスチャ圧縮", theme: "Creative Entertainment Vision"},
+        {no: "G-05", name: "True 3D Holo", summary: "裸眼で見える、現実世界と融合可能な高精細ホログラム映像", theme: "Creative Entertainment Vision"},
+        {no: "G-06", name: "VolumetricShot", summary: "2Dスクショを3Dに進化させ、あとから追体験できるキャプチャ技術", theme: "Creative Entertainment Vision"},
+        {no: "G-07", name: "FanEngage AI Agent", summary: "マーケティング・顧客理解・分析を実現するファンエンゲージメントAI", theme: "多様な事業の成長"},
+        {no: "I-01", name: "Gaze Control System", summary: "高速移動物体にズームイン・追従し続けるカメラシステムとスポーツ応用", theme: "Creative Entertainment Vision"},
+        {no: "I-02", name: "Vision AI Unplugged", summary: "オフィスの在室状況などを検知するバッテリー駆動エッジAIカメラ", theme: "多様な事業の成長"},
+        {no: "I-03", name: "Twin Lib & Scan-to-Plan SW", summary: "3Dスキャン点群データを2Dフロアプランに変換するPF", theme: "多様な事業の成長"},
+        {no: "I-04", name: "Fregata", summary: "モバイル/XRデバイスの自律制御用超低電力AI認識イメージセンサ", theme: "Creative Entertainment Vision"},
+        {no: "I-05", name: "RoboOps Next as Data Platform", summary: "RGB-Dデータの収集と半自動アノテーションを容易にするDataOps基盤", theme: "多様な事業の成長"},
+        {no: "I-06", name: "Vision for All", summary: "すべてのユーザーに機能を開放するスマートエッジクラウドVision AIツール", theme: "多様な事業の成長"},
+        {no: "I-07", name: "RGB Saving lives", summary: "産業用機能安全の事前認証を取得したSony製RGBセンサー", theme: "多様な事業の成長"},
+        {no: "I-08", name: "Sense Anytime", summary: "AIベースのイメージング＆センシングパイプライン最適化", theme: "多様な事業の成長"},
+        {no: "M-01", name: "インタラクティブAIアーティスト", summary: "観客の反応にリアルタイムで応答する自律型AIアーティスト音楽ライブ", theme: "Creative Entertainment Vision"},
+        {no: "M-02", name: "コンテンツセキュリティ / ウォーターマーク", summary: "コンテンツ不正流出・利用の被害からエンタメ事業を護る技術", theme: "Creative Entertainment Vision"},
+        {no: "M-03", name: "リアルとバーチャルの境界を超える音", summary: "聴覚と情動のメカニズムを解明しクリエイションに貢献する活動", theme: "Creative Entertainment Vision"},
+        {no: "M-04", name: "3D サラウンド パンナー", summary: "PS5コントローラーを用いた3Dサラウンドパンナーシステム", theme: "Creative Entertainment Vision"},
+        {no: "M-05", name: "AI Ethics", summary: "生成AIのリスク評価、著作権保護、データセット評価ツールキット", theme: "多様な事業の成長"},
+        {no: "P-01", name: "AI Translation & Dubbing", summary: "AIを活用した自動吹き替えおよびその他のエンターテインメント技術", theme: "Creative Entertainment Vision"},
+        {no: "P-02", name: "ACE", summary: "アニメで「いつ」「誰が」「何を」話しているかを自動で推定する技術", theme: "Creative Entertainment Vision"},
+        {no: "P-03", name: "マルチレイヤーモノポールシンセシス", summary: "卓越した空間表現力を可能にするレイヤー構造を持つ音響信号処理", theme: "Creative Entertainment Vision"},
+        {no: "P-04", name: "AIDE for Content", summary: "AIを活用したストーリー強化、長編からの短編動画自動作成", theme: "多様な事業の成長"},
+        {no: "P-05", name: "デジタルツインクリエイション", summary: "リアルとフィクションをつなぐ3Dワールド生成技術", theme: "Creative Entertainment Vision"},
+        {no: "P-06", name: "AutoDailies", summary: "同期とカラータスクを自動化し、映画・TV制作のデイリーズを高速化", theme: "Creative Entertainment Vision"},
+        {no: "P-07", name: "Micro-budget Diffusion Model", summary: "従来比1/14のコストで学習可能なテキスト画像生成モデルMicroDiT", theme: "Creative Entertainment Vision"},
+        {no: "Online", name: "DaVinci", summary: "XRグラス向けにRGB、dToF、AIを統合した小型システム", theme: "Creative Entertainment Vision"},
+        {no: "Online", name: "Lag Less Streaming", summary: "生成AIを用いてクラウドゲーミングのレイテンシ補償を行う技術", theme: "Creative Entertainment Vision"},
+        {no: "Online", name: "Lillian Tactile VR", summary: "デプスセンシングを用いたVR内でのリアルな表面インタラクション", theme: "Creative Entertainment Vision"},
+        {no: "Online", name: "音響機器ものづくりの進化", summary: "様々な特性を持つ社員が活躍できる現場を実現する機能補完技術", theme: "多様な事業の成長"},
+        {no: "Online", name: "Dynamic RAG", summary: "マルチモーダルAI検索を可能にするオープンソースベクトルDB", theme: "多様な事業の成長"},
+        {no: "Online", name: "Digital Manga", summary: "静的コンテンツを保護・追跡するための不可視透かし埋め込み技術", theme: "Creative Entertainment Vision"},
+        {no: "Online", name: "Similarity Search", summary: "メタデータなしで自然言語プロンプトから視覚・音声アセットを検索", theme: "Creative Entertainment Vision"},
+        {no: "Online", name: "Project Orochi", summary: "柔軟なトランスメディア・リアルタイム技術プラットフォーム", theme: "Creative Entertainment Vision"},
+        {no: "Online", name: "TWS向けノイズキャンセル進化", summary: "完全ワイヤレスイヤホン向けの適応型ノイズキャンセリング個人最適化", theme: "多様な事業の成長"},
+        {no: "Online", name: "アクチュエーターと触覚技術", summary: "統合的なメカトロニクス設計で実現するアクチュエーターと触覚技術", theme: "Creative Entertainment Vision"},
+        {no: "Online", name: "Eyeris", summary: "イメージセンサ設計を加速させる光学シミュレーションプラットフォーム", theme: "多様な事業の成長"},
+        {no: "Online", name: "ATHENA", summary: "シネマカメラ・立体音響を活用したXRリアルタイムVFXワークフロー", theme: "Creative Entertainment Vision"},
+        {no: "Online", name: "RecSys for SEP", summary: "コールドスタート解決やモデル更新のリスク低減を行う推薦システム", theme: "Creative Entertainment Vision"},
+        {no: "Online", name: "EMIフリーアーキテクチャ", summary: "追加部品不要のICによるEMI（電磁妨害）対策技術", theme: "多様な事業の成長"},
+        {no: "Online", name: "GSイメージセンサ", summary: "動きも細部も正確に鮮やかに捉える業界最高水準のイメージセンサ", theme: "多様な事業の成長"},
+        {no: "Online", name: "インキャビンRGB → NIR AI", summary: "車内タスクのためRGBセンサから近赤外線画像を生成するAIモデル", theme: "多様な事業の成長"},
+        {no: "Online", name: "RGB-D キャプチャツール", summary: "実世界データセット作成用のモバイルRGB-Dキャプチャツール", theme: "Creative Entertainment Vision"},
+        {no: "Online", name: "プログラマブルLiDAR", summary: "測距仕様を自由に可変でき、多用途に対応できるLiDAR", theme: "多様な事業の成長"},
+        {no: "Online", name: "Climate Station", summary: "インタラクティブなストーリーテリングによる没入型気候教育", theme: "Creative Entertainment Vision"},
+        {no: "Online", name: "Sony Human Initiative", summary: "次世代のキャラクター制作を合理化・定義するツールフレームワーク", theme: "Creative Entertainment Vision"},
+        {no: "Online", name: "超汎用IoTシステム", summary: "モニタ画像を利用し装置情報のデジタル化や自動操作を行うIoT", theme: "多様な事業の成長"},
+        {no: "Online", name: "Watch Me Play", summary: "ゲームコンテンツをOTTプラットフォームにもたらすPlaytainment", theme: "多様な事業の成長"},
+        {no: "Online", name: "SW単体テスト自動生成", summary: "生成AIによる手直し不要の単体テスト自動生成システム", theme: "多様な事業の成長"},
+        {no: "Online", name: "デジタルツインラーニング", summary: "実世界と仮想環境活用でPhysical AI開発の効率と性能を向上", theme: "多様な事業の成長"},
+        {no: "Online", name: "Sense beyond", summary: "距離だけでなく速度・振動などの「動き」をセンシングする新ソリューション", theme: "Creative Entertainment Vision"},
+        {no: "Online", name: "Face Image Enhancement", summary: "デジタルヒューマンのための高度な顔レンダリング強化技術", theme: "Creative Entertainment Vision"},
+        {no: "Online", name: "AI Cost-Estimation System", summary: "調達部品のコスト試算・シミュレーションをAIで実現", theme: "多様な事業の成長"},
+        {no: "Online", name: "AIdeal", summary: "多目的最適化による創造支援ツール", theme: "多様な事業の成長"},
+        {no: "Online", name: "StoryQuest", summary: "視聴者の興味に合わせたストーリーを見つける対話型探索エンジン", theme: "Creative Entertainment Vision"},
+        {no: "Online", name: "Hardware Wallet as a Service", summary: "Web3およびデジタルIDプロバイダ向けのセキュリティ・プライバシー技術", theme: "多様な事業の成長"},
+        {no: "Online", name: "AI-powered CS Chatbot", summary: "生成AIによるパーソナライズされたカスタマーサポートチャットボット", theme: "多様な事業の成長"},
+        {no: "CA-1", name: "ポリネーターネットワーク", summary: "社員の専門性と創造性をつなぎイノベーションを支援するプログラム", theme: "Creative Entertainment Vision"},
+        {no: "CA-2", name: "組織知活用技術", summary: "AIが組織内の知識と専門家情報を統合管理し、知識の動的結合を実現", theme: "多様な事業の成長"}
+    ];
 
-    const STORAGE_KEY = 'sony_exhibition_memo_data_v2'; // キーを変更して古い破損データの影響を回避
-
-    // データ定義
-    const rawData = [
-        {id: "No.01", title: "XYN 空間コンテンツ制作ソリューションと関連技術", summary: "効率的に超高精細・フォトリアルな空間コンテンツを制作", theme: "Creative Entertainment Vision の実現を目指す技術"},
-        {id: "No.02", title: "リハビリゲーム", summary: "コントローラー不要で楽しめるゲーミフィケーション", theme: "多様な事業の成長を実現する技術"},
-        {id: "No.03", title: "エンタテインメント向け群ロボット", summary: "群ロボットと演者や観客との協調動作が生む新たなステージ体験", theme: "Creative Entertainment Vision の実現を目指す技術"},
-        {id: "No.04", title: "Creation with Search, Generation and Separation", summary: "映像、音、テキストを用いた直感的なアセット検索・効果音生成・音源分離", theme: "Creative Entertainment Vision の実現を目指す技術"},
-        {id: "No.05", title: "4D Capture Technology", summary: "シングルカメラで動きも形状もリアルに撮影", theme: "Creative Entertainment Vision の実現を目指す技術"},
-        {id: "No.06", title: "Interactive Music UX for Performers", summary: "アーティストやダンサーなど多様なパフォーマーのためのインタラクティブな演奏・鑑賞体験のための技術", theme: "Creative Entertainment Vision の実現を目指す技術"},
-        {id: "No.07", title: "Creator Economy", summary: "ブロックチェーンが高める作品の価値", theme: "Creative Entertainment Vision の実現を目指す技術"},
-        {id: "No.08", title: "Emotion Estimation", summary: "脳波による情動推定でコンテンツ体験中のユーザー反応を評価", theme: "Creative Entertainment Vision の実現を目指す技術"},
-        {id: "No.09", title: "Electric Stabilizer Cam", summary: "迫力の主観視点をリアルタイム伝送", theme: "Creative Entertainment Vision の実現を目指す技術"},
-        {id: "No.10", title: "Immersive Music Hapitcs Chair", summary: "身体が楽器となり、音楽と一体化する新体験", theme: "Creative Entertainment Vision の実現を目指す技術"},
-        {id: "No.11", title: "Sony Bank CONNECT 2025", summary: "デジタル資産の所有による新たな体験と価値", theme: "Creative Entertainment Vision の実現を目指す技術"},
-        {id: "No.12", title: "Wwise Similar Sound Search", summary: "大規模オーディオコレクションから目的とする音源を直感的に検索", theme: "Creative Entertainment Vision の実現を目指す技術"},
-        {id: "No.13", title: "Sensory Re:Fusion for LBE", summary: "視覚、聴覚、嗅覚、触覚を刺激する没入型体験", theme: "Creative Entertainment Vision の実現を目指す技術"},
-        {id: "No.14", title: "Beyond HDR", summary: "リアルな光の煌めきを映し出す", theme: "Creative Entertainment Vision の実現を目指す技術"},
-        {id: "No.15", title: "Advanced Super Resolution", summary: "あらゆるコンテンツを超解像で鮮明に", theme: "Creative Entertainment Vision の実現を目指す技術"},
-        {id: "No.16", title: "Feel So Music", summary: "音楽に触れる驚きが、心震わせる", theme: "Creative Entertainment Vision の実現を目指す技術"},
-        {id: "No.17", title: "Virtual Theater + 360 Virtual Mixing Environment (360VME)", summary: "シアターの音と画をリモート環境で再現。高精度な空間音響確認作業がいつでも可能に。", theme: "Creative Entertainment Vision の実現を目指す技術"},
-        {id: "No.18", title: "Location Based Entertainment SDK", summary: "デバイス装着不要のインタラクティブな没入体験", theme: "Creative Entertainment Vision の実現を目指す技術"},
-        {id: "No.18 PCL", title: "多感覚イマーシブ体験、LBE SDK、VR", summary: "ソニーの多感覚技術（映像・音響・触覚・におい・風）を統合して構築した、五感で感じる没入型XR体験。", theme: "Creative Entertainment Vision の実現を目指す技術"},
-        {id: "No.19", title: "音のXR体験", summary: "インタラクティブゲームサウンドエンジンでつくる立体音響ソリューション", theme: "Creative Entertainment Vision の実現を目指す技術"},
-        {id: "E-01", title: "Gaze-based user-content interaction", summary: "視線情報に基づいた、ユーザーとコンテンツの新しいインタラクション", theme: "Creative Entertainment Vision の実現を目指す技術"},
-        {id: "E-02", title: "AIコメンタリー生成", summary: "実況・解説・速報・記事を自動生成し、データを即座にコンテンツ化", theme: "Creative Entertainment Vision の実現を目指す技術"},
-        {id: "E-03", title: "Sports Fan Engagement", summary: "スポーツIPを活用した新たなファンエンゲージメントサービス", theme: "Creative Entertainment Vision の実現を目指す技術"},
-        {id: "E-04", title: "PRISM", summary: "AI-powered suite for creating digital artifacts like descriptions, subtitles, videos & images enhancing content discovery", theme: "Creative Entertainment Vision の実現を目指す技術"},
-        {id: "E-05", title: "On-set VFX Creation", summary: "空間センシング（デプスセンシング・カメラトラッキング）でVFX映像制作クリエーションを加速", theme: "Creative Entertainment Vision の実現を目指す技術"},
-        {id: "E-06", title: "Force & Touch LBE", summary: "自在な力提示×力触覚センシングで、LBEに新しい体験を創出", theme: "Creative Entertainment Vision の実現を目指す技術"},
-        {id: "E-07", title: "実世界行動支援プラットフォーム", summary: "行動履歴・空間情報と連携したAIによりコンテンツ制作や日常行動をリアルタイムに支援", theme: "Creative Entertainment Vision の実現を目指す技術"},
-        {id: "E-08", title: "MIMoSA", summary: "AIが作業効率を高め、クリエイターが創造的な制作に没頭できる3DCG映像制作ツール", theme: "Creative Entertainment Vision の実現を目指す技術"},
-        {id: "E-09", title: "3D ハプティック デバイス", summary: "3D仮想オブジェクトに直接インタラクションするハプティックシミュレーター", theme: "多様な事業の成長を実現する技術"},
-        {id: "E-10", title: "Podcast Video Studio", summary: "Low-cost Podcast Video Studio solution for Sony Alpha/Cinema-Line/SDK cameras", theme: "Creative Entertainment Vision の実現を目指す技術"},
-        {id: "E-11", title: "Tanuki: Robotic Craftsman’s Assistant", summary: "Scalable End-effector Platform for Fine Manipulation in Craftsmanship", theme: "Creative Entertainment Vision の実現を目指す技術"},
-        {id: "E-12", title: "In-Camera Apps", summary: "撮影現場を「制約との戦い」から開放し「純粋なクリエイティブワーク」に変革する", theme: "多様な事業の成長を実現する技術"},
-        {id: "E-13", title: "Immersive 3D experience for multiple viewers", summary: "安価で軽量な偏光メガネをかけるだけで複数人での高品位な3D映像体験を可能にする技術", theme: "多様な事業の成長を実現する技術"},
-        {id: "E-14", title: "Reimagine. Reinvent. Recreate—with AI", summary: "DeepTech solution for entertainment business helps creators & marketers craft localized content", theme: "Creative Entertainment Vision の実現を目指す技術"},
-        {id: "E-15", title: "Creative Agent Hub", summary: "あなたも今日からクリエイター！エッジデバイスに話しかけるだけで様々な機器を制御できるAIフレームワーク技術", theme: "Creative Entertainment Vision の実現を目指す技術"},
-        {id: "E-16", title: "Sony Financial Group × Technologies", summary: "ソニーフィナンシャルグループの成長を支援する技術群", theme: "多様な事業の成長を実現する技術"},
-        {id: "E-17", title: "CATSeye", summary: "A precision sensor for verifying playback fidelity of multimedia on physical displays.", theme: "Creative Entertainment Vision の実現を目指す技術"},
-        {id: "E-18", title: "光学シースルーARグラス向け超低遅延6DoFヘッドトラッキング", summary: "センサとディスプレイを連動させ超低遅延で高精度な6DoFヘッドトラッキングエコシステムを構築", theme: "Creative Entertainment Vision の実現を目指す技術"},
-        {id: "E-19", title: "キャプチャからクリエーション迄sVisionが実現する世界", summary: "sVisionによるキャプチャからクリエーション迄のオールインワンコンテンツクリエーション", theme: "Creative Entertainment Vision の実現を目指す技術"},
-        {id: "E-20", title: "One Shot LOFIC Vision", summary: "世界最小画素で、あらゆるシーンを1回の撮影で映し出すHDRセンサー技術", theme: "Creative Entertainment Vision の実現を目指す技術"},
-        {id: "E-21", title: "4D イマーシブコンテンツクリエーション", summary: "先端AIによるフォトリアルな3DCGと物理シミュレーションが融合する未来の4Dコンテンツ制作技術", theme: "Creative Entertainment Vision の実現を目指す技術"},
-        {id: "FO-01", title: "Location-based Digital-Twin World", summary: "位置センシング技術を用いたエンタメ空間の3D可視化とAIエージェントによるフィードバック", theme: "Creative Entertainment Vision の実現を目指す技術"},
-        {id: "FO-02", title: "Origanoid：オリガノイド", summary: "数ミクロン精度の精密操作ができる手のひらサイズな次世代医療用の折り紙ロボット技術", theme: "多様な事業の成長を実現する技術"},
-        {id: "FO-03", title: "AIロボティクスを用いたエンタメフィットネスソリューション", summary: "ユーザーの動きとバーチャルな演出に合わせ、リアルタイムに物理負荷を制御するAIロボティクスシステム", theme: "多様な事業の成長を実現する技術"},
-        {id: "G-01", title: "AI Gameplay Helper", summary: "ゲームプレイにおける困りごとを解決するAI Agentを実現する技術", theme: "Creative Entertainment Vision の実現を目指す技術"},
-        {id: "G-02", title: "Gen-NSA", summary: "AI-based video processing system that enhances video streaming quality for cloud gaming", theme: "Creative Entertainment Vision の実現を目指す技術"},
-        {id: "G-03", title: "Autonomous Agents", summary: "Autonomous agents that learn to master gameplay through machine learning", theme: "多様な事業の成長を実現する技術"},
-        {id: "G-04", title: "Peregrine", summary: "Impossibly fast high-quality texture compression for videogames and real-time graphics", theme: "Creative Entertainment Vision の実現を目指す技術"},
-        {id: "G-05", title: "True 3D Holo", summary: "デジタルコンテンツが現実世界と融合できて、裸眼で見える、高精細ホログラム映像", theme: "Creative Entertainment Vision の実現を目指す技術"},
-        {id: "G-06", title: "VolumetricShot", summary: "2Dスクリーンショットを3Dに進化させ、あとから追体験できるキャプチャ技術", theme: "Creative Entertainment Vision の実現を目指す技術"},
-        {id: "G-07", title: "FanEngage AI Agent", summary: "マーケティング・顧客理解・分析 — ファン・エンゲージメントを実現するAI Agent技術", theme: "多様な事業の成長を実現する技術"},
-        {id: "I-01", title: "Gaze Control System", summary: "高速移動物体にズームイン、追従し続けるカメラシステムと、そのスポーツへの応用", theme: "Creative Entertainment Vision の実現を目指す技術"},
-        {id: "I-02", title: "Vision AI Unplugged", summary: "Battery powered camera with edge AI to detect office occupancy", theme: "多様な事業の成長を実現する技術"},
-        {id: "I-03", title: "Twin Lib & Scan-to-Plan SW platforms", summary: "Platform to transform Manually and with AI any 3D Scanned Point-Cloud data into a 2D Floorplan", theme: "多様な事業の成長を実現する技術"},
-        {id: "I-04", title: "Fregata", summary: "モバイル/XRデバイスの自律制御により快適なユーザー体験を提供する、超低電力AI認識イメージセンサ", theme: "Creative Entertainment Vision の実現を目指す技術"},
-        {id: "I-05", title: "RoboOps Next as Data Platform", summary: "Our DataOps platform makes it easy to collect RGB‑D data and annotate it semi‑automatically.", theme: "多様な事業の成長を実現する技術"},
-        {id: "I-06", title: "Vision for All", summary: "Showcasing smart edge-cloud Vision AI tools that democratize capabilities for all user", theme: "多様な事業の成長を実現する技術"},
-        {id: "I-07", title: "RGB Saving lives", summary: "SONY RGB sensor pre certified for Industrial Functional Safety", theme: "多様な事業の成長を実現する技術"},
-        {id: "I-08", title: "Sense Anytime", summary: "AI-based Imaging & Sensing pipeline optimization", theme: "多様な事業の成長を実現する技術"},
-        {id: "M-01", title: "インタラクティブAIアーティスト", summary: "観客の反応にリアルタイムで応答する自律型AIアーティスト音楽ライブ", theme: "Creative Entertainment Vision の実現を目指す技術"},
-        {id: "M-02", title: "コンテンツセキュリティ / ウォーターマーク", summary: "コンテンツ不正流出・利用の被害からエンタメ事業を護るセキュリティ技術", theme: "Creative Entertainment Vision の実現を目指す技術"},
-        {id: "M-03", title: "リアルとバーチャルの境界を超える音", summary: "聴覚と情動のメカニズムを解明しクリエイションに貢献する電戦音質WG活動", theme: "Creative Entertainment Vision の実現を目指す技術"},
-        {id: "M-04", title: "3D サラウンド パンナー", summary: "PS5コントローラーを用いた3Dサラウンドパンナーシステム", theme: "Creative Entertainment Vision の実現を目指す技術"},
-        {id: "M-05", title: "AI Ethics", summary: "Gen AI Toolkit, Prompt Probe, FHIBE (Ethical risks, IP infringement, bias checks)", theme: "多様な事業の成長を実現する技術"},
-        {id: "P-01", title: "AI Translation & Dubbing", summary: "AI-powered automatic Dubbing & Other Entertainment technology", theme: "Creative Entertainment Vision の実現を目指す技術"},
-        {id: "P-02", title: "ACE", summary: "アニメで「いつ」「誰が」「何を」話しているかを自動で推定する技術", theme: "Creative Entertainment Vision の実現を目指す技術"},
-        {id: "P-03", title: "マルチレイヤーモノポールシンセシス", summary: "卓越した空間表現力を可能にするレイヤー構造を持つ音響信号処理技術", theme: "Creative Entertainment Vision の実現を目指す技術"},
-        {id: "P-04", title: "AIDE for Content", summary: "AIを活用したストーリーライン強化や、長編ビデオからの短編動画自動作成", theme: "多様な事業の成長を実現する技術"},
-        {id: "P-05", title: "デジタルツインクリエイション", summary: "リアルとフィクションをつなぐ3Dワールド生成技術", theme: "Creative Entertainment Vision の実現を目指す技術"},
-        {id: "P-06", title: "AutoDailies", summary: "Automate sync and color tasks, empowering teams to deliver faster dailies for film & TV", theme: "Creative Entertainment Vision の実現を目指す技術"},
-        {id: "P-07", title: "Micro-budget Diffusion Model", summary: "Text-to-image diffusion model MicroDiT with 14x lower cost", theme: "Creative Entertainment Vision の実現を目指す技術"},
-        {id: "Online", title: "DaVinci", summary: "Compact RGB-D system specifically designed for XR glasses integrating RGB, dToF and intelligence", theme: "Creative Entertainment Vision の実現を目指す技術"},
-        {id: "Online", title: "Lag Less Streaming", summary: "生成AIを用いてクラウドゲーミングのレイテンシ補償を行う技術", theme: "Creative Entertainment Vision の実現を目指す技術"},
-        {id: "Online", title: "Lillian Tactile VR", summary: "Explore real surface interaction in VR using depthsensing", theme: "Creative Entertainment Vision の実現を目指す技術"},
-        {id: "Online", title: "コンテンツ制作を支えるプロ用音響機器のものづくりの進化", summary: "様々な特性を持つ社員が活躍できる現場を実現する機能補完技術", theme: "多様な事業の成長を実現する技術"},
-        {id: "Online", title: "Dynamic Retrieval Augmented Generation", summary: "Open-source vector database enabling multi-modal AI search with simple UI and APIs", theme: "多様な事業の成長を実現する技術"},
-        {id: "Online", title: "Digital Manga", summary: "Embeds invisible watermark to protect and track static content", theme: "Creative Entertainment Vision の実現を目指す技術"},
-        {id: "Online", title: "Similarity Search", summary: "Natural language search tool for visual and audio assets using vector index", theme: "Creative Entertainment Vision の実現を目指す技術"},
-        {id: "Online", title: "Project Orochi", summary: "A new flexible transmedia real-time technology platform", theme: "Creative Entertainment Vision の実現を目指す技術"},
-        {id: "Online", title: "TWS向けノイズキャンセル進化", summary: "TWS向けの適応型ノイズキャンセリングによる個人最適化", theme: "多様な事業の成長を実現する技術"},
-        {id: "Online＆Poster", title: "アクチュエーターと触覚技術", summary: "複数技術領域に跨る統合的なメカトロニクス設計で実現するアクチュエーター技術と触覚技術", theme: "Creative Entertainment Vision の実現を目指す技術"},
-        {id: "Online＆Poster", title: "Eyeris", summary: "イメージセンサ設計を加速させる光学シミュレーションプラットフォーム", theme: "多様な事業の成長を実現する技術"},
-        {id: "Online＆Poster", title: "ATHENA", summary: "XRリアルタイムVFX ～シネマカメラシステム・立体音響を活用した空間映像制作ワークフロー～", theme: "Creative Entertainment Vision の実現を目指す技術"},
-        {id: "Online＆Poster", title: "RecSys for SEP", summary: "Beyond traditional recommenders: solve cold starts, de-risk model updates", theme: "Creative Entertainment Vision の実現を目指す技術"},
-        {id: "Online＆Poster", title: "EMIフリーアーキテクチャ", summary: "追加部品不要！世界が認めるICでのEMI対策技術", theme: "多様な事業の成長を実現する技術"},
-        {id: "Online＆Poster", title: "業界最高水準の特性を持つGSイメージセンサ", summary: "動きも細部も、正確に鮮やかに捉えるイメージセンサ技術", theme: "多様な事業の成長を実現する技術"},
-        {id: "Online＆Poster", title: "インキャビンRGB → NIR AIモデル", summary: "IMX775 RGB/NIR センサによる車内タスクのためのRGB→近赤外線AIモデル", theme: "多様な事業の成長を実現する技術"},
-        {id: "Online＆Poster", title: "RGB-D キャプチャツール", summary: "実世界データセットを作成するためのモバイルRGB-Dキャプチャツールと手順", theme: "Creative Entertainment Vision の実現を目指す技術"},
-        {id: "Online＆Poster", title: "プログラマブルLiDAR", summary: "測距仕様を自由に可変でき、多種多様な用途や製品に柔軟に対応できる画期的なLiDAR", theme: "多様な事業の成長を実現する技術"},
-        {id: "Online＆Poster", title: "Climate Station", summary: "Immersive climate education through interactive storytelling", theme: "Creative Entertainment Vision の実現を目指す技術"},
-        {id: "Online＆Poster", title: "Sony Human Initiative", summary: "Framework of tools designed to streamline & define the next generation of character creation", theme: "Creative Entertainment Vision の実現を目指す技術"},
-        {id: "Online＆Poster", title: "超汎用IoTシステム", summary: "モニタ画像を利用し装置情報のデジタル化/人作業の自動記録/自動操作を行うIoTシステム", theme: "多様な事業の成長を実現する技術"},
-        {id: "Online＆Poster", title: "Watch Me Play", summary: "Playtainment-Bringing Game contents on to OTT platforms", theme: "多様な事業の成長を実現する技術"},
-        {id: "Online＆Poster", title: "生成AIによるソフトウエア単体テスト自動生成システム", summary: "手直し不要の単体テスト自動生成システムでソフトウエアエンジニアの付帯作業を削減", theme: "多様な事業の成長を実現する技術"},
-        {id: "Online＆Poster", title: "デジタルツインラーニング", summary: "実世界と仮想環境を活用することで、自動運転AIなどのPhysical AI開発の効率改善と性能向上を実現する技術", theme: "多様な事業の成長を実現する技術"},
-        {id: "Online＆Poster", title: "Sense beyond", summary: "距離だけでなく速度・振動などの動きをセンシング可能にする新たなソリューション", theme: "Creative Entertainment Vision の実現を目指す技術"},
-        {id: "Online＆Poster", title: "Face Image Enhancement", summary: "Advance
+    // ▼ システムロジック ▼
+    const STORAGE_
