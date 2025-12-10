@@ -39,7 +39,6 @@
             font-weight: bold;
         }
         .btn-csv { background-color: #28a745; color: white; }
-        .btn-reset { background-color: #dc3545; color: white; }
         button:hover { opacity: 0.9; }
 
         /* テーブル設定 */
@@ -109,8 +108,7 @@
     
     <div class="toolbar">
         <button class="btn-csv" onclick="downloadCSV()">CSV保存 (Excel用)</button>
-        <button class="btn-reset" onclick="resetData()">全データリセット</button>
-    </div>
+        </div>
 
     <div class="table-wrapper">
         <table id="mainTable">
@@ -322,15 +320,6 @@
         a.href = url;
         a.download = 'stef_memo.csv';
         a.click();
-    };
-
-    // リセット
-    window.resetData = function() {
-        if(confirm("入力した内容をすべて消去しますか？")) {
-            localStorage.removeItem(STORAGE_KEY);
-            userState = {};
-            init();
-        }
     };
 
     // 起動
