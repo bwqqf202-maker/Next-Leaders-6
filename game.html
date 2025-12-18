@@ -426,4 +426,376 @@
             const lastTriggerRefs = useRef({ 5:0, 8:0, 11:0, 14:0 });
             const animRef = useRef(null);
             const timerRef = useRef(null);
-        
+            const demoTimerRef = useRef(0);
+            const scoreRef = useRef(0);
+            const idleTimer = useRef(0);
+            const userImgRef = useRef(null);
+            const lastTalkTime = useRef(0);
+
+            useEffect(() => { voice.init(); }, []);
+
+            const initPhysics = () => {
+                const sy = FLOOR_Y - 200;
+                const S = 1.2;
+                const p = (x,y,z,r) => ({ x:x*S, y:y, z:z*S, ox:x*S, oy:y, oz:z*S, dx:x*S, dy:y, dz:z*S, r:r*S, speed:0 });
+                points.current = [
+                    p(0, sy-90, 0, 25), p(0, sy-60, 0, 18), p(0, sy, 0, 22), 
+                    p(-40, sy-60, 0, 12), p(-45, sy-10, 10, 10), p(-50, sy+40, 20, 12), 
+                    p(40, sy-60, 0, 12), p(45, sy-10, 10, 10), p(50, sy+40, 20, 12), 
+                    p(-20, sy, 0, 14), p(-25, sy+70, 10, 12), p(-30, sy+140, 20, 14), 
+                    p(20, sy, 0, 14), p(25, sy+70, 10, 12), p(30, sy+140, 20, 14) 
+                ];
+                defPos.current = JSON.parse(JSON.stringify(points.current));
+                const c = (a,b) => ({ a, b, len: Math.hypot(points.current[a].x-points.current[b].x, points.current[a].y-points.current[b].y, points.current[a].z-points.current[b].z) });
+                sticks.current = [ c(0,1), c(1,2), c(1,3), c(3,4), c(4,5), c(1,6), c(6,7), c(7,8), c(2,9), c(9,10), c(10,11), c(2,12), c(12,13), c(13,14), c(3,6), c(9,12), c(3,2), c(6,2) ];
+            };
+
+            const talk = (text) => {
+                setBubble(text);
+                voice.speak(text, voicePitch, voiceRate);
+                setTimeout(() => setBubble(null), 2500);
+            };
+
+            const randomTalk = (type) => {
+                const msgs = {
+                    idle: ["ねえ、止まってるよ？", "休憩中？", "じーっ……", "体がなまっちゃうよ〜", "リズムに乗りたいな！"],
+                    action: ["それっ！", "ほいっ！", "いい感じ！", "楽しいね！", "ヒュー！"],
+                    highScore: ["すごいすごい！", "天才かも！", "最高！", "キレてるね！"]
+                };
+                const list = msgs[type] || [];
+                talk(list[Math.floor(Math.random() * list.length)]);
+            };
+
+            const startGame = () => {
+                try {
+                    audio.init();
+                    audio.setInstrument(instrument);
+                    audio.start(MODES[mode].bgm);
+                    
+                    if (mode === 'DEMO') {
+                        audio.onBeat = (beat) => {
+                            if (Math.random() < 0.3) {
+                                const acts = ACTIONS.map(a=>a.id);
+                                doAction(acts[Math.floor(Math.random()*acts.length)]);
+                            } else {
+                                if(points.current[0]) points.current[0].y += 10;
+                            }
+                        };
+                    } else audio.onBeat = null;
+
+                    initPhysics();
+                    scoreRef.current = 0; 
+                    setScore(0);
+                    setTimeLeft(60);
+                    setState('GAME');
+                    talk(customGreeting);
+                    idleTimer.current = 0;
+
+                    if(timerRef.current) clearInterval(timerRef.current);
+                    timerRef.current = setInterval(() => {
+                        setTimeLeft(prev => {
+                            if (prev <= 1) {
+                                finishGame();
+                                return 0;
+                            }
+                            return prev - 1;
+                        });
+                    }, 1000);
+
+                } catch(e) { console.error(e); }
+            };
+
+            const finishGame = () => {
+                clearInterval(timerRef.current);
+                audio.stop();
+                setState('RESULT');
+                const s = scoreRef.current;
+                let rank = 'C'; if (s > 5000) rank = 'B'; if (s > 10000) rank = 'A'; if (s > 20000) rank = 'S';
+                setFinalResult({ score: s, rank });
+                talk(rank === 'S' ? "最高のパフォーマンス！" : "お疲れ様！また踊ろうね！");
+            };
+
+            const doAction = (id) => {
+                action.current = { id, f: 0 };
+                const words = id === 'JUMP' ? ["JUMP!", "Higher!"] : id === 'KICK' ? ["KICK!", "HYAH!"] : ["YEAH!", "Hello!"];
+                talk(words[Math.floor(Math.random()*words.length)]);
+                idleTimer.current = 0;
+            };
+
+            const handleFile = (e) => {
+                const f = e.target.files[0];
+                if(!f) return;
+                const r = new FileReader();
+                r.onload = (v) => {
+                    const i = new Image(); i.src = v.target.result;
+                    i.onload = () => { setUserImg(i); userImgRef.current = i; talk("着替えたよ！"); };
+                };
+                r.readAsDataURL(f);
+            };
+
+            const testVoice = () => {
+                talk("テストです！聞こえますか？");
+            };
+
+            const loop = useCallback(() => {
+                const pts = points.current;
+                const stk = sticks.current;
+                const inp = inputs.current;
+                const def = defPos.current;
+
+                if (!pts || pts.length === 0) {
+                    animRef.current = requestAnimationFrame(loop);
+                    return;
+                }
+
+                let isUserActive = Object.values(inp).some(v => Math.abs(v.x) > 0 || Math.abs(v.y) > 0);
+                if (!isUserActive && !action.current && mode !== 'DEMO') {
+                    idleTimer.current++;
+                    if (idleTimer.current === 300 || idleTimer.current === 600) randomTalk('idle');
+                } else {
+                    idleTimer.current = 0;
+                    const now = Date.now();
+                    if (now - lastTalkTime.current > 3000 && Math.random() < 0.01 && !voice.speaking) {
+                         randomTalk('action');
+                         lastTalkTime.current = now;
+                    }
+                }
+
+                const apply = (idx, vec) => {
+                    if (Math.abs(vec.x) > 0.01 || Math.abs(vec.y) > 0.01) {
+                        const p = pts[idx]; if(p) { p.x += vec.x * 25; p.y += vec.y * 25; p.z += Math.abs(vec.y) * 8; }
+                    }
+                };
+                if (mode === 'DEMO') {
+                    demoTimerRef.current++;
+                    if (!action.current) { pts[5].x += Math.sin(Date.now()*0.005)*5; pts[8].x -= Math.sin(Date.now()*0.005)*5; }
+                } else if (!action.current) {
+                    apply(5, inp.LH); apply(8, inp.RH); apply(11, inp.LF); apply(14, inp.RF);
+                }
+
+                if (action.current) {
+                    const { id, f } = action.current;
+                    action.current.f++;
+                    if (id === 'JUMP') { if(f===1) pts.forEach(p=>p.oy = p.y + 50); if(f<20) { pts[11].y-=15; pts[14].y-=15; } if(f>40) action.current = null; }
+                    else if (id === 'KICK') { if(f<15) { pts[14].y-=20; pts[14].z+=15; pts[2].x-=5; } if(f>30) action.current = null; }
+                    else if (id === 'WAVE') { const w = Math.sin(f*0.2)*100; pts[5].x = -150+w; pts[5].y = -120; pts[8].x = 150+w; pts[8].y = -120; if(f>60) action.current = null; }
+                    else if (id === 'BOW') { if(f<20) { pts[1].y+=8; pts[1].z+=15; pts[0].y+=12; pts[0].z+=20; } if(f>50) action.current = null; }
+                }
+
+                let frameScore = 0;
+                pts.forEach((p, i) => {
+                    let vx = (p.x - p.ox) * FRICTION; let vy = (p.y - p.oy) * FRICTION; let vz = (p.z - p.oz) * FRICTION;
+                    const speed = Math.sqrt(vx*vx + vy*vy + vz*vz);
+                    if (speed > MAX_VELOCITY) { const s = MAX_VELOCITY/speed; vx*=s; vy*=s; vz*=s; }
+                    p.speed = speed;
+                    if (speed > 8 && [5,8,11,14].includes(i)) {
+                        const now = Date.now();
+                        if (now - lastTriggerRefs.current[i] > 150) {
+                            audio.triggerSound(speed, p.y);
+                            lastTriggerRefs.current[i] = now;
+                            const val = Math.floor(speed * 10);
+                            frameScore += val;
+                            particles.spawn(p.x + 400, p.y + 300, INSTRUMENTS[instrument].hex, 1);
+                            if (speed > 25) {
+                                floatingTexts.spawn(p.x + 400, p.y + 300 - 50, "NICE!", INSTRUMENTS[instrument].hex, 30);
+                                if(Math.random() < 0.1 && !voice.speaking) randomTalk('highScore');
+                            }
+                        }
+                    }
+                    p.ox = p.x; p.oy = p.y; p.oz = p.z;
+                    p.x += vx; p.y += vy + GRAVITY; p.z += vz;
+                    if (!Number.isFinite(p.x)) { if(def[i]) { p.x=p.ox=def[i].dx; p.y=p.oy=def[i].dy; p.z=p.oz=def[i].dz; } else { p.x=p.ox=0; p.y=p.oy=0; p.z=p.oz=0; } }
+                    const isActive = [5,8,11,14].includes(i) && (Math.abs(Object.values(inp)[ [5,8,11,14].indexOf(i) ].x) > 0);
+                    if (i === 0) { const hip = pts[2]; p.y += ((hip.y - 120) - p.y) * 0.2; p.x += (hip.x - p.x) * 0.1; p.z += (hip.z - p.z) * 0.1; }
+                    if (i === 2) { p.y += ((FLOOR_Y - 180) - p.y) * 0.1; p.x *= 0.95; p.z *= 0.95; }
+                    if ((i===11 || i===14) && !isActive && !action.current) { if (p.y > FLOOR_Y - 15) { p.y = FLOOR_Y; p.x = p.ox; p.z = p.oz; } }
+                    if (p.y > FLOOR_Y) { p.y = FLOOR_Y; p.oy = p.y; p.x *= 0.8; p.z *= 0.8; }
+                });
+
+                if (frameScore > 0) {
+                    scoreRef.current += frameScore;
+                    setScore(scoreRef.current);
+                    if (frameScore > 300) { setScoreClass('rainbow-text shake'); setTimeout(() => setScoreClass(''), 500); }
+                    else { setScoreClass('score-pop'); setTimeout(() => setScoreClass(''), 100); }
+                }
+
+                for(let k=0; k<ITERATIONS; k++) {
+                    sticks.current.forEach(s => {
+                        const p1 = pts[s.a], p2 = pts[s.b];
+                        if(!p1 || !p2) return;
+                        const dx = p1.x - p2.x, dy = p1.y - p2.y, dz = p1.z - p2.z;
+                        const d = Math.sqrt(dx*dx + dy*dy + dz*dz);
+                        if (d <= 0.001 || !Number.isFinite(d)) return;
+                        const diff = (s.len - d) / d * 0.5 * STIFFNESS;
+                        const ox = dx * diff, oy = dy * diff, oz = dz * diff;
+                        if(Number.isFinite(ox)) { p1.x += ox; p1.y += oy; p1.z += oz; p2.x -= ox; p2.y -= oy; p2.z -= oz; }
+                    });
+                }
+
+                if (canvasRef.current) {
+                    const ctx = canvasRef.current.getContext('2d');
+                    if(ctx) {
+                        ctx.clearRect(0,0, 800, 600); 
+                        const proj = (p) => {
+                            const zSafe = Math.max(-500, p.z); const scale = 1000 / (1000 + zSafe + 400); 
+                            return { x: p.x * scale + 400, y: p.y * scale + 300, r: p.r * scale };
+                        };
+                        const pp = pts.map((p, i) => {
+                            const pr = proj(p);
+                            if (!Number.isFinite(pr.x)) return {x:400, y:300, r:10};
+                            if (i === 0) { pr.lookX = p.x * 0.1; pr.lookY = p.y * 0.1; }
+                            return pr;
+                        });
+                        ctx.fillStyle = 'rgba(0,0,0,0.3)'; ctx.beginPath(); ctx.ellipse(400, FLOOR_Y * 0.8 + 320, 200, 50, 0, 0, Math.PI*2); ctx.fill();
+                        const limb = (a, b, col, w) => {
+                            if(!pp[a] || !pp[b]) return;
+                            ctx.strokeStyle = col; ctx.lineWidth = w * pp[a].r * 0.12; ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+                            ctx.beginPath(); ctx.moveTo(pp[a].x, pp[a].y); ctx.lineTo(pp[b].x, pp[b].y); ctx.stroke();
+                        };
+                        const COL_LEFT = '#22d3ee', COL_RIGHT = '#e879f9', COL_BODY = '#334155', COL_SKIN = '#fcd';
+                        limb(9,10, COL_LEFT, 10); limb(10,11, COL_LEFT, 8); limb(3,4, COL_LEFT, 9); limb(4,5, COL_SKIN, 7); limb(1,2, COL_BODY, 20);
+                        const h = pp[0];
+                        if(h) {
+                            if (userImgRef.current) {
+                                ctx.save(); ctx.beginPath(); ctx.arc(h.x, h.y, h.r*1.5, 0, Math.PI*2); ctx.clip();
+                                ctx.drawImage(userImgRef.current, h.x-h.r*1.5, h.y-h.r*1.5, h.r*3, h.r*3); ctx.restore();
+                            } else {
+                                ctx.fillStyle = COL_SKIN; ctx.beginPath(); ctx.arc(h.x, h.y, h.r, 0, Math.PI*2); ctx.fill();
+                                ctx.fillStyle = '#333'; const lx = h.lookX || 0; const ly = h.lookY || 0;
+                                ctx.beginPath(); ctx.arc(h.x-h.r*0.3 + lx, h.y + ly, h.r*0.15, 0, Math.PI*2); ctx.fill();
+                                ctx.beginPath(); ctx.arc(h.x+h.r*0.3 + lx, h.y + ly, h.r*0.15, 0, Math.PI*2); ctx.fill();
+                                ctx.beginPath(); ctx.arc(h.x + lx, h.y+h.r*0.3 + ly, h.r*0.2, 0, Math.PI); ctx.fill();
+                            }
+                        }
+                        limb(12,13, COL_RIGHT, 10); limb(13,14, COL_RIGHT, 8); limb(6,7, COL_RIGHT, 9); limb(7,8, COL_SKIN, 7);
+                        particles.update(); particles.draw(ctx); floatingTexts.update(); floatingTexts.draw(ctx);
+                    }
+                }
+                animRef.current = requestAnimationFrame(loop);
+            }, [state]);
+
+            useEffect(() => {
+                animRef.current = requestAnimationFrame(loop);
+                return () => cancelAnimationFrame(animRef.current);
+            }, [loop]);
+
+            return (
+                <div className="w-full h-screen relative overflow-hidden">
+                    <div className="cyber-grid"></div>
+                    {state === 'GAME' && (
+                        <>
+                            <div className="absolute top-0 left-0 w-full p-4 flex justify-between items-start pointer-events-none z-10">
+                                <div className="w-1/3">
+                                    <div className="text-xs text-cyan-400 font-bold">TIME</div>
+                                    <div className={`text-4xl font-black cyber-font ${timeLeft<10 ? 'text-red-500 animate-pulse' : 'text-white'}`}>{timeLeft}</div>
+                                </div>
+                                <div className="text-center">
+                                    <div className="text-xs text-yellow-400 font-bold">SCORE</div>
+                                    <div className={`text-4xl font-black cyber-font text-white transition-transform ${scoreClass}`}>{score}</div>
+                                </div>
+                                <div className="w-1/3 text-right">
+                                    <button onClick={finishGame} className="pointer-events-auto bg-red-500 text-xs px-4 py-2 rounded font-bold">FINISH</button>
+                                </div>
+                            </div>
+                            <div className="absolute inset-0 flex items-center justify-center">
+                                <canvas ref={canvasRef} width="800" height="600" className="w-full h-full object-contain pointer-events-none" />
+                                {bubble && (
+                                    <div className="bubble" style={{ left: '50%', top: '20%', transform: 'translate(-50%, -100%)' }}>
+                                        {userImg ? <img src={userImg.src} className="bubble-icon" alt="icon" /> : <div className="bubble-icon flex items-center justify-center bg-gray-200"><DefaultAvatar /></div>}
+                                        <span>{bubble}</span>
+                                    </div>
+                                )}
+                            </div>
+                            {mode !== 'DEMO' && (
+                                <>
+                                    <Stick label="L-HAND" align="TL" colorClass="text-cyan-400" onMove={(x,y) => inputs.current.LH = {x,y}} />
+                                    <Stick label="R-HAND" align="TR" colorClass="text-fuchsia-400" onMove={(x,y) => inputs.current.RH = {x,y}} />
+                                    <Stick label="L-FOOT" align="BL" colorClass="text-cyan-400" onMove={(x,y) => inputs.current.LF = {x,y}} />
+                                    <Stick label="R-FOOT" align="BR" colorClass="text-fuchsia-400" onMove={(x,y) => inputs.current.RF = {x,y}} />
+                                </>
+                            )}
+                            {(mode === 'EASY' || mode === 'DEMO') && (
+                                <div className="absolute bottom-8 left-1/2 -translate-x-1/2 flex gap-4 pointer-events-auto z-20">
+                                    {ACTIONS.map(a => (
+                                        <button key={a.id} onClick={() => doAction(a.id)} className="action-btn px-6 py-4 rounded-full font-black text-sm">{a.label}</button>
+                                    ))}
+                                </div>
+                            )}
+                        </>
+                    )}
+                    {state === 'TITLE' && (
+                        <div className="absolute inset-0 flex flex-col items-center justify-center z-50 bg-black/80 backdrop-blur-sm p-4">
+                            <h1 className="text-6xl md:text-8xl cyber-font text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-purple-500 mb-8 text-center leading-none">Behavior<br/>Soundscape</h1>
+                            <div className="bg-white/10 p-6 rounded-2xl border border-white/20 backdrop-blur w-full max-w-md mb-8 overflow-y-auto max-h-[60vh] settings-scroll flex flex-col gap-6">
+                                {/* Character Settings */}
+                                <div>
+                                    <div className="text-xs font-bold text-gray-400 mb-2">CHARACTER & VOICE</div>
+                                    <button onClick={() => fileRef.current.click()} className="w-full py-4 border-2 border-dashed border-gray-500 text-gray-300 rounded-xl hover:border-cyan-400 hover:text-cyan-400 transition flex items-center justify-center gap-2 mb-4">
+                                        {userImg ? <div className="flex items-center gap-2"><div className="w-8 h-8 rounded-full overflow-hidden border border-white"><img src={userImg.src} className="w-full h-full object-cover" /></div><span>画像設定済み</span></div> : <span>+ 顔写真をアップロード</span>}
+                                    </button>
+                                    <input ref={fileRef} type="file" accept="image/*" className="hidden" onChange={handleFile} />
+                                    
+                                    <div className="space-y-3 bg-black/20 p-3 rounded-lg">
+                                        <div>
+                                            <div className="text-xs text-gray-400 mb-1 flex justify-between"><span>GREETING</span></div>
+                                            <input type="text" value={customGreeting} onChange={(e) => setCustomGreeting(e.target.value)} className="w-full bg-gray-800 text-white px-2 py-1 rounded text-sm border border-gray-600" />
+                                        </div>
+                                        <div className="flex gap-2">
+                                            <div className="flex-1">
+                                                <div className="text-xs text-gray-400">PITCH</div>
+                                                <input type="range" min="0.5" max="2" step="0.1" value={voicePitch} onChange={(e) => setVoicePitch(parseFloat(e.target.value))} className="w-full accent-cyan-400" />
+                                            </div>
+                                            <div className="flex-1">
+                                                <div className="text-xs text-gray-400">SPEED</div>
+                                                <input type="range" min="0.5" max="2" step="0.1" value={voiceRate} onChange={(e) => setVoiceRate(parseFloat(e.target.value))} className="w-full accent-fuchsia-400" />
+                                            </div>
+                                        </div>
+                                        <button onClick={testVoice} className="w-full py-1 bg-gray-700 text-xs rounded hover:bg-gray-600">ボイス・テスト</button>
+                                    </div>
+                                </div>
+
+                                {/* Mode Settings */}
+                                <div>
+                                    <div className="text-xs font-bold text-gray-400 mb-2">MODE</div>
+                                    <div className="flex flex-col gap-2">
+                                        {Object.keys(MODES).map(m => (
+                                            <button key={m} onClick={() => {setMode(m); talk(m+"モード");}} className={`w-full py-3 rounded-xl border-2 text-sm font-bold transition flex justify-between px-4 ${mode===m ? 'bg-cyan-500/20 border-cyan-500 text-cyan-300' : 'border-gray-700 text-gray-400 hover:border-gray-500'}`}>
+                                                <span>{m}</span><span className="text-xs opacity-70 font-normal">{MODES[m].desc}</span>
+                                            </button>
+                                        ))}
+                                    </div>
+                                </div>
+                                
+                                {/* Sound Settings */}
+                                <div>
+                                    <div className="text-xs font-bold text-gray-400 mb-2">SOUND</div>
+                                    <div className="flex flex-col gap-2">
+                                        {Object.keys(INSTRUMENTS).map(i => (
+                                            <button key={i} onClick={() => {setInstrument(i); talk(INSTRUMENTS[i].label);}} className={`w-full py-3 rounded-xl border-2 text-sm font-bold transition flex justify-between px-4 ${instrument===i ? `${INSTRUMENTS[i].color} border-current bg-white/5` : 'border-gray-700 text-gray-400 hover:border-gray-500'}`}>
+                                                <span>{i}</span><span>{INSTRUMENTS[i].label}</span>
+                                            </button>
+                                        ))}
+                                    </div>
+                                </div>
+                            </div>
+                            <button onClick={startGame} className="px-16 py-6 bg-white text-black font-black text-2xl rounded-full hover:scale-105 transition shadow-[0_0_30px_rgba(255,255,255,0.5)] z-50">START LIVE</button>
+                        </div>
+                    )}
+                    {state === 'RESULT' && (
+                        <div className="absolute inset-0 flex flex-col items-center justify-center z-50 bg-black/90 backdrop-blur-md p-4 animate-fade-in">
+                            <h2 className="text-4xl md:text-6xl cyber-font text-white mb-4">SESSION COMPLETE</h2>
+                            <div className="text-xl text-gray-400 mb-8">TOTAL SCORE</div>
+                            <div className="text-8xl font-black text-transparent bg-clip-text bg-gradient-to-r from-yellow-400 to-red-500 mb-4 cyber-font">{finalResult.score}</div>
+                            <div className="text-6xl font-black text-white mb-12">RANK: <span className="text-cyan-400">{finalResult.rank}</span></div>
+                            <button onClick={() => setState('TITLE')} className="px-12 py-4 bg-white text-black font-bold rounded-full hover:bg-gray-200">BACK TO TITLE</button>
+                        </div>
+                    )}
+                </div>
+            );
+        }
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
+    </script>
+</body>
+</html>
