@@ -1,0 +1,651 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <title>Smart Air Piano (Fox Icon)</title>
+  <style>
+    /* ベーススタイル */
+    body { margin: 0; padding: 0; background: #000; overflow: hidden; font-family: 'Segoe UI', Helvetica, sans-serif; color: white; }
+    #container { position: relative; width: 100vw; height: 100vh; background: #000; }
+    
+    /* 映像とエフェクト */
+    video { position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover; transform: scaleX(-1); opacity: 0.7; }
+    canvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; transform: scaleX(-1); pointer-events: none; }
+    #effect_canvas { mix-blend-mode: screen; z-index: 2; }
+
+    /* ★ 狐モード切り替え時のアイコン演出 (復活) ★ */
+    #foxIndicator {
+      position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%) scale(0);
+      font-size: 80px; font-weight: 900; color: #ff4400; 
+      text-shadow: 0 0 50px #ffaa00, 0 0 20px #000;
+      pointer-events: none; z-index: 40; 
+      transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275), opacity 0.4s;
+      white-space: nowrap; text-align: center; opacity: 0;
+    }
+    #foxIndicator.show { transform: translate(-50%, -50%) scale(1); opacity: 1; }
+    .sub-text { font-size: 30px; display: block; margin-top: 0px; color: #fff; text-shadow: 0 0 10px #000; }
+
+    /* 狐モード切り替えゲージ (円) */
+    #foxGaugeContainer {
+      position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+      width: 200px; height: 200px; pointer-events: none; z-index: 25;
+      display: flex; justify-content: center; align-items: center; opacity: 0; transition: opacity 0.1s;
+    }
+    #foxGaugeSvg circle {
+      fill: none; stroke-width: 15; stroke-linecap: round;
+      transform: rotate(-90deg); transform-origin: 50% 50%;
+    }
+    #foxGaugeBg { stroke: rgba(255, 255, 255, 0.2); }
+    #foxGaugeBar { stroke: #ff4400; stroke-dasharray: 565; stroke-dashoffset: 565; transition: stroke-dashoffset 0.05s linear; }
+    .fox-label { position: absolute; font-size: 24px; font-weight: bold; color: #ff4400; text-shadow: 0 0 10px black; text-align: center; }
+
+    /* 応援テキスト演出 */
+    .cheer-text {
+      position: absolute; font-size: 60px; font-weight: 900; color: #fff;
+      text-shadow: 0 0 20px #ff00de, 3px 3px 0px #000;
+      pointer-events: none; z-index: 30;
+      animation: popUp 1s forwards; white-space: nowrap;
+    }
+    @keyframes popUp {
+      0% { transform: translate(-50%, -50%) scale(0) rotate(-10deg); opacity: 0; }
+      20% { transform: translate(-50%, -50%) scale(1.2) rotate(0deg); opacity: 1; }
+      100% { transform: translate(-50%, -150%) scale(1) rotate(5deg); opacity: 0; }
+    }
+
+    /* レイテンシ表示 */
+    #latencyBox {
+      position: absolute; top: 20px; left: 20px; z-index: 20;
+      font-family: monospace; font-size: 14px; color: #00ffcc;
+      background: rgba(0, 0, 0, 0.5); padding: 5px 10px; border-radius: 4px;
+      pointer-events: none; border: 1px solid rgba(0, 255, 204, 0.3);
+    }
+
+    /* コントロールパネル */
+    #controlPanel {
+      position: absolute; bottom: 30px; left: 50%; transform: translateX(-50%);
+      width: 95%; max-width: 850px;
+      background: rgba(20, 20, 20, 0.8);
+      backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px);
+      border: 1px solid rgba(255, 255, 255, 0.2); border-radius: 20px;
+      padding: 15px 20px;
+      display: flex; flex-wrap: wrap; justify-content: space-around; align-items: center; gap: 15px;
+      z-index: 20; box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+    }
+
+    .control-group { display: flex; flex-direction: column; gap: 5px; align-items: center; }
+    .label { font-size: 10px; color: #aaa; letter-spacing: 1px; font-weight: bold; text-transform: uppercase; }
+
+    /* UIパーツ */
+    select {
+      background: rgba(255,255,255,0.1); color: #fff; border: 1px solid rgba(255,255,255,0.3);
+      padding: 5px; border-radius: 6px; font-size: 13px; outline: none; cursor: pointer; width: 110px;
+    }
+    option { background: #222; }
+
+    input[type=range] { -webkit-appearance: none; width: 100px; height: 4px; background: rgba(255,255,255,0.3); border-radius: 2px; outline: none; cursor: pointer; }
+    input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; width: 14px; height: 14px; border-radius: 50%; background: #00ffcc; border: 2px solid rgba(0,0,0,0.5); }
+    .val-display { font-family: monospace; color: #00ffcc; font-weight: bold; font-size: 13px; width: 20px; text-align: right;}
+
+    .toggle-group { display: flex; gap: 8px; }
+    .toggle-btn {
+      background: transparent; border: 1px solid rgba(255,255,255,0.3); color: rgba(255,255,255,0.7);
+      padding: 6px 12px; border-radius: 15px; cursor: pointer; font-size: 11px; font-weight: bold;
+      transition: 0.3s; display: flex; align-items: center; gap: 5px; white-space: nowrap;
+    }
+    .toggle-btn.active {
+      background: rgba(0, 255, 204, 0.2); border-color: #00ffcc; color: #00ffcc;
+      box-shadow: 0 0 10px rgba(0, 255, 204, 0.4);
+    }
+    .indicator { width: 6px; height: 6px; border-radius: 50%; background: #555; transition: 0.3s; }
+    .toggle-btn.active .indicator { background: #00ffcc; box-shadow: 0 0 5px #00ffcc; }
+
+    /* モード切替スイッチ */
+    #modeSwitch {
+      display: flex; background: rgba(0,0,0,0.5); border-radius: 20px; overflow: hidden; border: 1px solid #555;
+    }
+    .mode-opt {
+      padding: 8px 16px; cursor: pointer; font-size: 12px; font-weight: bold; color: #888; transition: 0.3s;
+    }
+    .mode-opt.active { background: #00ffcc; color: #000; }
+
+    /* スタート画面 */
+    #overlay {
+      position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+      background: rgba(0,0,0,0.85); display: flex; flex-direction: column;
+      justify-content: center; align-items: center; z-index: 50;
+      backdrop-filter: blur(10px);
+    }
+    h1 { font-weight: 200; letter-spacing: 6px; font-size: 2.5rem; margin-bottom: 10px; text-shadow: 0 0 20px rgba(255,255,255,0.3); }
+    .subtitle { font-size: 1.2rem; color: #00ffcc; margin-bottom: 40px; letter-spacing: 2px; }
+    .btn-start { 
+      padding: 18px 70px; font-size: 18px; letter-spacing: 3px; font-weight: bold;
+      background: linear-gradient(135deg, #00ffcc 0%, #0099ff 100%);
+      color: #002233; border: none; border-radius: 50px; cursor: pointer; 
+      transition: transform 0.2s, box-shadow 0.2s;
+      box-shadow: 0 0 30px rgba(0, 255, 204, 0.4);
+    }
+    .btn-start:hover { transform: scale(1.05); }
+    #cameraSelect { margin-top: 25px; padding: 12px; width: 300px; background: #222; border-color: #444; }
+  </style>
+
+  <script src="https://cdn.jsdelivr.net/npm/@mediapipe/pose/pose.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands/hands.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@mediapipe/drawing_utils/drawing_utils.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.js"></script>
+</head>
+<body>
+
+  <div id="container">
+    <video id="input_video" autoplay playsinline muted></video>
+    <canvas id="effect_canvas"></canvas>
+    
+    <div id="foxGaugeContainer">
+      <svg id="foxGaugeSvg" width="200" height="200">
+        <circle id="foxGaugeBg" cx="100" cy="100" r="90"></circle>
+        <circle id="foxGaugeBar" cx="100" cy="100" r="90"></circle>
+      </svg>
+      <div class="fox-label">DOUBLE<br>FOX<br>HOLD</div>
+    </div>
+
+    <div id="foxIndicator"></div>
+    
+    <div id="latencyBox">LATENCY: -- ms</div>
+
+    <div id="controlPanel">
+      <div class="control-group">
+        <span class="label">TRACKING</span>
+        <div id="modeSwitch">
+          <div class="mode-opt active" id="btnBody">🧍 BODY</div>
+          <div class="mode-opt" id="btnHands">✋ HANDS</div>
+        </div>
+      </div>
+
+      <div class="control-group">
+        <span class="label">SOUND</span>
+        <select id="soundSelect">
+          <option value="crystal">🔮 CRYSTAL</option>
+          <option value="cyber">🤖 CYBER</option>
+          <option value="bubble">🫧 BUBBLE</option>
+        </select>
+      </div>
+
+      <div class="control-group">
+        <span class="label">SENSITIVITY</span>
+        <div class="slider-wrapper">
+          <input type="range" id="sensSlider" min="1" max="50" value="25">
+          <span id="sensVal" class="val-display">25</span>
+        </div>
+      </div>
+
+      <div class="control-group">
+        <span class="label">VISUAL / AUDIO</span>
+        <div class="toggle-group">
+          <button id="cheerBtn" class="toggle-btn"><div class="indicator"></div> 📣 CHEER</button>
+          <button id="droneBtn" class="toggle-btn"><div class="indicator"></div> 🔈 DRONE</button>
+          <button id="paintBtn" class="toggle-btn"><div class="indicator"></div> 🎨 PAINT</button>
+          <button id="skelBtn" class="toggle-btn"><div class="indicator"></div> 💀 SKEL</button>
+        </div>
+      </div>
+    </div>
+
+    <div id="overlay">
+      <h1>SMART PIANO</h1>
+      <div class="subtitle">Clean Sound & Fox Icon</div>
+      <button id="startBtn" class="btn-start">ENTER</button>
+      <select id="cameraSelect"></select>
+    </div>
+  </div>
+
+  <script>
+    const videoElement = document.getElementById('input_video');
+    const effectCanvas = document.getElementById('effect_canvas');
+    const effectCtx = effectCanvas.getContext('2d');
+    const latencyBox = document.getElementById('latencyBox');
+    const overlay = document.getElementById('overlay');
+    const cameraSelect = document.getElementById('cameraSelect');
+    
+    const foxIndicator = document.getElementById('foxIndicator');
+    const foxGaugeContainer = document.getElementById('foxGaugeContainer');
+    const foxGaugeBar = document.getElementById('foxGaugeBar');
+    
+    // UI
+    const btnBody = document.getElementById('btnBody');
+    const btnHands = document.getElementById('btnHands');
+    const skelBtn = document.getElementById('skelBtn');
+    const paintBtn = document.getElementById('paintBtn');
+    const droneBtn = document.getElementById('droneBtn');
+    const cheerBtn = document.getElementById('cheerBtn');
+    const sensSlider = document.getElementById('sensSlider');
+    const sensVal = document.getElementById('sensVal');
+    const soundSelect = document.getElementById('soundSelect');
+
+    // 状態
+    let trackingMode = 'body'; 
+    let showSkeleton = false; 
+    let isPaintMode = false;
+    let isDroneEnabled = false; 
+    let isCheerEnabled = false; 
+    let sensitivityThreshold = 25; 
+    let currentMode = 'crystal';
+    
+    // 隠しコマンド・応援
+    let isFoxMode = false; 
+    // ホールド状態管理オブジェクト
+    let foxState = {
+        active: false,
+        startTime: 0,
+        triggered: false 
+    };
+    let cheerScore = 0; 
+    let lastCheerTime = 0;
+
+    function resize() {
+      effectCanvas.width = window.innerWidth;
+      effectCanvas.height = window.innerHeight;
+      effectCtx.clearRect(0, 0, effectCanvas.width, effectCanvas.height);
+    }
+    window.addEventListener('resize', resize);
+    resize();
+
+    // --- UIイベント ---
+    btnBody.addEventListener('click', () => {
+      trackingMode = 'body';
+      btnBody.classList.add('active'); btnHands.classList.remove('active');
+    });
+    btnHands.addEventListener('click', () => {
+      trackingMode = 'hands';
+      btnHands.classList.add('active'); btnBody.classList.remove('active');
+    });
+
+    skelBtn.addEventListener('click', () => {
+      showSkeleton = !showSkeleton; skelBtn.classList.toggle('active', showSkeleton);
+    });
+    paintBtn.addEventListener('click', () => {
+      isPaintMode = !isPaintMode; paintBtn.classList.toggle('active', isPaintMode);
+      if(!isPaintMode) effectCtx.clearRect(0,0,effectCanvas.width,effectCanvas.height);
+    });
+    droneBtn.addEventListener('click', () => {
+      isDroneEnabled = !isDroneEnabled; droneBtn.classList.toggle('active', isDroneEnabled);
+      if(!isDroneEnabled && drone) drone.volume.rampTo(-Infinity, 0.5);
+    });
+    cheerBtn.addEventListener('click', () => {
+      isCheerEnabled = !isCheerEnabled; cheerBtn.classList.toggle('active', isCheerEnabled);
+    });
+    sensSlider.addEventListener('input', (e) => {
+      sensitivityThreshold = parseInt(e.target.value); sensVal.innerText = sensitivityThreshold;
+    });
+    soundSelect.addEventListener('change', (e) => {
+      currentMode = e.target.value; if(isAudioReady) playSound(null, 0.5, true);
+    });
+
+    // --- 音響設定 (Tone.js) ---
+    let synthCrystal, synthCyber, synthBubble, synthFox;
+    let drone, panner;
+    let isAudioReady = false;
+    
+    const scaleCrystal = ["C4", "E4", "G4", "B4", "C5", "E5"];
+    const scaleCyber   = ["C3", "Eb3", "F3", "G3", "Bb3", "C4"];
+    const scaleBubble  = ["F4", "G4", "A4", "C5", "D5", "F5"];
+    const scaleFox     = ["C4", "Eb4", "F4", "G4", "Bb4", "C5"];
+
+    async function initAudio() {
+      const reverb = new Tone.Reverb({ decay: 4, wet: 0.5 }).toDestination();
+      panner = new Tone.Panner(0).connect(reverb);
+      const delay = new Tone.FeedbackDelay("8n", 0.3).connect(panner);
+
+      synthCrystal = new Tone.PolySynth(Tone.FMSynth, { 
+        oscillator: { type: "triangle" }, envelope: { attack: 0.05, decay: 0.3, sustain: 0.4, release: 2 }, modulationIndex: 3, volume: -8 
+      }).connect(delay);
+
+      synthCyber = new Tone.PolySynth(Tone.Synth, { 
+        oscillator: { type: "sawtooth" }, envelope: { attack: 0.01, decay: 0.1, sustain: 0.1, release: 0.5 }, volume: -10 
+      }).toDestination();
+      const cyberFilter = new Tone.AutoFilter("4n").connect(delay).start(); 
+      synthCyber.connect(cyberFilter);
+
+      synthBubble = new Tone.PolySynth(Tone.Synth, { 
+        oscillator: { type: "sine" }, envelope: { attack: 0.01, decay: 0.1, sustain: 0, release: 0.1 }, volume: -5 
+      }).connect(panner); 
+
+      // 狐モード用
+      synthFox = new Tone.PolySynth(Tone.Synth, {
+        oscillator: { type: "square" }, envelope: { attack: 0.1, decay: 0.2, sustain: 0.6, release: 1.5 }, 
+        volume: -20
+      }).connect(reverb);
+      const filter = new Tone.AutoFilter("4n").connect(panner).start();
+      synthFox.connect(filter);
+
+      drone = new Tone.Oscillator(130.81, "sine").connect(panner); 
+      drone.volume.value = -Infinity;
+
+      await Tone.start(); drone.start(); isAudioReady = true;
+    }
+
+    function playSound(noteName, yRatio, force = false) {
+      if(!isAudioReady) return;
+      let note, synth;
+      let currentScale;
+      if (isFoxMode) { currentScale = scaleFox; synth = synthFox; }
+      else if (currentMode === 'crystal') { currentScale = scaleCrystal; synth = synthCrystal; }
+      else if (currentMode === 'cyber') { currentScale = scaleCyber; synth = synthCyber; }
+      else if (currentMode === 'bubble') { currentScale = scaleBubble; synth = synthBubble; }
+
+      if (noteName) {
+        note = noteName;
+      } else {
+        const idx = Math.floor((1 - yRatio) * currentScale.length);
+        note = currentScale[Math.max(0, Math.min(idx, currentScale.length - 1))];
+      }
+      synth.triggerAttackRelease(note, "8n");
+    }
+
+    function updateHeadPan(noseX) {
+      if(!isAudioReady || !panner) return;
+      let panVal = (0.5 - noseX) * 2.5; 
+      panVal = Math.max(-1, Math.min(1, panVal));
+      panner.pan.rampTo(panVal, 0.1);
+    }
+
+    // --- 応援ボイス ---
+    const cheers = ["Good!", "Great!", "Nice!", "Excellent!", "Amazing!", "Cool!"];
+
+    function triggerCheer(x, y) {
+      if (!isCheerEnabled) return;
+      const now = Date.now();
+      if (now - lastCheerTime < 4000) return; 
+
+      const text = cheers[Math.floor(Math.random() * cheers.length)];
+      if (window.speechSynthesis) {
+        const ut = new SpeechSynthesisUtterance(text);
+        ut.lang = 'en-US'; ut.rate = 1.2; ut.volume = 0.8;
+        window.speechSynthesis.speak(ut);
+      }
+      const div = document.createElement('div');
+      div.className = 'cheer-text'; div.innerText = text;
+      div.style.left = x + 'px'; div.style.top = y + 'px';
+      document.body.appendChild(div);
+      setTimeout(() => div.remove(), 1000);
+      lastCheerTime = now;
+    }
+
+    // --- ビジュアル ---
+    const particles = [];
+    class Particle {
+      constructor(x, y, handSide) {
+        this.x = x; this.y = y;
+        this.vx = (Math.random() - 0.5) * 3; this.vy = (Math.random() - 0.5) * 3 + 1;
+        this.size = Math.random() * 5 + 2;
+        this.life = isPaintMode ? 2.0 : 1.0;
+        this.decay = isPaintMode ? 0.005 : (0.03 + Math.random() * 0.03);
+        
+        if (isFoxMode) {
+           this.color = `hsl(${Math.random()*40}, 100%, 60%)`;
+        } else {
+           if (currentMode === 'crystal') { this.color = handSide === 'right' ? '#00ffff' : '#ffaa00'; }
+           else if (currentMode === 'cyber') { this.color = handSide === 'right' ? '#00ff00' : '#ff00aa'; }
+           else if (currentMode === 'bubble') { this.color = handSide === 'right' ? '#ffffff' : '#ffb6c1'; }
+        }
+      }
+      update() {
+        this.x += this.vx; this.y += this.vy;
+        this.life -= this.decay;
+        if(!isPaintMode) this.size *= 0.95;
+      }
+      draw(ctx) {
+        ctx.globalAlpha = Math.max(0, Math.min(1, this.life));
+        ctx.fillStyle = this.color;
+        ctx.beginPath(); 
+        if(currentMode === 'cyber' && !isFoxMode) ctx.rect(this.x, this.y, this.size, this.size);
+        else ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.globalAlpha = 1.0;
+      }
+    }
+
+    // --- ロジック ---
+    let prevPose = { rx:0, ry:0, lx:0, ly:0 };
+    let prevFingers = {}; 
+    let lastHandNoteTime = 0; 
+
+    function updateVisuals(w, h) {
+      if (isPaintMode) {
+          effectCtx.fillStyle = 'rgba(0, 0, 0, 0.03)';
+          effectCtx.fillRect(0, 0, w, h);
+      } else {
+          effectCtx.clearRect(0, 0, w, h);
+      }
+    }
+
+    function detectFoxGesture(landmarks) {
+      const indexUp = landmarks[8].y < landmarks[6].y;
+      const pinkyUp = landmarks[20].y < landmarks[18].y;
+      const middleDown = landmarks[12].y > landmarks[10].y;
+      const ringDown = landmarks[16].y > landmarks[14].y;
+      return indexUp && pinkyUp && middleDown && ringDown;
+    }
+
+    function updateFoxState(isDetected) {
+      if (isDetected) {
+        if (foxState.triggered) return;
+        if (!foxState.active) {
+          foxState.active = true;
+          foxState.startTime = Date.now();
+          foxGaugeContainer.style.opacity = 1;
+        } else {
+          const elapsed = Date.now() - foxState.startTime;
+          const progress = Math.min(1, elapsed / 1000); 
+          const offset = 565 * (1 - progress);
+          foxGaugeBar.style.strokeDashoffset = offset;
+          if (progress >= 1) {
+             toggleFoxMode();
+             foxState.triggered = true; 
+             foxState.active = false;
+             foxGaugeContainer.style.opacity = 0;
+          }
+        }
+      } else {
+        foxState.active = false;
+        foxState.triggered = false;
+        foxGaugeContainer.style.opacity = 0;
+        foxGaugeBar.style.strokeDashoffset = 565;
+      }
+    }
+
+    function toggleFoxMode() {
+      isFoxMode = !isFoxMode;
+      
+      // ★ アイコン表示
+      foxIndicator.innerHTML = isFoxMode ? "🦊<br><span class='sub-text'>FOX MODE</span>" : "🦊<br><span class='sub-text'>NORMAL</span>";
+      foxIndicator.classList.add('show');
+      
+      playSound("C5", 0, true); 
+      
+      // 2秒後に消す
+      setTimeout(() => { foxIndicator.classList.remove('show'); }, 2000);
+    }
+
+    // BODYモード
+    function onPoseResults(results) {
+      const w = effectCanvas.width; const h = effectCanvas.height;
+      updateVisuals(w, h);
+
+      if (showSkeleton && results.poseLandmarks) {
+        const color = isFoxMode ? '#ff4400' : (currentMode === 'cyber' ? '#00ff00' : '#00ffff');
+        drawConnectors(effectCtx, results.poseLandmarks, POSE_CONNECTIONS, {color: color, lineWidth: 2});
+        drawLandmarks(effectCtx, results.poseLandmarks, {color: '#ffff00', lineWidth: 1, radius: 3});
+      }
+
+      let activity = 0;
+      if (results.poseLandmarks) {
+        const nose = results.poseLandmarks[0];
+        updateHeadPan(nose.x);
+
+        const rWrist = results.poseLandmarks[16]; const lWrist = results.poseLandmarks[15];
+        const rx = rWrist.x * w; const ry = rWrist.y * h;
+        const lx = lWrist.x * w; const ly = lWrist.y * h;
+
+        const rSpeed = Math.hypot(rx - prevPose.rx, ry - prevPose.ry);
+        const lSpeed = Math.hypot(lx - prevPose.lx, ly - prevPose.ly);
+        
+        activity = rSpeed + lSpeed;
+        
+        if (activity > sensitivityThreshold * 3) {
+           cheerScore += 1;
+           if(cheerScore > 30) { triggerCheer(nose.x * w, nose.y * h); cheerScore = 0; }
+        }
+
+        const spawnCount = isPaintMode ? 5 : 3;
+        if(rSpeed > sensitivityThreshold) {
+          if(Math.random() < 0.3) playSound(null, rWrist.y);
+          for(let i=0; i<spawnCount; i++) particles.push(new Particle(rx, ry, 'right'));
+        }
+        if(lSpeed > sensitivityThreshold) {
+          if(Math.random() < 0.3) playSound(null, lWrist.y);
+          for(let i=0; i<spawnCount; i++) particles.push(new Particle(lx, ly, 'left'));
+        }
+        prevPose = { rx, ry, lx, ly };
+      }
+      updateDrone(activity);
+      renderParticles();
+    }
+
+    // HANDSモード
+    function onHandsResults(results) {
+      const w = effectCanvas.width; const h = effectCanvas.height;
+      updateVisuals(w, h);
+
+      if (showSkeleton && results.multiHandLandmarks) {
+        const color = isFoxMode ? '#ff4400' : (currentMode === 'cyber' ? '#00ff00' : '#ff00aa');
+        for (const landmarks of results.multiHandLandmarks) {
+          drawConnectors(effectCtx, landmarks, HAND_CONNECTIONS, {color: color, lineWidth: 2});
+          drawLandmarks(effectCtx, landmarks, {color: '#ffff00', lineWidth: 1, radius: 2});
+        }
+      }
+
+      let activity = 0;
+      const tips = [4, 8, 12, 16, 20];
+      
+      let scales = isFoxMode ? scaleFox : (currentMode==='crystal'?scaleCrystal:(currentMode==='cyber'?scaleCyber:scaleBubble));
+      const fingerNotes = [ scales[0], scales[1], scales[2], scales[3%scales.length], scales[4%scales.length] ];
+
+      let foxHandCount = 0;
+
+      if (results.multiHandLandmarks) {
+        results.multiHandLandmarks.forEach((landmarks) => {
+            if (detectFoxGesture(landmarks)) foxHandCount++;
+        });
+        const isDoubleFox = (foxHandCount >= 2);
+        updateFoxState(isDoubleFox);
+
+        const now = Date.now();
+        let maxSpeed = 0;
+        let bestTipIndex = -1;
+        let bestX = 0, bestY = 0;
+        let bestHandSide = 'right';
+
+        results.multiHandLandmarks.forEach((landmarks, index) => {
+          const handSide = index === 0 ? 'right' : 'left'; 
+          tips.forEach((tipIdx, i) => {
+            const point = landmarks[tipIdx];
+            const px = point.x * w; const py = point.y * h;
+            const key = `${index}-${tipIdx}`;
+            const prev = prevFingers[key] || {x: px, y: py};
+            const speed = Math.hypot(px - prev.x, py - prev.y);
+            activity += speed;
+
+            if (speed > maxSpeed) {
+                maxSpeed = speed;
+                bestTipIndex = i;
+                bestX = px; bestY = py;
+                bestHandSide = handSide;
+            }
+            prevFingers[key] = {x: px, y: py};
+          });
+        });
+
+        if (maxSpeed > sensitivityThreshold * 0.8 && (now - lastHandNoteTime > 100)) {
+            playSound(fingerNotes[bestTipIndex], 0, true); 
+            const count = isPaintMode ? 5 : 3;
+            for(let i=0; i<count; i++) particles.push(new Particle(bestX, bestY, bestHandSide));
+            lastHandNoteTime = now;
+            
+            cheerScore += 1;
+            if (cheerScore > 30) { triggerCheer(bestX, bestY - 100); cheerScore = 0; }
+        }
+      } else {
+        updateFoxState(false);
+      }
+
+      updateDrone(activity);
+      renderParticles();
+    }
+
+    function updateDrone(activity) {
+      if (isAudioReady && drone && isDroneEnabled) {
+        if (activity > sensitivityThreshold) drone.volume.rampTo(-25, 0.5);
+        else drone.volume.rampTo(-Infinity, 2.0);
+      }
+    }
+
+    function renderParticles() {
+      effectCtx.globalCompositeOperation = 'lighter'; 
+      for(let i=0; i<particles.length; i++){
+        particles[i].update();
+        particles[i].draw(effectCtx);
+        if(particles[i].life <= 0 || (!isPaintMode && particles[i].size < 0.5)){
+          particles.splice(i, 1);
+          i--;
+        }
+      }
+      effectCtx.globalCompositeOperation = 'source-over';
+    }
+
+    // --- セットアップ ---
+    const pose = new Pose({locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/pose/${file}`});
+    pose.setOptions({modelComplexity: 1, smoothLandmarks: true, minDetectionConfidence: 0.5, minTrackingConfidence: 0.5});
+    pose.onResults(onPoseResults);
+
+    const hands = new Hands({locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${file}`});
+    hands.setOptions({maxNumHands: 2, modelComplexity: 1, minDetectionConfidence: 0.5, minTrackingConfidence: 0.5});
+    hands.onResults(onHandsResults);
+
+    async function setupCamera() {
+      try {
+        await navigator.mediaDevices.getUserMedia({video:true});
+        const devices = await navigator.mediaDevices.enumerateDevices();
+        const videos = devices.filter(d => d.kind === 'videoinput');
+        cameraSelect.innerHTML = "";
+        videos.forEach(v => {
+          const opt = document.createElement('option');
+          opt.value = v.deviceId; opt.text = v.label || "Camera";
+          cameraSelect.appendChild(opt);
+        });
+      } catch(e){}
+    }
+    
+    async function startCamera(deviceId) {
+      const stream = await navigator.mediaDevices.getUserMedia({
+        video: { deviceId: deviceId ? { exact: deviceId } : undefined, width: 1280, height: 720 }
+      });
+      videoElement.srcObject = stream;
+      
+      async function aiLoop(){ 
+        const startT = performance.now();
+        if (trackingMode === 'body') await pose.send({image: videoElement});
+        else await hands.send({image: videoElement});
+        const endT = performance.now();
+        latencyBox.innerText = `LATENCY: ${(endT - startT).toFixed(0)} ms`;
+        requestAnimationFrame(aiLoop); 
+      }
+      aiLoop();
+    }
+
+    setupCamera();
+    document.getElementById('startBtn').addEventListener('click', async () => {
+      overlay.style.display = 'none';
+      await initAudio();
+      await startCamera(cameraSelect.value);
+    });
+  </script>
+</body>
+</html>
