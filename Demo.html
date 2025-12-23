@@ -2,10 +2,11 @@
 <html lang="ja">
 <head>
   <meta charset="UTF-8">
-  <title>Smart Air Piano (Fox Icon)</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <title>Behavior Soundscape (Vol Fix)</title>
   <style>
-    /* ベーススタイル */
-    body { margin: 0; padding: 0; background: #000; overflow: hidden; font-family: 'Segoe UI', Helvetica, sans-serif; color: white; }
+    /* --- ベーススタイル --- */
+    body { margin: 0; padding: 0; background: #000; overflow: hidden; font-family: 'Segoe UI', sans-serif; color: white; -webkit-tap-highlight-color: transparent; }
     #container { position: relative; width: 100vw; height: 100vh; background: #000; }
     
     /* 映像とエフェクト */
@@ -13,38 +14,33 @@
     canvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; transform: scaleX(-1); pointer-events: none; }
     #effect_canvas { mix-blend-mode: screen; z-index: 2; }
 
-    /* ★ 狐モード切り替え時のアイコン演出 (復活) ★ */
-    #foxIndicator {
-      position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%) scale(0);
-      font-size: 80px; font-weight: 900; color: #ff4400; 
-      text-shadow: 0 0 50px #ffaa00, 0 0 20px #000;
-      pointer-events: none; z-index: 40; 
-      transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275), opacity 0.4s;
-      white-space: nowrap; text-align: center; opacity: 0;
-    }
-    #foxIndicator.show { transform: translate(-50%, -50%) scale(1); opacity: 1; }
-    .sub-text { font-size: 30px; display: block; margin-top: 0px; color: #fff; text-shadow: 0 0 10px #000; }
-
-    /* 狐モード切り替えゲージ (円) */
+    /* --- 演出UI --- */
+    /* 狐ゲージ */
     #foxGaugeContainer {
       position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
-      width: 200px; height: 200px; pointer-events: none; z-index: 25;
+      width: 180px; height: 180px; pointer-events: none; z-index: 25;
       display: flex; justify-content: center; align-items: center; opacity: 0; transition: opacity 0.1s;
     }
-    #foxGaugeSvg circle {
-      fill: none; stroke-width: 15; stroke-linecap: round;
-      transform: rotate(-90deg); transform-origin: 50% 50%;
-    }
+    #foxGaugeSvg circle { fill: none; stroke-width: 12; stroke-linecap: round; transform: rotate(-90deg); transform-origin: 50% 50%; }
     #foxGaugeBg { stroke: rgba(255, 255, 255, 0.2); }
-    #foxGaugeBar { stroke: #ff4400; stroke-dasharray: 565; stroke-dashoffset: 565; transition: stroke-dashoffset 0.05s linear; }
-    .fox-label { position: absolute; font-size: 24px; font-weight: bold; color: #ff4400; text-shadow: 0 0 10px black; text-align: center; }
+    #foxGaugeBar { stroke: #ff4400; stroke-dasharray: 500; stroke-dashoffset: 500; transition: stroke-dashoffset 0.05s linear; }
+    .fox-label { position: absolute; font-size: 20px; font-weight: 800; color: #ff4400; text-shadow: 0 0 5px black; text-align: center; line-height: 1.2; }
 
-    /* 応援テキスト演出 */
+    /* モード表示 */
+    #foxIndicator {
+      position: absolute; top: 40%; left: 50%; transform: translate(-50%, -50%) scale(0);
+      font-size: 60px; font-weight: 900; color: #ff4400; text-shadow: 0 0 30px #ffaa00;
+      pointer-events: none; z-index: 30; transition: transform 0.4s cubic-bezier(0.17, 0.88, 0.32, 1.27);
+      white-space: nowrap; text-align: center;
+    }
+    #foxIndicator.show { transform: translate(-50%, -50%) scale(1); }
+    .sub-text { font-size: 24px; display: block; color: #fff; text-shadow: 0 0 10px #000; }
+
+    /* 応援テキスト */
     .cheer-text {
-      position: absolute; font-size: 60px; font-weight: 900; color: #fff;
-      text-shadow: 0 0 20px #ff00de, 3px 3px 0px #000;
-      pointer-events: none; z-index: 30;
-      animation: popUp 1s forwards; white-space: nowrap;
+      position: absolute; font-size: 40px; font-weight: 900; color: #fff;
+      text-shadow: 0 0 15px #ff00de, 2px 2px 0px #000;
+      pointer-events: none; z-index: 30; animation: popUp 1s forwards; white-space: nowrap;
     }
     @keyframes popUp {
       0% { transform: translate(-50%, -50%) scale(0) rotate(-10deg); opacity: 0; }
@@ -52,80 +48,78 @@
       100% { transform: translate(-50%, -150%) scale(1) rotate(5deg); opacity: 0; }
     }
 
-    /* レイテンシ表示 */
+    /* レイテンシ */
     #latencyBox {
-      position: absolute; top: 20px; left: 20px; z-index: 20;
-      font-family: monospace; font-size: 14px; color: #00ffcc;
-      background: rgba(0, 0, 0, 0.5); padding: 5px 10px; border-radius: 4px;
-      pointer-events: none; border: 1px solid rgba(0, 255, 204, 0.3);
+      position: absolute; top: 15px; left: 15px; z-index: 20;
+      font-family: monospace; font-size: 12px; color: #00ffcc;
+      background: rgba(0, 0, 0, 0.6); padding: 4px 8px; border-radius: 4px;
+      pointer-events: none;
     }
 
-    /* コントロールパネル */
+    /* --- コントロールパネル --- */
     #controlPanel {
-      position: absolute; bottom: 30px; left: 50%; transform: translateX(-50%);
-      width: 95%; max-width: 850px;
-      background: rgba(20, 20, 20, 0.8);
-      backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px);
-      border: 1px solid rgba(255, 255, 255, 0.2); border-radius: 20px;
-      padding: 15px 20px;
-      display: flex; flex-wrap: wrap; justify-content: space-around; align-items: center; gap: 15px;
-      z-index: 20; box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+      position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%);
+      width: 92%; max-width: 800px;
+      background: rgba(10, 10, 10, 0.85);
+      backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
+      border: 1px solid rgba(255, 255, 255, 0.15); border-radius: 16px;
+      padding: 12px;
+      display: flex; flex-wrap: wrap; justify-content: center; gap: 12px;
+      z-index: 20; box-shadow: 0 10px 30px rgba(0,0,0,0.6);
     }
 
-    .control-group { display: flex; flex-direction: column; gap: 5px; align-items: center; }
-    .label { font-size: 10px; color: #aaa; letter-spacing: 1px; font-weight: bold; text-transform: uppercase; }
+    .control-group { display: flex; flex-direction: column; gap: 4px; align-items: center; }
+    .label { font-size: 9px; color: #aaa; letter-spacing: 1px; font-weight: 700; }
 
-    /* UIパーツ */
+    /* UIパーツ共通 */
+    select, button, .mode-opt { cursor: pointer; touch-action: manipulation; }
+
     select {
-      background: rgba(255,255,255,0.1); color: #fff; border: 1px solid rgba(255,255,255,0.3);
-      padding: 5px; border-radius: 6px; font-size: 13px; outline: none; cursor: pointer; width: 110px;
+      background: rgba(255,255,255,0.1); color: #fff; border: 1px solid rgba(255,255,255,0.2);
+      padding: 6px; border-radius: 6px; font-size: 12px; outline: none; width: 100px;
     }
     option { background: #222; }
 
-    input[type=range] { -webkit-appearance: none; width: 100px; height: 4px; background: rgba(255,255,255,0.3); border-radius: 2px; outline: none; cursor: pointer; }
-    input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; width: 14px; height: 14px; border-radius: 50%; background: #00ffcc; border: 2px solid rgba(0,0,0,0.5); }
-    .val-display { font-family: monospace; color: #00ffcc; font-weight: bold; font-size: 13px; width: 20px; text-align: right;}
+    .slider-wrapper { display: flex; align-items: center; gap: 8px; }
+    input[type=range] { -webkit-appearance: none; width: 90px; height: 4px; background: rgba(255,255,255,0.3); border-radius: 2px; outline: none; }
+    input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; width: 16px; height: 16px; border-radius: 50%; background: #00ffcc; }
+    .val-display { font-family: monospace; color: #00ffcc; font-weight: bold; font-size: 12px; width: 20px; text-align: right;}
 
-    .toggle-group { display: flex; gap: 8px; }
+    .toggle-group { display: flex; gap: 6px; flex-wrap: wrap; justify-content: center; }
     .toggle-btn {
-      background: transparent; border: 1px solid rgba(255,255,255,0.3); color: rgba(255,255,255,0.7);
-      padding: 6px 12px; border-radius: 15px; cursor: pointer; font-size: 11px; font-weight: bold;
-      transition: 0.3s; display: flex; align-items: center; gap: 5px; white-space: nowrap;
+      background: transparent; border: 1px solid rgba(255,255,255,0.2); color: rgba(255,255,255,0.8);
+      padding: 6px 10px; border-radius: 12px; font-size: 10px; font-weight: bold;
+      transition: 0.2s; display: flex; align-items: center; gap: 4px; white-space: nowrap;
     }
-    .toggle-btn.active {
-      background: rgba(0, 255, 204, 0.2); border-color: #00ffcc; color: #00ffcc;
-      box-shadow: 0 0 10px rgba(0, 255, 204, 0.4);
-    }
-    .indicator { width: 6px; height: 6px; border-radius: 50%; background: #555; transition: 0.3s; }
+    .toggle-btn.active { background: rgba(0, 255, 204, 0.2); border-color: #00ffcc; color: #00ffcc; }
+    .indicator { width: 6px; height: 6px; border-radius: 50%; background: #555; }
     .toggle-btn.active .indicator { background: #00ffcc; box-shadow: 0 0 5px #00ffcc; }
 
-    /* モード切替スイッチ */
-    #modeSwitch {
-      display: flex; background: rgba(0,0,0,0.5); border-radius: 20px; overflow: hidden; border: 1px solid #555;
-    }
-    .mode-opt {
-      padding: 8px 16px; cursor: pointer; font-size: 12px; font-weight: bold; color: #888; transition: 0.3s;
-    }
+    #modeSwitch { display: flex; background: rgba(0,0,0,0.5); border-radius: 14px; overflow: hidden; border: 1px solid #444; }
+    .mode-opt { padding: 6px 14px; font-size: 11px; font-weight: bold; color: #888; transition: 0.3s; }
     .mode-opt.active { background: #00ffcc; color: #000; }
 
     /* スタート画面 */
     #overlay {
       position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-      background: rgba(0,0,0,0.85); display: flex; flex-direction: column;
-      justify-content: center; align-items: center; z-index: 50;
-      backdrop-filter: blur(10px);
+      background: rgba(0,0,0,0.9); display: flex; flex-direction: column;
+      justify-content: center; align-items: center; z-index: 50; backdrop-filter: blur(10px);
     }
-    h1 { font-weight: 200; letter-spacing: 6px; font-size: 2.5rem; margin-bottom: 10px; text-shadow: 0 0 20px rgba(255,255,255,0.3); }
-    .subtitle { font-size: 1.2rem; color: #00ffcc; margin-bottom: 40px; letter-spacing: 2px; }
+    h1 { font-weight: 300; letter-spacing: 4px; font-size: 2rem; margin-bottom: 5px; color: #fff; text-align: center; }
+    .subtitle { font-size: 1rem; color: #00ffcc; margin-bottom: 30px; letter-spacing: 2px; opacity: 0.8; }
     .btn-start { 
-      padding: 18px 70px; font-size: 18px; letter-spacing: 3px; font-weight: bold;
+      padding: 16px 60px; font-size: 16px; letter-spacing: 2px; font-weight: bold;
       background: linear-gradient(135deg, #00ffcc 0%, #0099ff 100%);
-      color: #002233; border: none; border-radius: 50px; cursor: pointer; 
-      transition: transform 0.2s, box-shadow 0.2s;
-      box-shadow: 0 0 30px rgba(0, 255, 204, 0.4);
+      color: #002233; border: none; border-radius: 50px; 
+      box-shadow: 0 0 20px rgba(0, 255, 204, 0.4);
     }
-    .btn-start:hover { transform: scale(1.05); }
-    #cameraSelect { margin-top: 25px; padding: 12px; width: 300px; background: #222; border-color: #444; }
+
+    @media (max-width: 600px) {
+      #controlPanel { padding: 10px; gap: 8px; flex-direction: row; align-items: flex-start; }
+      .control-group { margin-bottom: 4px; }
+      h1 { font-size: 1.8rem; }
+      .toggle-btn { padding: 8px 12px; font-size: 11px; }
+    }
   </style>
 
   <script src="https://cdn.jsdelivr.net/npm/@mediapipe/pose/pose.js"></script>
@@ -141,13 +135,16 @@
     
     <div id="foxGaugeContainer">
       <svg id="foxGaugeSvg" width="200" height="200">
-        <circle id="foxGaugeBg" cx="100" cy="100" r="90"></circle>
-        <circle id="foxGaugeBar" cx="100" cy="100" r="90"></circle>
+        <circle id="foxGaugeBg" cx="100" cy="100" r="85"></circle>
+        <circle id="foxGaugeBar" cx="100" cy="100" r="85"></circle>
       </svg>
       <div class="fox-label">DOUBLE<br>FOX<br>HOLD</div>
     </div>
 
-    <div id="foxIndicator"></div>
+    <div id="foxIndicator">
+        FOX MODE<br>
+        <span class="sub-text">ON</span>
+    </div>
     
     <div id="latencyBox">LATENCY: -- ms</div>
 
@@ -155,8 +152,8 @@
       <div class="control-group">
         <span class="label">TRACKING</span>
         <div id="modeSwitch">
-          <div class="mode-opt active" id="btnBody">🧍 BODY</div>
-          <div class="mode-opt" id="btnHands">✋ HANDS</div>
+          <div class="mode-opt active" id="btnBody">BODY</div>
+          <div class="mode-opt" id="btnHands">HANDS</div>
         </div>
       </div>
 
@@ -177,22 +174,22 @@
         </div>
       </div>
 
-      <div class="control-group">
-        <span class="label">VISUAL / AUDIO</span>
+      <div class="control-group" style="width:100%; align-items:center;">
+        <span class="label">OPTIONS</span>
         <div class="toggle-group">
-          <button id="cheerBtn" class="toggle-btn"><div class="indicator"></div> 📣 CHEER</button>
-          <button id="droneBtn" class="toggle-btn"><div class="indicator"></div> 🔈 DRONE</button>
-          <button id="paintBtn" class="toggle-btn"><div class="indicator"></div> 🎨 PAINT</button>
-          <button id="skelBtn" class="toggle-btn"><div class="indicator"></div> 💀 SKEL</button>
+          <button id="cheerBtn" class="toggle-btn"><div class="indicator"></div> CHEER</button>
+          <button id="droneBtn" class="toggle-btn"><div class="indicator"></div> DRONE</button>
+          <button id="paintBtn" class="toggle-btn"><div class="indicator"></div> PAINT</button>
+          <button id="skelBtn" class="toggle-btn"><div class="indicator"></div> SKEL</button>
         </div>
       </div>
     </div>
 
     <div id="overlay">
-      <h1>SMART PIANO</h1>
-      <div class="subtitle">Clean Sound & Fox Icon</div>
-      <button id="startBtn" class="btn-start">ENTER</button>
-      <select id="cameraSelect"></select>
+      <h1>BEHAVIOR<br>SOUNDSCAPE</h1>
+      <div class="subtitle">Interactive Motion Art</div>
+      <button id="startBtn" class="btn-start">START EXPERIENCE</button>
+      <select id="cameraSelect" style="margin-top:20px; width:200px;"></select>
     </div>
   </div>
 
@@ -208,7 +205,7 @@
     const foxGaugeContainer = document.getElementById('foxGaugeContainer');
     const foxGaugeBar = document.getElementById('foxGaugeBar');
     
-    // UI
+    // UI Elements
     const btnBody = document.getElementById('btnBody');
     const btnHands = document.getElementById('btnHands');
     const skelBtn = document.getElementById('skelBtn');
@@ -219,7 +216,7 @@
     const sensVal = document.getElementById('sensVal');
     const soundSelect = document.getElementById('soundSelect');
 
-    // 状態
+    // 状態管理
     let trackingMode = 'body'; 
     let showSkeleton = false; 
     let isPaintMode = false;
@@ -228,16 +225,14 @@
     let sensitivityThreshold = 25; 
     let currentMode = 'crystal';
     
-    // 隠しコマンド・応援
+    // 隠しコマンド・応援・ロジック
     let isFoxMode = false; 
-    // ホールド状態管理オブジェクト
-    let foxState = {
-        active: false,
-        startTime: 0,
-        triggered: false 
-    };
+    let foxState = { active: false, startTime: 0, triggered: false };
     let cheerScore = 0; 
     let lastCheerTime = 0;
+    let prevPose = { rx:0, ry:0, lx:0, ly:0 };
+    let prevFingers = {}; 
+    let lastHandNoteTime = 0; 
 
     function resize() {
       effectCanvas.width = window.innerWidth;
@@ -247,40 +242,47 @@
     window.addEventListener('resize', resize);
     resize();
 
+    // ★ 狐モードをリセットする関数
+    function resetFoxMode() {
+      if(isFoxMode) {
+        isFoxMode = false;
+        // リセット演出
+        foxIndicator.classList.add('show');
+        foxIndicator.innerHTML = `FOX MODE<br><span class="sub-text">OFF</span>`;
+        foxIndicator.style.color = "#00ffcc";
+        setTimeout(() => { foxIndicator.classList.remove('show'); }, 1500);
+        
+        // 状態リセット
+        foxState = { active: false, startTime: 0, triggered: false };
+        foxGaugeContainer.style.opacity = 0;
+      }
+    }
+
     // --- UIイベント ---
     btnBody.addEventListener('click', () => {
       trackingMode = 'body';
       btnBody.classList.add('active'); btnHands.classList.remove('active');
+      resetFoxMode(); 
     });
     btnHands.addEventListener('click', () => {
       trackingMode = 'hands';
       btnHands.classList.add('active'); btnBody.classList.remove('active');
+      resetFoxMode();
     });
 
-    skelBtn.addEventListener('click', () => {
-      showSkeleton = !showSkeleton; skelBtn.classList.toggle('active', showSkeleton);
-    });
-    paintBtn.addEventListener('click', () => {
-      isPaintMode = !isPaintMode; paintBtn.classList.toggle('active', isPaintMode);
-      if(!isPaintMode) effectCtx.clearRect(0,0,effectCanvas.width,effectCanvas.height);
-    });
-    droneBtn.addEventListener('click', () => {
-      isDroneEnabled = !isDroneEnabled; droneBtn.classList.toggle('active', isDroneEnabled);
-      if(!isDroneEnabled && drone) drone.volume.rampTo(-Infinity, 0.5);
-    });
-    cheerBtn.addEventListener('click', () => {
-      isCheerEnabled = !isCheerEnabled; cheerBtn.classList.toggle('active', isCheerEnabled);
-    });
-    sensSlider.addEventListener('input', (e) => {
-      sensitivityThreshold = parseInt(e.target.value); sensVal.innerText = sensitivityThreshold;
-    });
+    skelBtn.addEventListener('click', () => { showSkeleton = !showSkeleton; skelBtn.classList.toggle('active', showSkeleton); });
+    paintBtn.addEventListener('click', () => { isPaintMode = !isPaintMode; paintBtn.classList.toggle('active', isPaintMode); if(!isPaintMode) effectCtx.clearRect(0,0,effectCanvas.width,effectCanvas.height); });
+    droneBtn.addEventListener('click', () => { isDroneEnabled = !isDroneEnabled; droneBtn.classList.toggle('active', isDroneEnabled); if(!isDroneEnabled && drone) drone.volume.rampTo(-Infinity, 0.5); });
+    cheerBtn.addEventListener('click', () => { isCheerEnabled = !isCheerEnabled; cheerBtn.classList.toggle('active', isCheerEnabled); });
+    sensSlider.addEventListener('input', (e) => { sensitivityThreshold = parseInt(e.target.value); sensVal.innerText = sensitivityThreshold; });
     soundSelect.addEventListener('change', (e) => {
-      currentMode = e.target.value; if(isAudioReady) playSound(null, 0.5, true);
+      currentMode = e.target.value; 
+      if(isAudioReady) playSound(null, 0.5, true);
+      resetFoxMode(); 
     });
 
     // --- 音響設定 (Tone.js) ---
-    let synthCrystal, synthCyber, synthBubble, synthFox;
-    let drone, panner;
+    let synthCrystal, synthCyber, synthBubble, synthFox, drone, panner;
     let isAudioReady = false;
     
     const scaleCrystal = ["C4", "E4", "G4", "B4", "C5", "E5"];
@@ -307,10 +309,10 @@
         oscillator: { type: "sine" }, envelope: { attack: 0.01, decay: 0.1, sustain: 0, release: 0.1 }, volume: -5 
       }).connect(panner); 
 
-      // 狐モード用
+      // ★ 音量調整済み (Fox: -35db)
       synthFox = new Tone.PolySynth(Tone.Synth, {
         oscillator: { type: "square" }, envelope: { attack: 0.1, decay: 0.2, sustain: 0.6, release: 1.5 }, 
-        volume: -20
+        volume: -35
       }).connect(reverb);
       const filter = new Tone.AutoFilter("4n").connect(panner).start();
       synthFox.connect(filter);
@@ -348,12 +350,10 @@
 
     // --- 応援ボイス ---
     const cheers = ["Good!", "Great!", "Nice!", "Excellent!", "Amazing!", "Cool!"];
-
     function triggerCheer(x, y) {
       if (!isCheerEnabled) return;
       const now = Date.now();
       if (now - lastCheerTime < 4000) return; 
-
       const text = cheers[Math.floor(Math.random() * cheers.length)];
       if (window.speechSynthesis) {
         const ut = new SpeechSynthesisUtterance(text);
@@ -377,10 +377,8 @@
         this.size = Math.random() * 5 + 2;
         this.life = isPaintMode ? 2.0 : 1.0;
         this.decay = isPaintMode ? 0.005 : (0.03 + Math.random() * 0.03);
-        
-        if (isFoxMode) {
-           this.color = `hsl(${Math.random()*40}, 100%, 60%)`;
-        } else {
+        if (isFoxMode) { this.color = `hsl(${Math.random()*40}, 100%, 60%)`; }
+        else {
            if (currentMode === 'crystal') { this.color = handSide === 'right' ? '#00ffff' : '#ffaa00'; }
            else if (currentMode === 'cyber') { this.color = handSide === 'right' ? '#00ff00' : '#ff00aa'; }
            else if (currentMode === 'bubble') { this.color = handSide === 'right' ? '#ffffff' : '#ffb6c1'; }
@@ -402,11 +400,6 @@
       }
     }
 
-    // --- ロジック ---
-    let prevPose = { rx:0, ry:0, lx:0, ly:0 };
-    let prevFingers = {}; 
-    let lastHandNoteTime = 0; 
-
     function updateVisuals(w, h) {
       if (isPaintMode) {
           effectCtx.fillStyle = 'rgba(0, 0, 0, 0.03)';
@@ -416,6 +409,7 @@
       }
     }
 
+    // --- ロジック ---
     function detectFoxGesture(landmarks) {
       const indexUp = landmarks[8].y < landmarks[6].y;
       const pinkyUp = landmarks[20].y < landmarks[18].y;
@@ -433,9 +427,11 @@
           foxGaugeContainer.style.opacity = 1;
         } else {
           const elapsed = Date.now() - foxState.startTime;
+          // ホールド1秒
           const progress = Math.min(1, elapsed / 1000); 
-          const offset = 565 * (1 - progress);
-          foxGaugeBar.style.strokeDashoffset = offset;
+          const offset = 500 * (1 - progress); 
+          document.getElementById('foxGaugeBar').style.strokeDashoffset = offset;
+
           if (progress >= 1) {
              toggleFoxMode();
              foxState.triggered = true; 
@@ -447,24 +443,20 @@
         foxState.active = false;
         foxState.triggered = false;
         foxGaugeContainer.style.opacity = 0;
-        foxGaugeBar.style.strokeDashoffset = 565;
+        document.getElementById('foxGaugeBar').style.strokeDashoffset = 500;
       }
     }
 
     function toggleFoxMode() {
       isFoxMode = !isFoxMode;
-      
-      // ★ アイコン表示
-      foxIndicator.innerHTML = isFoxMode ? "🦊<br><span class='sub-text'>FOX MODE</span>" : "🦊<br><span class='sub-text'>NORMAL</span>";
       foxIndicator.classList.add('show');
-      
+      foxIndicator.innerHTML = isFoxMode ? `🦊 FOX MODE<br><span class="sub-text">ON</span>` : `🦊 FOX MODE<br><span class="sub-text">OFF</span>`;
+      foxIndicator.style.color = isFoxMode ? "#ff4400" : "#00ffcc";
       playSound("C5", 0, true); 
-      
-      // 2秒後に消す
-      setTimeout(() => { foxIndicator.classList.remove('show'); }, 2000);
+      setTimeout(() => { foxIndicator.classList.remove('show'); }, 1500);
     }
 
-    // BODYモード
+    // BODY処理
     function onPoseResults(results) {
       const w = effectCanvas.width; const h = effectCanvas.height;
       updateVisuals(w, h);
@@ -509,7 +501,7 @@
       renderParticles();
     }
 
-    // HANDSモード
+    // HANDS処理
     function onHandsResults(results) {
       const w = effectCanvas.width; const h = effectCanvas.height;
       updateVisuals(w, h);
@@ -600,7 +592,6 @@
       effectCtx.globalCompositeOperation = 'source-over';
     }
 
-    // --- セットアップ ---
     const pose = new Pose({locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/pose/${file}`});
     pose.setOptions({modelComplexity: 1, smoothLandmarks: true, minDetectionConfidence: 0.5, minTrackingConfidence: 0.5});
     pose.onResults(onPoseResults);
