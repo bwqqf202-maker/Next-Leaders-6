@@ -1,0 +1,650 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <title>Sonic Dancer (Perfect Fix)</title>
+  <style>
+    /* --- ベーススタイル (DEMO3準拠) --- */
+    body { margin: 0; padding: 0; background: #000; overflow: hidden; font-family: 'Segoe UI', sans-serif; color: white; cursor: none; }
+    body.user-active { cursor: default; }
+    #container { position: relative; width: 100vw; height: 100vh; background: #000; }
+    
+    #visualWrapper { position: absolute; top: 0; left: 0; width: 100%; height: 100%; transform: scaleX(1); transition: transform 0.3s ease; }
+    #visualWrapper.mirror { transform: scaleX(-1); }
+
+    video { position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: contain; opacity: 0.6; }
+    canvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; }
+    #effect_canvas { mix-blend-mode: screen; z-index: 2; }
+
+    /* UIパーツ */
+    #latencyBox { position: absolute; top: 15px; left: 15px; z-index: 20; font-family: monospace; font-size: 12px; color: #00ffcc; background: rgba(0, 0, 0, 0.6); padding: 4px 8px; border-radius: 4px; pointer-events: none; transition: opacity 0.5s; }
+
+    #controlPanel {
+      position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%);
+      width: 98%; max-width: 960px;
+      background: rgba(20, 25, 30, 0.95); backdrop-filter: blur(10px);
+      border: 1px solid rgba(255, 160, 50, 0.3); border-radius: 16px; padding: 12px;
+      display: flex; flex-wrap: wrap; justify-content: center; gap: 16px;
+      z-index: 20; box-shadow: 0 0 20px rgba(255,160,50,0.1); transition: opacity 0.5s;
+    }
+    #controlPanel.fade-out { opacity: 0; pointer-events: none; }
+    #latencyBox.fade-out { opacity: 0; }
+
+    .control-group { display: flex; flex-direction: column; gap: 2px; align-items: center; min-width: 140px; }
+    .label { font-size: 10px; color: #aaa; letter-spacing: 1px; font-weight: 700; text-transform: uppercase; margin-bottom: 2px; }
+    
+    .toggle-btn {
+      background: rgba(60,50,40,0.8); border: 1px solid #777; color: #eee;
+      padding: 6px 12px; border-radius: 20px; font-size: 10px; font-weight: bold;
+      transition: 0.2s; display: flex; align-items: center; gap: 4px; white-space: nowrap;
+    }
+    .toggle-btn.active { background: #ffaa00; border-color: #ffaa00; color: #fff; box-shadow: 0 0 10px #ffaa00; }
+    .indicator { width: 6px; height: 6px; border-radius: 50%; background: #999; }
+    .toggle-btn.active .indicator { background: #fff; }
+
+    /* スライダーとメーター */
+    .slider-row { display: flex; align-items: center; width: 100%; justify-content: space-between; margin-bottom: 2px; }
+    .sub-label { font-size: 9px; color: #888; width: 25px; text-align: right; margin-right: 5px; font-weight: bold; }
+    .slider-wrapper { display: flex; align-items: center; gap: 6px; flex-grow: 1; }
+    
+    input[type=range] { -webkit-appearance: none; width: 100%; height: 4px; background: #444; border-radius: 3px; outline: none; }
+    input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; width: 14px; height: 14px; border-radius: 50%; background: #ffaa00; cursor: pointer; border: 2px solid #fff; box-shadow: 0 0 5px #ffaa00; }
+    .val-display { font-family: monospace; color: #fff; font-weight: bold; font-size: 10px; width: 25px; text-align: right;}
+
+    /* メーター */
+    .meter-box { width: 100%; height: 4px; background: #222; margin-top: 2px; position: relative; border-radius: 2px; overflow: hidden; margin-bottom: 6px; }
+    .meter-bar { height: 100%; width: 0%; background: #555; transition: width 0.05s linear; }
+    .meter-thresh { position: absolute; top: 0; bottom: 0; width: 2px; background: #fff; z-index: 2; left: 0%; }
+    
+    /* テーマカラー */
+    .theme-hand .meter-bar { background: #00ccff; }
+    .theme-hand input[type=range]::-webkit-slider-thumb { background: #00ccff; box-shadow: 0 0 5px #00ccff; }
+    
+    .theme-foot .meter-bar { background: #ffaa00; }
+    .theme-foot input[type=range]::-webkit-slider-thumb { background: #ffaa00; box-shadow: 0 0 5px #ffaa00; }
+    
+    .theme-stop .meter-bar { background: #ffff00; }
+    .theme-stop input[type=range]::-webkit-slider-thumb { background: #ffff00; box-shadow: 0 0 5px #ffff00; }
+
+    #overlay {
+      position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+      background: rgba(10,10,15,0.95); display: flex; flex-direction: column;
+      justify-content: center; align-items: center; z-index: 50; backdrop-filter: blur(10px);
+    }
+    h1 { font-weight: 900; letter-spacing: 2px; font-size: 2rem; margin-bottom: 5px; color: #ffaa00; text-align: center; text-transform: uppercase; font-style: italic; text-shadow: 0 0 20px #ff6600; }
+    .subtitle { font-size: 1rem; color: #aaa; margin-bottom: 30px; letter-spacing: 1px; }
+    .btn-start { 
+      padding: 16px 60px; font-size: 16px; letter-spacing: 2px; font-weight: bold;
+      background: linear-gradient(45deg, #ffaa00, #ffcc33); color: #fff; border: none; border-radius: 30px; 
+      box-shadow: 0 0 20px rgba(255, 170, 0, 0.5); cursor: pointer;
+      pointer-events: auto; /* クリック確実に */
+    }
+    .btn-start:hover { box-shadow: 0 0 40px rgba(255, 170, 0, 0.8); }
+  </style>
+
+  <script src="https://cdn.jsdelivr.net/npm/@mediapipe/pose/pose.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands/hands.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@mediapipe/drawing_utils/drawing_utils.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.js"></script>
+</head>
+<body>
+
+  <div id="container">
+    <div id="visualWrapper">
+        <video id="input_video" autoplay playsinline muted loop></video>
+        <canvas id="effect_canvas"></canvas>
+    </div>
+    <input type="file" id="fileInput" accept="video/*" style="display:none;">
+    
+    <div id="latencyBox">LATENCY: -- ms (DEMO3 Core)</div>
+
+    <div id="controlPanel">
+      <div class="control-group">
+        <span class="label">SOURCE</span>
+        <div style="display:flex; gap:4px; flex-wrap:wrap; justify-content:center;">
+           <button id="camBtn" class="toggle-btn">📷 CAM</button>
+           <button id="captureBtn" class="toggle-btn active">📺 CAPTURE</button>
+           <button id="uploadBtn" class="toggle-btn">📂 FILE</button>
+        </div>
+      </div>
+
+      <div class="control-group theme-hand">
+        <span class="label" style="color:#00ccff;">🖐️ HANDS</span>
+        <div class="slider-row">
+          <span class="sub-label">SENS</span>
+          <div class="slider-wrapper">
+            <input type="range" id="handSensSlider" min="10" max="150" value="80">
+          </div>
+          <span id="handSensVal" class="val-display" style="color:#00ccff;">80</span>
+        </div>
+        <div class="meter-box"><div id="handMeter" class="meter-bar"></div><div id="handThresh" class="meter-thresh"></div></div>
+
+        <div class="slider-row" style="margin-top:2px;">
+          <span class="sub-label">VOL</span>
+          <div class="slider-wrapper">
+            <input type="range" id="motionVolSlider" min="0" max="100" value="70">
+          </div>
+          <span id="handVolVal" class="val-display">70</span>
+        </div>
+      </div>
+
+      <div class="control-group theme-foot">
+        <span class="label" style="color:#ffaa00;">🦶 FEET</span>
+        <div class="slider-row">
+          <span class="sub-label">SENS</span>
+          <div class="slider-wrapper">
+            <input type="range" id="footSensSlider" min="1" max="50" value="20">
+          </div>
+          <span id="footSensVal" class="val-display" style="color:#ffaa00;">20</span>
+        </div>
+        <div class="meter-box"><div id="footMeter" class="meter-bar"></div><div id="footThresh" class="meter-thresh"></div></div>
+
+        <div class="slider-row" style="margin-top:2px;">
+          <span class="sub-label">VOL</span>
+          <div class="slider-wrapper">
+            <input type="range" id="tapVolSlider" min="0" max="100" value="80">
+          </div>
+          <span id="footVolVal" class="val-display">80</span>
+        </div>
+      </div>
+
+      <div class="control-group theme-stop">
+        <span class="label" style="color:#ffff00;">🛑 STOP</span>
+        <div class="slider-row">
+          <span class="sub-label">SENS</span>
+          <div class="slider-wrapper">
+            <input type="range" id="stopSensSlider" min="10" max="100" value="50">
+          </div>
+          <span id="stopSensVal" class="val-display" style="color:#ffff00;">50</span>
+        </div>
+        <div class="meter-box"><div id="stopMeter" class="meter-bar"></div><div id="stopThresh" class="meter-thresh"></div></div>
+
+        <div class="slider-row" style="margin-top:2px;">
+          <span class="sub-label">VOL</span>
+          <div class="slider-wrapper">
+            <input type="range" id="poseVolSlider" min="0" max="100" value="80">
+          </div>
+          <span id="stopVolVal" class="val-display">80</span>
+        </div>
+      </div>
+
+      <div class="control-group" style="width:100%; flex-direction:row; justify-content:center; gap:8px; margin-top:4px;">
+        <button id="calibBtn" class="toggle-btn">🎯 RESET</button>
+        <button id="mirrorBtn" class="toggle-btn">↔ MIRROR</button>
+        <button id="skelBtn" class="toggle-btn active"><div class="indicator"></div> SKEL</button>
+      </div>
+    </div>
+
+    <div id="overlay">
+      <h1>SONIC<br>DANCER</h1>
+      <div class="subtitle">Perfect Fix Edition</div>
+      <button id="startBtn">Loading...</button>
+      <select id="cameraSelect" style="margin-top:20px; width:200px; display:none;"></select>
+    </div>
+  </div>
+
+  <script>
+    let uiTimeout;
+    const body = document.body;
+    const controlPanel = document.getElementById('controlPanel');
+    const latencyBox = document.getElementById('latencyBox');
+
+    function resetUiTimer() {
+      body.classList.add('user-active');
+      controlPanel.classList.remove('fade-out');
+      latencyBox.classList.remove('fade-out');
+      body.style.cursor = 'default';
+      clearTimeout(uiTimeout);
+      uiTimeout = setTimeout(() => {
+        controlPanel.classList.add('fade-out');
+        latencyBox.classList.add('fade-out');
+        body.style.cursor = 'none';
+      }, 3000);
+    }
+    window.addEventListener('mousemove', resetUiTimer);
+    window.addEventListener('click', resetUiTimer);
+    window.addEventListener('touchstart', resetUiTimer);
+
+    // ★DEMO3と同じ初期化順序
+    window.addEventListener('load', () => {
+        const btn = document.getElementById('startBtn');
+        btn.innerText = "START EXPERIENCE";
+        initApp(); // ここで初期化
+        resetUiTimer();
+    });
+
+    function initApp() {
+        const videoElement = document.getElementById('input_video');
+        const effectCanvas = document.getElementById('effect_canvas');
+        const effectCtx = effectCanvas.getContext('2d');
+        const overlay = document.getElementById('overlay');
+        const cameraSelect = document.getElementById('cameraSelect');
+        const visualWrapper = document.getElementById('visualWrapper');
+        
+        const camBtn = document.getElementById('camBtn');
+        const captureBtn = document.getElementById('captureBtn');
+        const uploadBtn = document.getElementById('uploadBtn');
+        const fileInput = document.getElementById('fileInput');
+        
+        const calibBtn = document.getElementById('calibBtn');
+        const mirrorBtn = document.getElementById('mirrorBtn');
+        const skelBtn = document.getElementById('skelBtn');
+        
+        // --- Sliders ---
+        const handSensSlider = document.getElementById('handSensSlider');
+        const handSensVal = document.getElementById('handSensVal');
+        const handMeter = document.getElementById('handMeter');
+        const handThresh = document.getElementById('handThresh');
+        const handVolSlider = document.getElementById('handVolSlider');
+        const handVolVal = document.getElementById('handVolVal');
+
+        const footSensSlider = document.getElementById('footSensSlider');
+        const footSensVal = document.getElementById('footSensVal');
+        const footMeter = document.getElementById('footMeter');
+        const footThresh = document.getElementById('footThresh');
+        const footVolSlider = document.getElementById('footVolSlider');
+        const footVolVal = document.getElementById('footVolVal');
+
+        const stopSensSlider = document.getElementById('stopSensSlider');
+        const stopSensVal = document.getElementById('stopSensVal');
+        const stopMeter = document.getElementById('stopMeter');
+        const stopThresh = document.getElementById('stopThresh');
+        const stopVolSlider = document.getElementById('stopVolSlider');
+        const stopVolVal = document.getElementById('stopVolVal');
+        
+        let isProcessing = false;
+        let isMirrored = false;
+        let showSkeleton = true; 
+        
+        // Settings (Defaults)
+        let handThreshold = 80;
+        let footThreshold = 20; 
+        let stopThreshold = 50; 
+
+        function mapSliderToDb(val) {
+            if (val == 0) return -Infinity;
+            return -40 + (val / 100) * 40;
+        }
+        let motionMaxDb = mapSliderToDb(70);
+        let tapMaxDb = mapSliderToDb(80); 
+        let poseMaxDb = mapSliderToDb(80); 
+        
+        let calibOffset = { x: 0, y: 0 }; 
+        let tempPoseX = 0.5, tempPoseY = 0.5;
+        
+        let prevPose = {
+            rWrist: {x:0, y:0}, lWrist: {x:0, y:0},
+            rAnkle: {x:0, y:0}, lAnkle: {x:0, y:0},
+            rHandSpeed: 0, lHandSpeed: 0,
+            rFootSpeed: 0, lFootSpeed: 0
+        };
+
+        // Safety Limiters
+        let lastRightTap = 0;
+        let lastLeftTap = 0;
+        let lastTriggerTime = 0; 
+        // 30FPS制御 (安定化の要)
+        let lastLoopTime = 0;
+        const LOOP_INTERVAL = 33; 
+        const MAX_PARTICLES = 50; 
+
+        let isCameraSetup = false;
+
+        function resize() {
+          effectCanvas.width = window.innerWidth;
+          effectCanvas.height = window.innerHeight;
+        }
+        window.addEventListener('resize', resize);
+        resize();
+
+        // --- Audio Setup (Stable & Real Tap) ---
+        let motionSynth, motionVolNode;
+        let tapSynthR, tapSynthL, tapVolNode; 
+        let clapSynth, poseVolNode;
+        let isAudioReady = false;
+
+        async function initAudio() {
+          Tone.context.lookAhead = 0.1; Tone.context.latencyHint = 'interactive';
+          const masterReverb = new Tone.Reverb({ decay: 1.5, wet: 0.3 }).toDestination();
+          const limiter = new Tone.Limiter(-1).connect(masterReverb);
+
+          // 1. Hands: Mellow Chord (DEMO3 Style)
+          motionVolNode = new Tone.Volume(motionMaxDb).connect(limiter);
+          const motionFilter = new Tone.Filter(600, "lowpass").connect(motionVolNode);
+          motionSynth = new Tone.PolySynth(Tone.Synth, {
+              oscillator: { type: "triangle" },
+              envelope: { attack: 0.1, decay: 0.3, sustain: 0.8, release: 1.5 } 
+          }).connect(motionFilter);
+          motionSynth.triggerAttack(["C3", "E3", "G3", "B3"]);
+
+          // 2. Feet: Real Tap (Square Wave - Lightweight)
+          // ノイズ合成なしで硬い音を出す
+          tapVolNode = new Tone.Volume(tapMaxDb).connect(limiter);
+          const tapParams = {
+              pitchDecay: 0.01, octaves: 1, oscillator: { type: "square" }, // Hard
+              envelope: { attack: 0.001, decay: 0.05, sustain: 0, release: 0.01 } // Short
+          };
+          tapSynthR = new Tone.MembraneSynth(tapParams).connect(tapVolNode); 
+          tapSynthL = new Tone.MembraneSynth(tapParams).connect(tapVolNode); 
+
+          // 3. Pose: Clap
+          poseVolNode = new Tone.Volume(poseMaxDb).connect(limiter);
+          clapSynth = new Tone.NoiseSynth({ noise: { type: "white" }, envelope: { attack: 0.001, decay: 0.15, sustain: 0 } }).connect(poseVolNode);
+          const kickSynth = new Tone.MembraneSynth({ pitchDecay: 0.01, octaves: 2, volume: 5 }).connect(poseVolNode);
+          
+          window.triggerClap = () => {
+              clapSynth.triggerAttackRelease("16n");
+              kickSynth.triggerAttackRelease("D2", "32n");
+          };
+          window.triggerTap = (note) => {
+              if(note === "G4") tapSynthR.triggerAttackRelease("G4", "32n");
+              else tapSynthL.triggerAttackRelease("E4", "32n");
+          }
+
+          await Tone.start(); 
+          isAudioReady = true;
+        }
+
+        // --- Logic ---
+        function updateAudio(speeds) {
+            const { rHand, lHand, rFoot, lFoot } = speeds;
+            const totalHandSpeed = rHand + lHand;
+            const totalBodySpeed = totalHandSpeed + rFoot + lFoot;
+
+            // --- Meter Update ---
+            const handMax = 200;
+            const footMax = 60;
+            const stopMax = 150;
+
+            if(handMeter) {
+                handThresh.style.left = `${Math.min(100, (handThreshold / handMax) * 100)}%`;
+                handMeter.style.width = `${Math.min(100, (totalHandSpeed / handMax) * 100)}%`;
+                handMeter.style.background = (totalHandSpeed > handThreshold) ? "#fff" : "#00ccff";
+            }
+            if(footMeter) {
+                footThresh.style.left = `${Math.min(100, (footThreshold / footMax) * 100)}%`;
+                const maxFoot = Math.max(rFoot, lFoot);
+                footMeter.style.width = `${Math.min(100, (maxFoot / footMax) * 100)}%`;
+                footMeter.style.background = (maxFoot > footThreshold) ? "#fff" : "#ffaa00";
+            }
+            if(stopMeter) {
+                stopThresh.style.left = `${Math.min(100, (stopThreshold / stopMax) * 100)}%`;
+                stopMeter.style.width = `${Math.min(100, (totalBodySpeed / stopMax) * 100)}%`;
+                stopMeter.style.background = (totalBodySpeed > stopThreshold) ? "#fff" : "#ffff00";
+            }
+
+            if(!isAudioReady) return;
+
+            // 1. Hands (Continuous)
+            const normHand = Math.min(1, totalHandSpeed / (handThreshold * 2));
+            if (motionMaxDb > -60) {
+                 let targetVol = -Infinity;
+                 if(normHand > 0.05) targetVol = -50 + (normHand * (50 + motionMaxDb));
+                 motionVolNode.volume.rampTo(targetVol, 0.1); 
+                 motionSynth.set({ detune: normHand * 10 }); 
+            } else { motionVolNode.volume.rampTo(-Infinity, 0.1); }
+
+            // 2. Feet (Tap)
+            const now = Date.now();
+            if (tapMaxDb > -60) {
+                if (rFoot > footThreshold && now - lastRightTap > 150) { 
+                    window.triggerTap("G4"); 
+                    createBurst(prevPose.rAnkle.x, prevPose.rAnkle.y, 'tap');
+                    lastRightTap = now;
+                }
+                if (lFoot > footThreshold && now - lastLeftTap > 150) {
+                    window.triggerTap("E4");
+                    createBurst(prevPose.lAnkle.x, prevPose.lAnkle.y, 'tap');
+                    lastLeftTap = now;
+                }
+            }
+
+            // 3. Pose
+            detectPose(totalBodySpeed, prevPose.rHandSpeed + prevPose.lHandSpeed + prevPose.rFootSpeed + prevPose.lFootSpeed);
+        }
+
+        function detectPose(currentTotal, previousTotal) {
+             const STOP_LOW = 10.0; 
+             const MOVE_HIGH = stopThreshold; 
+             const now = Date.now();
+
+             if (now - lastTriggerTime < 120) return; 
+
+             if (previousTotal > MOVE_HIGH && currentTotal < STOP_LOW) {
+                 if (poseMaxDb > -60) window.triggerClap();
+                 createBurst(prevPose.rWrist.x, prevPose.rWrist.y, 'burst'); 
+                 createBurst(prevPose.lWrist.x, prevPose.lWrist.y, 'burst');
+                 lastTriggerTime = now;
+             }
+        }
+
+        // --- Visuals ---
+        const particles = [];
+        class Particle {
+          constructor(x, y, type) { 
+            this.x = x; this.y = y; this.type = type; 
+            if(type === 'hand') {
+                this.vx = (Math.random()-0.5)*1; this.vy = (Math.random()-0.5)*1; 
+                this.size = Math.random()*3+1; 
+                this.color = `hsl(${Math.random()*40 + 180}, 100%, 75%)`; 
+                this.decay = 0.15; 
+            } else if (type === 'tap') {
+                this.vx = (Math.random()-0.5)*5; this.vy = (Math.random()-1.0)*5; 
+                this.size = Math.random()*4+2; 
+                this.color = '#ffaa00'; 
+                this.decay = 0.15;
+            } else { // burst
+                const angle = Math.random() * Math.PI * 2;
+                const speed = Math.random() * 20 + 5; 
+                this.vx = Math.cos(angle) * speed; this.vy = Math.sin(angle) * speed;
+                this.size = Math.random()*10+5; 
+                this.color = '#fff';
+                this.decay = 0.08;
+            }
+            this.life = 1.0;
+          }
+          update() {
+            this.x += this.vx; this.y += this.vy; this.life -= this.decay;
+            if(this.type === 'tap') this.vy += 0.2; 
+          }
+          draw(ctx) {
+            ctx.fillStyle = this.color;
+            ctx.globalAlpha = this.life;
+            ctx.beginPath(); 
+            if (this.type === 'tap') ctx.rect(this.x, this.y, this.size, this.size); 
+            else ctx.arc(this.x, this.y, this.size, 0, Math.PI*2); 
+            ctx.fill();
+            ctx.globalAlpha = 1.0;
+          }
+        }
+        
+        function createBurst(x, y, type) {
+            if (particles.length > MAX_PARTICLES) return;
+            const count = type === 'tap' ? 5 : 10;
+            for(let i=0; i<count; i++) particles.push(new Particle(x, y, type));
+        }
+
+        function renderParticles() {
+            effectCtx.globalCompositeOperation = 'lighter';
+            for(let i=0; i<particles.length; i++){
+                particles[i].update(); particles[i].draw(effectCtx);
+                if(particles[i].life<=0){ particles.splice(i,1); i--; }
+            }
+            if(particles.length > MAX_PARTICLES + 20) particles.splice(0, 20);
+            effectCtx.globalCompositeOperation = 'source-over';
+        }
+
+        function getCalibratedPoint(point, w, h) {
+             let cx = point.x - calibOffset.x; let cy = point.y - calibOffset.y;
+             return { x: cx * w, y: cy * h };
+        }
+
+        function onPoseResults(results) {
+          const w = effectCanvas.width; const h = effectCanvas.height;
+          effectCtx.clearRect(0, 0, w, h);
+
+          if (results.poseLandmarks) {
+            if (showSkeleton) {
+                drawConnectors(effectCtx, results.poseLandmarks, POSE_CONNECTIONS, {color: 'rgba(255,255,255,0.2)', lineWidth: 1});
+            }
+
+            const p = results.poseLandmarks;
+            tempPoseX = p[0].x; tempPoseY = p[0].y; 
+
+            const rw = getCalibratedPoint(p[16], w, h);
+            const lw = getCalibratedPoint(p[15], w, h);
+            const rf = getCalibratedPoint(p[28], w, h); 
+            const lf = getCalibratedPoint(p[27], w, h); 
+
+            // Speed
+            const rHandSpeed = Math.hypot(rw.x - prevPose.rWrist.x, rw.y - prevPose.rWrist.y);
+            const lHandSpeed = Math.hypot(lw.x - prevPose.lWrist.x, lw.y - prevPose.lWrist.y);
+            const rFootSpeed = Math.hypot(rf.x - prevPose.rAnkle.x, rf.y - prevPose.rAnkle.y);
+            const lFootSpeed = Math.hypot(lf.x - prevPose.lAnkle.x, lf.y - prevPose.lAnkle.y);
+
+            updateAudio({rHand: rHandSpeed, lHand: lHandSpeed, rFoot: rFootSpeed, lFoot: lFootSpeed});
+
+            if (rHandSpeed > 10) particles.push(new Particle(rw.x, rw.y, 'hand'));
+            if (lHandSpeed > 10) particles.push(new Particle(lw.x, lw.y, 'hand'));
+
+            prevPose = {
+                rWrist: rw, lWrist: lw, rAnkle: rf, lAnkle: lf,
+                rHandSpeed, lHandSpeed, rFootSpeed, lFootSpeed
+            };
+          }
+          renderParticles();
+        }
+
+        const pose = new Pose({locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/pose/${file}`});
+        pose.setOptions({modelComplexity: 0, smoothLandmarks: true, minDetectionConfidence: 0.5, minTrackingConfidence: 0.5});
+        pose.onResults(onPoseResults);
+
+        // --- Listeners ---
+        handSensSlider.addEventListener('input', (e) => { handThreshold = parseInt(e.target.value); handSensVal.innerText = handThreshold; });
+        footSensSlider.addEventListener('input', (e) => { footThreshold = parseInt(e.target.value); footSensVal.innerText = footThreshold; });
+        stopSensSlider.addEventListener('input', (e) => { stopThreshold = parseInt(e.target.value); stopSensVal.innerText = stopThreshold; });
+
+        motionVolSlider.addEventListener('input', (e) => { 
+             motionMaxDb = mapSliderToDb(parseInt(e.target.value)); 
+             handVolVal.innerText = e.target.value;
+             if(isAudioReady && window.motionVolNode) window.motionVolNode.volume.value = motionMaxDb; 
+        });
+
+        tapVolSlider.addEventListener('input', (e) => { 
+             tapMaxDb = mapSliderToDb(parseInt(e.target.value)); 
+             footVolVal.innerText = e.target.value;
+             if(isAudioReady && window.tapVolNode) window.tapVolNode.volume.value = tapMaxDb;
+        });
+
+        poseVolSlider.addEventListener('input', (e) => { 
+             poseMaxDb = mapSliderToDb(parseInt(e.target.value)); 
+             stopVolVal.innerText = e.target.value;
+             if(isAudioReady && window.poseVolNode) window.poseVolNode.volume.value = poseMaxDb;
+        });
+
+        calibBtn.addEventListener('click', () => {
+            calibOffset.x = tempPoseX - 0.5; calibOffset.y = tempPoseY - 0.5;
+            calibBtn.innerText = "OK!"; setTimeout(() => { calibBtn.innerText = "🎯 RESET POS"; }, 1000);
+        });
+        mirrorBtn.addEventListener('click', () => {
+            isMirrored = !isMirrored;
+            if(isMirrored) { visualWrapper.classList.add('mirror'); mirrorBtn.classList.add('active'); } 
+            else { visualWrapper.classList.remove('mirror'); mirrorBtn.classList.remove('active'); }
+        });
+        skelBtn.addEventListener('click', () => { 
+            showSkeleton = !showSkeleton; skelBtn.classList.toggle('active', showSkeleton); 
+        });
+
+        function setActiveSourceBtn(btnId) {
+            [camBtn, captureBtn, uploadBtn].forEach(b => b.classList.remove('active'));
+            document.getElementById(btnId).classList.add('active');
+        }
+        function setMirrorState(shouldMirror) {
+            isMirrored = shouldMirror;
+            if(isMirrored) { visualWrapper.classList.add('mirror'); mirrorBtn.classList.add('active'); } 
+            else { visualWrapper.classList.remove('mirror'); mirrorBtn.classList.remove('active'); }
+        }
+
+        async function setupCameraDevices() {
+          try {
+            await navigator.mediaDevices.getUserMedia({video:true});
+            const devices = await navigator.mediaDevices.enumerateDevices();
+            const videos = devices.filter(d => d.kind === 'videoinput');
+            cameraSelect.innerHTML = "";
+            videos.forEach(v => { const opt = document.createElement('option'); opt.value = v.deviceId; opt.text = v.label || "Camera"; cameraSelect.appendChild(opt); });
+            cameraSelect.style.display = "block"; 
+            isCameraSetup = true;
+          } catch(e){ console.error("Camera perm denied"); }
+        }
+
+        camBtn.addEventListener('click', async () => {
+            setActiveSourceBtn('camBtn');
+            if(!isCameraSetup) await setupCameraDevices(); 
+            await startCamera(cameraSelect.value);
+            setMirrorState(true); 
+        });
+
+        uploadBtn.addEventListener('click', () => { fileInput.click(); });
+        fileInput.addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (file) {
+                const url = URL.createObjectURL(file);
+                if(videoElement.srcObject) { videoElement.srcObject.getTracks().forEach(t => t.stop()); videoElement.srcObject = null; }
+                videoElement.src = url; videoElement.loop = true; videoElement.play();
+                setActiveSourceBtn('uploadBtn');
+                setMirrorState(false);
+            }
+        });
+
+        async function startCapture() {
+            try {
+                const stream = await navigator.mediaDevices.getDisplayMedia({ video: true, audio: false });
+                if(videoElement.srcObject) { videoElement.srcObject.getTracks().forEach(t => t.stop()); }
+                videoElement.src = "";
+                videoElement.srcObject = stream;
+                videoElement.play();
+                setActiveSourceBtn('captureBtn');
+                setMirrorState(false);
+            } catch(e) { console.log("Capture Cancelled"); }
+        }
+        captureBtn.addEventListener('click', startCapture);
+
+        async function startCamera(deviceId) {
+          if(videoElement.srcObject) { videoElement.srcObject.getTracks().forEach(t => t.stop()); }
+          videoElement.src = "";
+          const stream = await navigator.mediaDevices.getUserMedia({ video: { deviceId: deviceId ? { exact: deviceId } : undefined, width: 640, height: 480 } });
+          videoElement.srcObject = stream;
+          videoElement.play();
+        }
+
+        // FPS Limit Loop (30FPS)
+        async function globalAiLoop() {
+           const now = Date.now();
+           if (now - lastLoopTime < LOOP_INTERVAL) {
+               requestAnimationFrame(globalAiLoop);
+               return;
+           }
+           lastLoopTime = now;
+
+           if(videoElement.readyState >= 2 && !videoElement.paused && !isProcessing) {
+               isProcessing = true;
+               try { await pose.send({image: videoElement}); } catch(e) {}
+               isProcessing = false;
+               latencyBox.innerText = `LATENCY: -- ms (Fixed)`;
+           }
+           requestAnimationFrame(globalAiLoop);
+        }
+
+        // スタートボタン処理
+        document.getElementById('startBtn').addEventListener('click', async () => {
+          overlay.style.display = 'none';
+          await initAudio();
+          // デフォルトはCAPTUREモードで開始
+          await startCapture();
+          globalAiLoop();
+        });
+    }
+  </script>
+</body>
+</html>
