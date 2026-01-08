@@ -3,90 +3,138 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-  <title>Sonic Dancer (Silent Start Fix)</title>
+  <title>Sonic Dancer (Layout Fixed)</title>
   <style>
-    /* --- ベーススタイル --- */
-    body { margin: 0; padding: 0; background: #000; overflow: hidden; font-family: 'Segoe UI', sans-serif; color: white; cursor: none; }
+    /* --- ベース設定 --- */
+    body { margin: 0; padding: 0; background: #050505; overflow: hidden; font-family: 'Segoe UI', sans-serif; color: white; cursor: none; }
     body.user-active { cursor: default; }
-    #container { position: relative; width: 100vw; height: 100vh; background: #000; }
     
-    #visualWrapper { position: absolute; top: 0; left: 0; width: 100%; height: 100%; transform: scaleX(1); transition: transform 0.3s ease; }
+    #container { 
+        position: relative; width: 100vw; height: 100vh; 
+        display: flex; justify-content: center; align-items: center;
+        background: #000;
+    }
+    
+    #visualWrapper { 
+        position: relative; width: 100%; height: 100%; 
+        display: flex; justify-content: center; align-items: center;
+        transform: scaleX(1); transition: transform 0.3s ease; 
+    }
     #visualWrapper.mirror { transform: scaleX(-1); }
 
     video { position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: contain; opacity: 0.6; }
-    canvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; }
+    canvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: contain; pointer-events: none; }
     #effect_canvas { mix-blend-mode: screen; z-index: 2; }
 
-    /* UIパーツ */
-    #latencyBox { position: absolute; top: 15px; left: 15px; z-index: 20; font-family: monospace; font-size: 12px; color: #00ffcc; background: rgba(0, 0, 0, 0.6); padding: 4px 8px; border-radius: 4px; pointer-events: none; transition: opacity 0.5s; }
+    #latencyBox { 
+        position: absolute; top: 20px; left: 20px; z-index: 20; 
+        font-family: monospace; font-size: 12px; color: #00ffcc; 
+        background: rgba(0, 0, 0, 0.7); padding: 6px 12px; border-radius: 4px; 
+        pointer-events: none; transition: opacity 0.5s; 
+        border-left: 3px solid #00ffcc;
+    }
 
+    /* --- コントロールパネル (グリッドレイアウト) --- */
     #controlPanel {
       position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%);
-      width: 98%; max-width: 960px;
+      width: 96%; max-width: 1000px;
       background: rgba(20, 25, 30, 0.95); backdrop-filter: blur(10px);
-      border: 1px solid rgba(255, 160, 50, 0.3); border-radius: 16px; padding: 12px;
-      display: flex; flex-wrap: wrap; justify-content: center; gap: 16px;
-      z-index: 20; box-shadow: 0 0 20px rgba(255,160,50,0.1); transition: opacity 0.5s;
+      border: 1px solid rgba(255, 255, 255, 0.15); border-radius: 12px; padding: 15px;
+      display: flex; flex-direction: column; gap: 10px; /* 上段と下段の間隔 */
+      z-index: 20; box-shadow: 0 10px 40px rgba(0,0,0,0.6); transition: opacity 0.5s;
     }
     #controlPanel.fade-out { opacity: 0; pointer-events: none; }
     #latencyBox.fade-out { opacity: 0; }
 
-    .control-group { display: flex; flex-direction: column; gap: 2px; align-items: center; min-width: 140px; }
-    .label { font-size: 10px; color: #aaa; letter-spacing: 1px; font-weight: 700; text-transform: uppercase; margin-bottom: 2px; }
-    
-    .toggle-btn {
-      background: rgba(60,50,40,0.8); border: 1px solid #777; color: #eee;
-      padding: 6px 12px; border-radius: 20px; font-size: 10px; font-weight: bold;
-      transition: 0.2s; display: flex; align-items: center; gap: 4px; white-space: nowrap;
+    /* 上段: 設定ボタン群 */
+    .top-row {
+        display: flex; flex-wrap: wrap; justify-content: center; gap: 20px;
+        border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 10px;
     }
-    .toggle-btn.active { background: #ffaa00; border-color: #ffaa00; color: #fff; box-shadow: 0 0 10px #ffaa00; }
-    .indicator { width: 6px; height: 6px; border-radius: 50%; background: #999; }
+
+    /* 下段: スライダー群 (3カラム固定) */
+    .bottom-row {
+        display: grid; 
+        grid-template-columns: 1fr 1fr 1fr; /* 3等分 */
+        gap: 15px;
+        align-items: start;
+    }
+
+    .control-group { 
+        display: flex; flex-direction: column; align-items: center; 
+    }
+    
+    .label { font-size: 9px; color: #888; letter-spacing: 1px; font-weight: 700; margin-bottom: 4px; text-transform: uppercase; }
+    
+    .btn-group { display: flex; gap: 5px; flex-wrap: wrap; justify-content: center; }
+
+    .toggle-btn {
+      background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); color: #eee;
+      padding: 6px 12px; border-radius: 4px; font-size: 11px; font-weight: bold;
+      transition: 0.2s; display: flex; align-items: center; gap: 6px; white-space: nowrap; cursor: pointer;
+    }
+    .toggle-btn:hover { background: rgba(255,255,255,0.25); }
+    .toggle-btn.active { background: #ffaa00; border-color: #ffaa00; color: #000; box-shadow: 0 0 15px rgba(255,170,0,0.4); }
+    .indicator { width: 6px; height: 6px; border-radius: 50%; background: #555; }
     .toggle-btn.active .indicator { background: #fff; }
 
-    /* スライダーとメーター */
-    .slider-row { display: flex; align-items: center; width: 100%; justify-content: space-between; margin-bottom: 2px; }
-    .sub-label { font-size: 9px; color: #888; width: 25px; text-align: right; margin-right: 5px; font-weight: bold; }
-    .slider-wrapper { display: flex; align-items: center; gap: 6px; flex-grow: 1; }
+    #focusBtn.active { background: #ff3366; border-color: #ff3366; color:#fff; }
+    #autoBtn.active { background: #00ffcc; border-color: #00ffcc; color:#000; }
+    #autoBtn.active .indicator { background: #000; }
+    #modelBtn.active { background: #cc00ff; border-color: #cc00ff; color:#fff; }
+    .preset-btn { min-width: 60px; justify-content: center; }
+    .preset-btn.active { background: #00ccff; border-color: #00ccff; color: #000; }
+
+    /* スライダーエリアの整形 */
+    .slider-row { display: flex; align-items: center; width: 100%; height: 24px; }
+    .sub-label { 
+        font-size: 10px; color: #aaa; width: 35px; text-align: right; margin-right: 8px; font-weight: bold; 
+    }
+    .slider-wrapper { display: flex; align-items: center; flex-grow: 1; }
     
-    input[type=range] { -webkit-appearance: none; width: 100%; height: 4px; background: #444; border-radius: 3px; outline: none; }
-    input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; width: 14px; height: 14px; border-radius: 50%; background: #ffaa00; cursor: pointer; border: 2px solid #fff; box-shadow: 0 0 5px #ffaa00; }
-    .val-display { font-family: monospace; color: #fff; font-weight: bold; font-size: 10px; width: 25px; text-align: right;}
+    input[type=range] { -webkit-appearance: none; width: 100%; height: 4px; background: #444; border-radius: 2px; outline: none; }
+    input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; width: 14px; height: 14px; border-radius: 50%; background: #ccc; cursor: pointer; transition: 0.1s; border:2px solid #333; }
+    
+    .theme-hand input[type=range]::-webkit-slider-thumb { background: #00ccff; }
+    .theme-foot input[type=range]::-webkit-slider-thumb { background: #ffaa00; }
+    .theme-stop input[type=range]::-webkit-slider-thumb { background: #ffff00; }
+
+    .val-display { font-family: monospace; color: #fff; font-weight: bold; font-size: 11px; width: 25px; text-align: right;}
 
     /* メーター */
-    .meter-box { width: 100%; height: 4px; background: #222; margin-top: 2px; position: relative; border-radius: 2px; overflow: hidden; margin-bottom: 6px; }
+    .meter-box { width: 100%; height: 4px; background: #222; margin: 4px 0; position: relative; border-radius: 2px; overflow: hidden; }
     .meter-bar { height: 100%; width: 0%; background: #555; transition: width 0.05s linear; }
-    .meter-thresh { position: absolute; top: 0; bottom: 0; width: 2px; background: #fff; z-index: 2; left: 0%; }
+    .meter-thresh { position: absolute; top: 0; bottom: 0; width: 2px; background: #fff; z-index: 2; left: 0%; transition: left 0.3s ease; }
     
-    /* テーマカラー */
     .theme-hand .meter-bar { background: #00ccff; }
-    .theme-hand input[type=range]::-webkit-slider-thumb { background: #00ccff; box-shadow: 0 0 5px #00ccff; }
-    
     .theme-foot .meter-bar { background: #ffaa00; }
-    .theme-foot input[type=range]::-webkit-slider-thumb { background: #ffaa00; box-shadow: 0 0 5px #ffaa00; }
-    
     .theme-stop .meter-bar { background: #ffff00; }
-    .theme-stop input[type=range]::-webkit-slider-thumb { background: #ffff00; box-shadow: 0 0 5px #ffff00; }
+
+    /* レスポンシブ対応: 画面が狭いときは縦並び */
+    @media (max-width: 700px) {
+        .bottom-row { grid-template-columns: 1fr; gap: 20px; }
+    }
 
     #overlay {
       position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-      background: rgba(10,10,15,0.95); display: flex; flex-direction: column;
+      background: rgba(5,5,10,0.92); display: flex; flex-direction: column;
       justify-content: center; align-items: center; z-index: 50; backdrop-filter: blur(10px);
     }
-    h1 { font-weight: 900; letter-spacing: 2px; font-size: 2rem; margin-bottom: 5px; color: #ffaa00; text-align: center; text-transform: uppercase; font-style: italic; text-shadow: 0 0 20px #ff6600; }
-    .subtitle { font-size: 1rem; color: #aaa; margin-bottom: 30px; letter-spacing: 1px; }
+    h1 { font-weight: 900; letter-spacing: 4px; font-size: 3.5rem; margin-bottom: 5px; color: #ffaa00; text-transform: uppercase; font-style: italic; text-shadow: 0 0 30px #ff6600; }
+    .subtitle { font-size: 1.2rem; color: #aaa; margin-bottom: 40px; letter-spacing: 2px; }
     .btn-start { 
-      padding: 16px 60px; font-size: 16px; letter-spacing: 2px; font-weight: bold;
-      background: linear-gradient(45deg, #ffaa00, #ffcc33); color: #fff; border: none; border-radius: 30px; 
-      box-shadow: 0 0 20px rgba(255, 170, 0, 0.5); cursor: pointer;
-      pointer-events: auto; /* クリック確実に */
+      padding: 18px 70px; font-size: 16px; letter-spacing: 2px; font-weight: bold;
+      background: linear-gradient(45deg, #ffaa00, #ffcc33); color: #000; border: none; border-radius: 40px; 
+      box-shadow: 0 0 30px rgba(255, 170, 0, 0.4); cursor: pointer; transition: 0.3s;
+      pointer-events: auto;
     }
-    .btn-start:hover { box-shadow: 0 0 40px rgba(255, 170, 0, 0.8); }
+    .btn-start:hover { box-shadow: 0 0 60px rgba(255, 170, 0, 0.8); transform: scale(1.05); }
+    .btn-start:disabled { background: #333; color: #777; cursor: wait; box-shadow: none; transform: none; }
   </style>
 
-  <script src="https://cdn.jsdelivr.net/npm/@mediapipe/pose/pose.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands/hands.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/@mediapipe/drawing_utils/drawing_utils.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.js"></script>
+  <script src="https://unpkg.com/@mediapipe/pose/pose.js" crossorigin="anonymous"></script>
+  <script src="https://unpkg.com/@mediapipe/hands/hands.js" crossorigin="anonymous"></script>
+  <script src="https://unpkg.com/@mediapipe/drawing_utils/drawing_utils.js" crossorigin="anonymous"></script>
 </head>
 <body>
 
@@ -97,89 +145,97 @@
     </div>
     <input type="file" id="fileInput" accept="video/*" style="display:none;">
     
-    <div id="latencyBox">LATENCY: -- ms (Ultra Low)</div>
+    <div id="latencyBox">LATENCY: -- ms (Layout Fix)</div>
 
     <div id="controlPanel">
-      <div class="control-group">
-        <span class="label">SOURCE</span>
-        <div style="display:flex; gap:4px; flex-wrap:wrap; justify-content:center;">
-           <button id="camBtn" class="toggle-btn">📷 CAM</button>
-           <button id="captureBtn" class="toggle-btn active">📺 CAPTURE</button>
-           <button id="uploadBtn" class="toggle-btn">📂 FILE</button>
+      
+      <div class="top-row">
+        <div class="control-group">
+            <span class="label">PRESET</span>
+            <div class="btn-group">
+                <button id="presetFinger" class="toggle-btn preset-btn">🎮 FINGER</button>
+                <button id="presetBody" class="toggle-btn preset-btn active">💃 BODY</button>
+                <button id="presetDance" class="toggle-btn preset-btn">🔥 DANCE</button>
+                <button id="autoBtn" class="toggle-btn" style="margin-left:5px;"><div class="indicator"></div> ⚡ AUTO</button>
+            </div>
+        </div>
+
+        <div class="control-group">
+            <span class="label">INPUT / MODEL</span>
+            <div class="btn-group">
+               <button id="camBtn" class="toggle-btn">📷</button>
+               <button id="captureBtn" class="toggle-btn active">📺</button>
+               <button id="uploadBtn" class="toggle-btn">📂</button>
+               <div style="width:1px; background:#555; margin:0 5px;"></div>
+               <button id="focusBtn" class="toggle-btn"><div class="indicator"></div> 🔍</button>
+               <button id="modelBtn" class="toggle-btn active"><div class="indicator"></div> 🧠 FULL</button>
+            </div>
+        </div>
+
+        <div class="control-group">
+            <span class="label">TOOLS</span>
+            <div class="btn-group">
+                <button id="calibBtn" class="toggle-btn">🎯 RESET</button>
+                <button id="mirrorBtn" class="toggle-btn">↔ MIRROR</button>
+                <button id="skelBtn" class="toggle-btn active">💀 SKEL</button>
+            </div>
         </div>
       </div>
 
-      <div class="control-group theme-hand">
-        <span class="label" style="color:#00ccff;">🖐️ HANDS</span>
-        <div class="slider-row">
-          <span class="sub-label">SENS</span>
-          <div class="slider-wrapper">
-            <input type="range" id="handSensSlider" min="10" max="150" value="80">
+      <div class="bottom-row">
+          
+          <div class="control-group theme-hand" style="width:100%;">
+            <span class="label" style="color:#00ccff; width:100%; text-align:center; border-bottom:1px solid #333; padding-bottom:2px; margin-bottom:5px;">🖐️ HANDS</span>
+            <div class="slider-row">
+              <span class="sub-label">SENS</span>
+              <div class="slider-wrapper"><input type="range" id="handSensSlider" min="10" max="150" value="80"></div>
+              <span id="handSensVal" class="val-display" style="color:#00ccff;">80</span>
+            </div>
+            <div class="meter-box"><div id="handMeter" class="meter-bar"></div><div id="handThresh" class="meter-thresh"></div></div>
+            <div class="slider-row">
+              <span class="sub-label">VOL</span>
+              <div class="slider-wrapper"><input type="range" id="motionVolSlider" min="0" max="100" value="70"></div>
+              <span class="val-display">70</span>
+            </div>
           </div>
-          <span id="handSensVal" class="val-display" style="color:#00ccff;">80</span>
-        </div>
-        <div class="meter-box"><div id="handMeter" class="meter-bar"></div><div id="handThresh" class="meter-thresh"></div></div>
 
-        <div class="slider-row" style="margin-top:2px;">
-          <span class="sub-label">VOL</span>
-          <div class="slider-wrapper">
-            <input type="range" id="motionVolSlider" min="0" max="100" value="70">
+          <div class="control-group theme-foot" style="width:100%;">
+            <span class="label" style="color:#ffaa00; width:100%; text-align:center; border-bottom:1px solid #333; padding-bottom:2px; margin-bottom:5px;">🦶 FEET</span>
+            <div class="slider-row">
+              <span class="sub-label">SENS</span>
+              <div class="slider-wrapper"><input type="range" id="footSensSlider" min="1" max="50" value="20"></div>
+              <span id="footSensVal" class="val-display" style="color:#ffaa00;">20</span>
+            </div>
+            <div class="meter-box"><div id="footMeter" class="meter-bar"></div><div id="footThresh" class="meter-thresh"></div></div>
+            <div class="slider-row">
+              <span class="sub-label">VOL</span>
+              <div class="slider-wrapper"><input type="range" id="tapVolSlider" min="0" max="100" value="80"></div>
+              <span class="val-display">80</span>
+            </div>
           </div>
-          <span id="handVolVal" class="val-display">70</span>
-        </div>
-      </div>
 
-      <div class="control-group theme-foot">
-        <span class="label" style="color:#ffaa00;">🦶 FEET</span>
-        <div class="slider-row">
-          <span class="sub-label">SENS</span>
-          <div class="slider-wrapper">
-            <input type="range" id="footSensSlider" min="1" max="50" value="20">
+          <div class="control-group theme-stop" style="width:100%;">
+            <span class="label" style="color:#ffff00; width:100%; text-align:center; border-bottom:1px solid #333; padding-bottom:2px; margin-bottom:5px;">🛑 STOP</span>
+            <div class="slider-row">
+              <span class="sub-label">SENS</span>
+              <div class="slider-wrapper"><input type="range" id="stopSensSlider" min="10" max="100" value="50"></div>
+              <span id="stopSensVal" class="val-display" style="color:#ffff00;">50</span>
+            </div>
+            <div class="meter-box"><div id="stopMeter" class="meter-bar"></div><div id="stopThresh" class="meter-thresh"></div></div>
+            <div class="slider-row">
+              <span class="sub-label">VOL</span>
+              <div class="slider-wrapper"><input type="range" id="poseVolSlider" min="0" max="100" value="80"></div>
+              <span class="val-display">80</span>
+            </div>
           </div>
-          <span id="footSensVal" class="val-display" style="color:#ffaa00;">20</span>
-        </div>
-        <div class="meter-box"><div id="footMeter" class="meter-bar"></div><div id="footThresh" class="meter-thresh"></div></div>
 
-        <div class="slider-row" style="margin-top:2px;">
-          <span class="sub-label">VOL</span>
-          <div class="slider-wrapper">
-            <input type="range" id="tapVolSlider" min="0" max="100" value="80">
-          </div>
-          <span id="footVolVal" class="val-display">80</span>
-        </div>
-      </div>
-
-      <div class="control-group theme-stop">
-        <span class="label" style="color:#ffff00;">🛑 STOP</span>
-        <div class="slider-row">
-          <span class="sub-label">SENS</span>
-          <div class="slider-wrapper">
-            <input type="range" id="stopSensSlider" min="10" max="100" value="50">
-          </div>
-          <span id="stopSensVal" class="val-display" style="color:#ffff00;">50</span>
-        </div>
-        <div class="meter-box"><div id="stopMeter" class="meter-bar"></div><div id="stopThresh" class="meter-thresh"></div></div>
-
-        <div class="slider-row" style="margin-top:2px;">
-          <span class="sub-label">VOL</span>
-          <div class="slider-wrapper">
-            <input type="range" id="poseVolSlider" min="0" max="100" value="80">
-          </div>
-          <span id="stopVolVal" class="val-display">80</span>
-        </div>
-      </div>
-
-      <div class="control-group" style="width:100%; flex-direction:row; justify-content:center; gap:8px; margin-top:4px;">
-        <button id="calibBtn" class="toggle-btn">🎯 RESET</button>
-        <button id="mirrorBtn" class="toggle-btn">↔ MIRROR</button>
-        <button id="skelBtn" class="toggle-btn active"><div class="indicator"></div> SKEL</button>
       </div>
     </div>
 
     <div id="overlay">
       <h1>SONIC<br>DANCER</h1>
-      <div class="subtitle">Silent Start Fix</div>
-      <button id="startBtn">Loading...</button>
+      <div class="subtitle">DEMO 25: Layout Fix</div>
+      <button id="startBtn" disabled>Loading AI...</button>
       <select id="cameraSelect" style="margin-top:20px; width:200px; display:none;"></select>
     </div>
   </div>
@@ -206,11 +262,21 @@
     window.addEventListener('click', resetUiTimer);
     window.addEventListener('touchstart', resetUiTimer);
 
-    // ★DEMO3と同じ初期化順序
+    window.addEventListener('DOMContentLoaded', () => {
+        const btn = document.getElementById('startBtn');
+        setTimeout(() => {
+            if(btn.disabled) {
+                btn.innerText = "Check Network";
+                btn.style.background = "#555";
+            }
+        }, 20000);
+    });
+
     window.addEventListener('load', () => {
         const btn = document.getElementById('startBtn');
         btn.innerText = "START EXPERIENCE";
-        initApp(); // ここで初期化
+        btn.disabled = false;
+        initApp(); 
         resetUiTimer();
     });
 
@@ -229,9 +295,20 @@
         
         const calibBtn = document.getElementById('calibBtn');
         const mirrorBtn = document.getElementById('mirrorBtn');
+        const focusBtn = document.getElementById('focusBtn');
         const skelBtn = document.getElementById('skelBtn');
+        const autoBtn = document.getElementById('autoBtn');
+        const modelBtn = document.getElementById('modelBtn'); 
         
-        // --- Sliders ---
+        const presetFinger = document.getElementById('presetFinger');
+        const presetBody = document.getElementById('presetBody');
+        const presetDance = document.getElementById('presetDance');
+
+        const workCanvas = document.createElement('canvas');
+        workCanvas.width = 320;
+        workCanvas.height = 240;
+        const workCtx = workCanvas.getContext('2d', { willReadFrequently: true });
+        
         const handSensSlider = document.getElementById('handSensSlider');
         const handSensVal = document.getElementById('handSensVal');
         const handMeter = document.getElementById('handMeter');
@@ -254,21 +331,24 @@
         const stopVolVal = document.getElementById('stopVolVal');
         
         let isProcessing = false;
+        let isModelChanging = false; 
         let isMirrored = false;
-        let showSkeleton = true; 
+        let isFocusMode = false;
+        let isAutoSens = false;
+        let showSkeleton = true;
+        let isFullModel = true; 
         
-        // Settings (Defaults)
         let handThreshold = 80;
         let footThreshold = 20; 
         let stopThreshold = 50; 
 
-        function mapSliderToDb(val) {
-            if (val == 0) return -Infinity;
-            return -40 + (val / 100) * 40;
-        }
-        let motionMaxDb = mapSliderToDb(70);
-        let tapMaxDb = mapSliderToDb(80); 
-        let poseMaxDb = mapSliderToDb(80); 
+        let peakHandSpeed = 50;
+        let peakFootSpeed = 20;
+        const DECAY_RATE = 0.99;
+
+        let motionMaxDb = 0.7; 
+        let tapMaxDb = 0.8; 
+        let poseMaxDb = 0.8; 
         
         let calibOffset = { x: 0, y: 0 }; 
         let tempPoseX = 0.5, tempPoseY = 0.5;
@@ -280,139 +360,142 @@
             rFootSpeed: 0, lFootSpeed: 0
         };
 
-        // Safety Limiters
         let lastRightTap = 0;
         let lastLeftTap = 0;
         let lastTriggerTime = 0; 
         const MAX_PARTICLES = 50; 
 
-        let isCameraSetup = false;
-
-        function resize() {
-          effectCanvas.width = window.innerWidth;
-          effectCanvas.height = window.innerHeight;
-        }
-        window.addEventListener('resize', resize);
-        resize();
-
-        // --- Audio Setup (Silent Start) ---
-        let motionSynth, motionVolNode;
-        let tapSynthR, tapSynthL, tapVolNode; 
-        let clapSynth, poseVolNode;
+        // --- Native Audio ---
+        let audioCtx;
+        let buffers = {};
         let isAudioReady = false;
 
-        async function initAudio() {
-          Tone.context.lookAhead = 0; 
-          Tone.context.latencyHint = 'fastest';
-
-          const masterReverb = new Tone.Reverb({ decay: 1.5, wet: 0.3 }).toDestination();
-          const limiter = new Tone.Limiter(-1).connect(masterReverb);
-
-          // 1. Hands: Mellow Chord
-          // ★修正1：初期音量を -Infinity (無音) に設定。これで起動直後の「鳴りっぱなし」を防ぐ
-          motionVolNode = new Tone.Volume(-Infinity).connect(limiter);
-          
-          const motionFilter = new Tone.Filter(600, "lowpass").connect(motionVolNode);
-          motionSynth = new Tone.PolySynth(Tone.Synth, {
-              oscillator: { type: "triangle" },
-              envelope: { attack: 0.1, decay: 0.3, sustain: 0.8, release: 1.5 } 
-          }).connect(motionFilter);
-          
-          // 音自体は発音開始するが、Volumeが-Infinityなので聞こえない
-          motionSynth.triggerAttack(["C3", "E3", "G3", "B3"]);
-
-          // 2. Feet: Real Tap
-          tapVolNode = new Tone.Volume(tapMaxDb).connect(limiter);
-          const tapParams = {
-              pitchDecay: 0.01, octaves: 1, oscillator: { type: "square" }, 
-              envelope: { attack: 0.001, decay: 0.05, sustain: 0, release: 0.01 }
-          };
-          tapSynthR = new Tone.MembraneSynth(tapParams).connect(tapVolNode); 
-          tapSynthL = new Tone.MembraneSynth(tapParams).connect(tapVolNode); 
-
-          // 3. Pose: Clap
-          poseVolNode = new Tone.Volume(poseMaxDb).connect(limiter);
-          clapSynth = new Tone.NoiseSynth({ noise: { type: "white" }, envelope: { attack: 0.001, decay: 0.15, sustain: 0 } }).connect(poseVolNode);
-          const kickSynth = new Tone.MembraneSynth({ pitchDecay: 0.01, octaves: 2, volume: 5 }).connect(poseVolNode);
-          
-          window.triggerClap = () => {
-              clapSynth.triggerAttackRelease("16n");
-              kickSynth.triggerAttackRelease("D2", "32n");
-          };
-          window.triggerTap = (note) => {
-              if(note === "G4") tapSynthR.triggerAttackRelease("G4", "32n");
-              else tapSynthL.triggerAttackRelease("E4", "32n");
-          }
-
-          await Tone.start(); 
-          isAudioReady = true;
-        }
-        
-        // ★修正2：タブ切り替え時の安全対策
-        // 裏に行った時に音を消す
-        document.addEventListener("visibilitychange", () => {
-            if (document.hidden && motionVolNode) {
-                motionVolNode.volume.rampTo(-Infinity, 0.1);
+        function createBuffer(type) {
+            if(!audioCtx) return null;
+            const sr = audioCtx.sampleRate;
+            let dur = 1.0;
+            if(type === 'rim') dur = 0.1;
+            if(type === 'clap') dur = 0.3;
+            const buf = audioCtx.createBuffer(1, sr * dur, sr);
+            const data = buf.getChannelData(0);
+            for(let i=0; i<data.length; i++) {
+                const t = i/sr;
+                if(type === 'marimba') {
+                    const env = Math.exp(-t * 6);
+                    const attack = Math.exp(-t * 50);
+                    data[i] = (Math.sin(t*440*Math.PI*2)*0.6) * env; 
+                    data[i] += (Math.random()*0.5-0.25) * attack;
+                } else if(type === 'rim') {
+                    const env = Math.exp(-t * 30);
+                    const f = 800; 
+                    let tone = Math.sin(t*f*Math.PI*2);
+                    if(tone>0) tone=0.8; else tone=-0.8; 
+                    data[i] = tone * env * 0.5 + (Math.random()*2-1) * env * 0.5;
+                } else if(type === 'clap') {
+                    const noise = Math.random() * 2 - 1;
+                    const env = Math.exp(-t * 15);
+                    data[i] = noise * env;
+                }
             }
-        });
+            return buf;
+        }
+
+        function playSound(buffer, volume, rate = 1.0) {
+            if(!audioCtx || !buffer || volume <= 0.01) return;
+            const src = audioCtx.createBufferSource();
+            src.buffer = buffer;
+            src.playbackRate.value = rate;
+            const gain = audioCtx.createGain();
+            gain.gain.value = volume;
+            src.connect(gain);
+            gain.connect(audioCtx.destination);
+            src.start(0);
+        }
+
+        async function initAudio() {
+            try {
+                const AudioContext = window.AudioContext || window.webkitAudioContext;
+                audioCtx = new AudioContext();
+                buffers.bell = createBuffer('marimba');
+                buffers.kick = createBuffer('rim');
+                buffers.clap = createBuffer('clap');
+                isAudioReady = true;
+                if(audioCtx.state === 'suspended') await audioCtx.resume();
+            } catch(e) { console.error(e); }
+        }
 
         // --- Logic ---
+        let lastHandPlay = 0;
+
+        function updateAutoSensitivity(currentHand, currentFoot) {
+            if(!isAutoSens) return;
+            peakHandSpeed = Math.max(peakHandSpeed * DECAY_RATE, currentHand);
+            peakFootSpeed = Math.max(peakFootSpeed * DECAY_RATE, currentFoot);
+            if(peakHandSpeed < 30) peakHandSpeed = 30;
+            if(peakFootSpeed < 10) peakFootSpeed = 10;
+
+            const targetHand = Math.floor(peakHandSpeed * 0.4);
+            const targetFoot = Math.floor(peakFootSpeed * 0.6);
+            const targetStop = Math.floor(peakHandSpeed * 0.3 + 20);
+
+            handThreshold = Math.floor(handThreshold * 0.9 + targetHand * 0.1);
+            footThreshold = Math.floor(footThreshold * 0.9 + targetFoot * 0.1);
+            stopThreshold = Math.floor(stopThreshold * 0.9 + targetStop * 0.1);
+
+            handSensSlider.value = handThreshold; handSensVal.innerText = handThreshold;
+            footSensSlider.value = footThreshold; footSensVal.innerText = footThreshold;
+            stopSensSlider.value = stopThreshold; stopSensVal.innerText = stopThreshold;
+        }
+
         function updateAudio(speeds) {
             const { rHand, lHand, rFoot, lFoot } = speeds;
             const totalHandSpeed = rHand + lHand;
+            const maxFoot = Math.max(rFoot, lFoot);
             const totalBodySpeed = totalHandSpeed + rFoot + lFoot;
 
-            // --- Meter Update ---
-            const handMax = 200;
-            const footMax = 60;
-            const stopMax = 150;
+            updateAutoSensitivity(totalHandSpeed, maxFoot);
 
             if(handMeter) {
-                handThresh.style.left = `${Math.min(100, (handThreshold / handMax) * 100)}%`;
-                handMeter.style.width = `${Math.min(100, (totalHandSpeed / handMax) * 100)}%`;
+                handThresh.style.left = `${Math.min(100, (handThreshold / 200) * 100)}%`;
+                handMeter.style.width = `${Math.min(100, (totalHandSpeed / 200) * 100)}%`;
                 handMeter.style.background = (totalHandSpeed > handThreshold) ? "#fff" : "#00ccff";
             }
             if(footMeter) {
-                footThresh.style.left = `${Math.min(100, (footThreshold / footMax) * 100)}%`;
-                const maxFoot = Math.max(rFoot, lFoot);
-                footMeter.style.width = `${Math.min(100, (maxFoot / footMax) * 100)}%`;
+                footThresh.style.left = `${Math.min(100, (footThreshold / 60) * 100)}%`;
+                footMeter.style.width = `${Math.min(100, (maxFoot / 60) * 100)}%`;
                 footMeter.style.background = (maxFoot > footThreshold) ? "#fff" : "#ffaa00";
             }
             if(stopMeter) {
-                stopThresh.style.left = `${Math.min(100, (stopThreshold / stopMax) * 100)}%`;
-                stopMeter.style.width = `${Math.min(100, (totalBodySpeed / stopMax) * 100)}%`;
+                stopThresh.style.left = `${Math.min(100, (stopThreshold / 150) * 100)}%`;
+                stopMeter.style.width = `${Math.min(100, (totalBodySpeed / 150) * 100)}%`;
                 stopMeter.style.background = (totalBodySpeed > stopThreshold) ? "#fff" : "#ffff00";
             }
 
             if(!isAudioReady) return;
-
-            // 1. Hands (Continuous)
-            // ここで計算された音量ターゲットに向かって変化する
-            const normHand = Math.min(1, totalHandSpeed / (handThreshold * 2));
-            if (motionMaxDb > -60) {
-                 let targetVol = -Infinity;
-                 // 手が動いている時だけ音量を上げる
-                 if(normHand > 0.05) targetVol = -50 + (normHand * (50 + motionMaxDb));
-                 motionVolNode.volume.rampTo(targetVol, 0.1); 
-                 motionSynth.set({ detune: normHand * 10 }); 
-            } else { motionVolNode.volume.rampTo(-Infinity, 0.1); }
-
-            // 2. Feet (Tap)
             const now = Date.now();
-            if (tapMaxDb > -60) {
+
+            if (motionMaxDb > 0 && totalHandSpeed > handThreshold) {
+                 if(now - lastHandPlay > 120) { 
+                     const scale = [1.0, 1.12, 1.26, 1.5, 1.68]; 
+                     const idx = Math.floor(Math.random() * scale.length);
+                     playSound(buffers.bell, motionMaxDb, scale[idx]);
+                     lastHandPlay = now;
+                 }
+            }
+
+            if (tapMaxDb > 0) {
                 if (rFoot > footThreshold && now - lastRightTap > 150) { 
-                    window.triggerTap("G4"); 
+                    playSound(buffers.kick, tapMaxDb);
                     createBurst(prevPose.rAnkle.x, prevPose.rAnkle.y, 'tap');
                     lastRightTap = now;
                 }
                 if (lFoot > footThreshold && now - lastLeftTap > 150) {
-                    window.triggerTap("E4");
+                    playSound(buffers.kick, tapMaxDb);
                     createBurst(prevPose.lAnkle.x, prevPose.lAnkle.y, 'tap');
                     lastLeftTap = now;
                 }
             }
 
-            // 3. Pose
             detectPose(totalBodySpeed, prevPose.rHandSpeed + prevPose.lHandSpeed + prevPose.rFootSpeed + prevPose.lFootSpeed);
         }
 
@@ -424,7 +507,7 @@
              if (now - lastTriggerTime < 120) return; 
 
              if (previousTotal > MOVE_HIGH && currentTotal < STOP_LOW) {
-                 if (poseMaxDb > -60) window.triggerClap();
+                 if (poseMaxDb > 0) playSound(buffers.clap, poseMaxDb);
                  createBurst(prevPose.rWrist.x, prevPose.rWrist.y, 'burst'); 
                  createBurst(prevPose.lWrist.x, prevPose.lWrist.y, 'burst');
                  lastTriggerTime = now;
@@ -439,14 +522,14 @@
             if(type === 'hand') {
                 this.vx = (Math.random()-0.5)*1; this.vy = (Math.random()-0.5)*1; 
                 this.size = Math.random()*3+1; 
-                this.color = `hsl(${Math.random()*40 + 180}, 100%, 75%)`; 
+                this.color = `hsl(${Math.random()*40 + 180}, 100%, 80%)`; 
                 this.decay = 0.15; 
             } else if (type === 'tap') {
-                this.vx = (Math.random()-0.5)*5; this.vy = (Math.random()-1.0)*5; 
+                this.vx = (Math.random()-0.5)*8; this.vy = (Math.random()-1.0)*8; 
                 this.size = Math.random()*4+2; 
-                this.color = '#ffaa00'; 
-                this.decay = 0.15;
-            } else { // burst
+                this.color = '#ffcc00'; 
+                this.decay = 0.25; 
+            } else { 
                 const angle = Math.random() * Math.PI * 2;
                 const speed = Math.random() * 20 + 5; 
                 this.vx = Math.cos(angle) * speed; this.vy = Math.sin(angle) * speed;
@@ -458,7 +541,7 @@
           }
           update() {
             this.x += this.vx; this.y += this.vy; this.life -= this.decay;
-            if(this.type === 'tap') this.vy += 0.2; 
+            if(this.type === 'tap') this.vy += 0.4; 
           }
           draw(ctx) {
             ctx.fillStyle = this.color;
@@ -473,7 +556,7 @@
         
         function createBurst(x, y, type) {
             if (particles.length > MAX_PARTICLES) return;
-            const count = type === 'tap' ? 5 : 10;
+            const count = (type === 'tap' ? 8 : 10);
             for(let i=0; i<count; i++) particles.push(new Particle(x, y, type));
         }
 
@@ -483,7 +566,7 @@
                 particles[i].update(); particles[i].draw(effectCtx);
                 if(particles[i].life<=0){ particles.splice(i,1); i--; }
             }
-            if(particles.length > MAX_PARTICLES + 20) particles.splice(0, 20);
+            if(particles.length > MAX_PARTICLES + 50) particles.splice(0, 50);
             effectCtx.globalCompositeOperation = 'source-over';
         }
 
@@ -504,12 +587,11 @@
             const p = results.poseLandmarks;
             tempPoseX = p[0].x; tempPoseY = p[0].y; 
 
-            const rw = getCalibratedPoint(p[16], w, h);
-            const lw = getCalibratedPoint(p[15], w, h);
-            const rf = getCalibratedPoint(p[28], w, h); 
-            const lf = getCalibratedPoint(p[27], w, h); 
+            const rw = getCalibratedPoint(results.poseLandmarks[16], w, h); 
+            const lw = getCalibratedPoint(results.poseLandmarks[15], w, h);
+            const rf = getCalibratedPoint(results.poseLandmarks[28], w, h); 
+            const lf = getCalibratedPoint(results.poseLandmarks[27], w, h); 
 
-            // Speed
             const rHandSpeed = Math.hypot(rw.x - prevPose.rWrist.x, rw.y - prevPose.rWrist.y);
             const lHandSpeed = Math.hypot(lw.x - prevPose.lWrist.x, lw.y - prevPose.lWrist.y);
             const rFootSpeed = Math.hypot(rf.x - prevPose.rAnkle.x, rf.y - prevPose.rAnkle.y);
@@ -528,31 +610,111 @@
           renderParticles();
         }
 
-        const pose = new Pose({locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/pose/${file}`});
-        pose.setOptions({modelComplexity: 0, smoothLandmarks: true, minDetectionConfidence: 0.5, minTrackingConfidence: 0.5});
+        const pose = new Pose({locateFile: (file) => `https://unpkg.com/@mediapipe/pose/${file}`});
+        pose.setOptions({
+            modelComplexity: 2, 
+            smoothLandmarks: true, 
+            minDetectionConfidence: 0.5, 
+            minTrackingConfidence: 0.5
+        });
         pose.onResults(onPoseResults);
 
         // --- Listeners ---
-        handSensSlider.addEventListener('input', (e) => { handThreshold = parseInt(e.target.value); handSensVal.innerText = handThreshold; });
-        footSensSlider.addEventListener('input', (e) => { footThreshold = parseInt(e.target.value); footSensVal.innerText = footThreshold; });
-        stopSensSlider.addEventListener('input', (e) => { stopThreshold = parseInt(e.target.value); stopSensVal.innerText = stopThreshold; });
+        modelBtn.addEventListener('click', async () => {
+            if(isModelChanging) return;
+            isModelChanging = true;
+            
+            // 安全のために一度ビデオを停止して負荷を下げる
+            videoElement.pause();
+            
+            isFullModel = !isFullModel;
+            const complexity = isFullModel ? 2 : 0;
+            const name = isFullModel ? "FULL" : "LITE";
+            
+            modelBtn.innerHTML = "<div class='indicator'></div> ⏳ ...";
+            
+            // UI更新のための微小な遅延 + 非同期処理
+            setTimeout(async () => {
+                try {
+                    await pose.setOptions({
+                        modelComplexity: complexity,
+                        smoothLandmarks: true,
+                        minDetectionConfidence: 0.5, 
+                        minTrackingConfidence: 0.5
+                    });
+                    modelBtn.innerHTML = `<div class='indicator'></div> 🧠 ${name}`;
+                    modelBtn.classList.toggle('active', isFullModel);
+                    latencyBox.innerText = `LATENCY: ${isFullModel ? "Studio Accuracy" : "Lite Speed"}`;
+                } catch(e) {
+                    console.error("Model switch error", e);
+                    modelBtn.innerHTML = `<div class='indicator'></div> ⚠️ ERROR`;
+                } finally {
+                    isModelChanging = false;
+                    videoElement.play(); // 再開
+                }
+            }, 50); 
+        });
+
+        function setPreset(mode) {
+            [presetFinger, presetBody, presetDance].forEach(b => b.classList.remove('active'));
+            if(mode === 'finger') {
+                presetFinger.classList.add('active');
+                handThreshold = 30; footThreshold = 10; stopThreshold = 30;
+            } else if(mode === 'body') {
+                presetBody.classList.add('active');
+                handThreshold = 80; footThreshold = 20; stopThreshold = 50;
+            } else if(mode === 'dance') {
+                presetDance.classList.add('active');
+                handThreshold = 150; footThreshold = 40; stopThreshold = 100;
+            }
+            if(isAutoSens) { isAutoSens = false; autoBtn.classList.remove('active'); }
+            handSensSlider.value = handThreshold; handSensVal.innerText = handThreshold;
+            footSensSlider.value = footThreshold; footSensVal.innerText = footThreshold;
+            stopSensSlider.value = stopThreshold; stopSensVal.innerText = stopThreshold;
+        }
+
+        presetFinger.addEventListener('click', () => setPreset('finger'));
+        presetBody.addEventListener('click', () => setPreset('body'));
+        presetDance.addEventListener('click', () => setPreset('dance'));
+
+        autoBtn.addEventListener('click', () => {
+            isAutoSens = !isAutoSens;
+            autoBtn.classList.toggle('active', isAutoSens);
+            if(isAutoSens) { 
+                [presetFinger, presetBody, presetDance].forEach(b => b.classList.remove('active'));
+                peakHandSpeed = 50; peakFootSpeed = 20; 
+            }
+        });
+
+        handSensSlider.addEventListener('input', (e) => { 
+            handThreshold = parseInt(e.target.value); 
+            handSensVal.innerText = handThreshold; 
+            if(isAutoSens) { isAutoSens = false; autoBtn.classList.remove('active'); }
+        });
+        footSensSlider.addEventListener('input', (e) => { 
+            footThreshold = parseInt(e.target.value); 
+            footSensVal.innerText = footThreshold;
+            if(isAutoSens) { isAutoSens = false; autoBtn.classList.remove('active'); }
+        });
+        stopSensSlider.addEventListener('input', (e) => { 
+            stopThreshold = parseInt(e.target.value); 
+            stopSensVal.innerText = stopThreshold;
+            if(isAutoSens) { isAutoSens = false; autoBtn.classList.remove('active'); }
+        });
 
         motionVolSlider.addEventListener('input', (e) => { 
-             motionMaxDb = mapSliderToDb(parseInt(e.target.value)); 
+             motionMaxDb = parseInt(e.target.value)/100;
              handVolVal.innerText = e.target.value;
-             if(isAudioReady && window.motionVolNode) window.motionVolNode.volume.value = motionMaxDb; 
         });
 
         tapVolSlider.addEventListener('input', (e) => { 
-             tapMaxDb = mapSliderToDb(parseInt(e.target.value)); 
+             tapMaxDb = parseInt(e.target.value)/100;
              footVolVal.innerText = e.target.value;
-             if(isAudioReady && window.tapVolNode) window.tapVolNode.volume.value = tapMaxDb;
         });
 
         poseVolSlider.addEventListener('input', (e) => { 
-             poseMaxDb = mapSliderToDb(parseInt(e.target.value)); 
+             poseMaxDb = parseInt(e.target.value)/100;
              stopVolVal.innerText = e.target.value;
-             if(isAudioReady && window.poseVolNode) window.poseVolNode.volume.value = poseMaxDb;
         });
 
         calibBtn.addEventListener('click', () => {
@@ -567,6 +729,11 @@
         skelBtn.addEventListener('click', () => { 
             showSkeleton = !showSkeleton; skelBtn.classList.toggle('active', showSkeleton); 
         });
+        
+        focusBtn.addEventListener('click', () => { 
+            isFocusMode = !isFocusMode;
+            focusBtn.classList.toggle('active', isFocusMode);
+        });
 
         function setActiveSourceBtn(btnId) {
             [camBtn, captureBtn, uploadBtn].forEach(b => b.classList.remove('active'));
@@ -578,6 +745,7 @@
             else { visualWrapper.classList.remove('mirror'); mirrorBtn.classList.remove('active'); }
         }
 
+        let isCameraSetup = false;
         async function setupCameraDevices() {
           try {
             await navigator.mediaDevices.getUserMedia({video:true});
@@ -625,28 +793,47 @@
         async function startCamera(deviceId) {
           if(videoElement.srcObject) { videoElement.srcObject.getTracks().forEach(t => t.stop()); }
           videoElement.src = "";
-          // 320x240 for Speed
           const stream = await navigator.mediaDevices.getUserMedia({ video: { deviceId: deviceId ? { exact: deviceId } : undefined, width: 320, height: 240 } });
           videoElement.srcObject = stream;
           videoElement.play();
         }
 
+        function resize() {
+            effectCanvas.width = window.innerWidth;
+            effectCanvas.height = window.innerHeight;
+        }
+        window.addEventListener('resize', resize);
+        resize();
+
         async function globalAiLoop() {
-           // FPS Limit Removed for Max Speed
+           // ★フリーズ対策: フラグ中はループスキップ
+           if(isModelChanging) {
+               requestAnimationFrame(globalAiLoop);
+               return;
+           }
+
            if(videoElement.readyState >= 2 && !videoElement.paused && !isProcessing) {
                isProcessing = true;
-               try { await pose.send({image: videoElement}); } catch(e) {}
+               
+               if (isFocusMode) {
+                   const vw = videoElement.videoWidth;
+                   const vh = videoElement.videoHeight;
+                   const cw = vw * 0.6; 
+                   const cx = vw * 0.2;
+                   workCtx.drawImage(videoElement, cx, 0, cw, vh, 0, 0, workCanvas.width, workCanvas.height);
+               } else {
+                   workCtx.drawImage(videoElement, 0, 0, workCanvas.width, workCanvas.height);
+               }
+
+               try { await pose.send({image: workCanvas}); } catch(e) {}
                isProcessing = false;
-               latencyBox.innerText = `LATENCY: <16ms (Boost)`;
            }
            requestAnimationFrame(globalAiLoop);
         }
 
-        // スタートボタン処理
         document.getElementById('startBtn').addEventListener('click', async () => {
           overlay.style.display = 'none';
           await initAudio();
-          // デフォルトはCAPTUREモードで開始
           await startCapture();
           globalAiLoop();
         });
