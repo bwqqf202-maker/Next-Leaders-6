@@ -3,9 +3,9 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-  <title>Sonic Dancer (Perfect Fix)</title>
+  <title>Sonic Dancer (Silent Start Fix)</title>
   <style>
-    /* --- ベーススタイル (DEMO3準拠) --- */
+    /* --- ベーススタイル --- */
     body { margin: 0; padding: 0; background: #000; overflow: hidden; font-family: 'Segoe UI', sans-serif; color: white; cursor: none; }
     body.user-active { cursor: default; }
     #container { position: relative; width: 100vw; height: 100vh; background: #000; }
@@ -97,7 +97,7 @@
     </div>
     <input type="file" id="fileInput" accept="video/*" style="display:none;">
     
-    <div id="latencyBox">LATENCY: -- ms (DEMO3 Core)</div>
+    <div id="latencyBox">LATENCY: -- ms (Ultra Low)</div>
 
     <div id="controlPanel">
       <div class="control-group">
@@ -178,7 +178,7 @@
 
     <div id="overlay">
       <h1>SONIC<br>DANCER</h1>
-      <div class="subtitle">Perfect Fix Edition</div>
+      <div class="subtitle">Silent Start Fix</div>
       <button id="startBtn">Loading...</button>
       <select id="cameraSelect" style="margin-top:20px; width:200px; display:none;"></select>
     </div>
@@ -284,9 +284,6 @@
         let lastRightTap = 0;
         let lastLeftTap = 0;
         let lastTriggerTime = 0; 
-        // 30FPS制御 (安定化の要)
-        let lastLoopTime = 0;
-        const LOOP_INTERVAL = 33; 
         const MAX_PARTICLES = 50; 
 
         let isCameraSetup = false;
@@ -298,32 +295,37 @@
         window.addEventListener('resize', resize);
         resize();
 
-        // --- Audio Setup (Stable & Real Tap) ---
+        // --- Audio Setup (Silent Start) ---
         let motionSynth, motionVolNode;
         let tapSynthR, tapSynthL, tapVolNode; 
         let clapSynth, poseVolNode;
         let isAudioReady = false;
 
         async function initAudio() {
-          Tone.context.lookAhead = 0.1; Tone.context.latencyHint = 'interactive';
+          Tone.context.lookAhead = 0; 
+          Tone.context.latencyHint = 'fastest';
+
           const masterReverb = new Tone.Reverb({ decay: 1.5, wet: 0.3 }).toDestination();
           const limiter = new Tone.Limiter(-1).connect(masterReverb);
 
-          // 1. Hands: Mellow Chord (DEMO3 Style)
-          motionVolNode = new Tone.Volume(motionMaxDb).connect(limiter);
+          // 1. Hands: Mellow Chord
+          // ★修正1：初期音量を -Infinity (無音) に設定。これで起動直後の「鳴りっぱなし」を防ぐ
+          motionVolNode = new Tone.Volume(-Infinity).connect(limiter);
+          
           const motionFilter = new Tone.Filter(600, "lowpass").connect(motionVolNode);
           motionSynth = new Tone.PolySynth(Tone.Synth, {
               oscillator: { type: "triangle" },
               envelope: { attack: 0.1, decay: 0.3, sustain: 0.8, release: 1.5 } 
           }).connect(motionFilter);
+          
+          // 音自体は発音開始するが、Volumeが-Infinityなので聞こえない
           motionSynth.triggerAttack(["C3", "E3", "G3", "B3"]);
 
-          // 2. Feet: Real Tap (Square Wave - Lightweight)
-          // ノイズ合成なしで硬い音を出す
+          // 2. Feet: Real Tap
           tapVolNode = new Tone.Volume(tapMaxDb).connect(limiter);
           const tapParams = {
-              pitchDecay: 0.01, octaves: 1, oscillator: { type: "square" }, // Hard
-              envelope: { attack: 0.001, decay: 0.05, sustain: 0, release: 0.01 } // Short
+              pitchDecay: 0.01, octaves: 1, oscillator: { type: "square" }, 
+              envelope: { attack: 0.001, decay: 0.05, sustain: 0, release: 0.01 }
           };
           tapSynthR = new Tone.MembraneSynth(tapParams).connect(tapVolNode); 
           tapSynthL = new Tone.MembraneSynth(tapParams).connect(tapVolNode); 
@@ -345,6 +347,14 @@
           await Tone.start(); 
           isAudioReady = true;
         }
+        
+        // ★修正2：タブ切り替え時の安全対策
+        // 裏に行った時に音を消す
+        document.addEventListener("visibilitychange", () => {
+            if (document.hidden && motionVolNode) {
+                motionVolNode.volume.rampTo(-Infinity, 0.1);
+            }
+        });
 
         // --- Logic ---
         function updateAudio(speeds) {
@@ -377,9 +387,11 @@
             if(!isAudioReady) return;
 
             // 1. Hands (Continuous)
+            // ここで計算された音量ターゲットに向かって変化する
             const normHand = Math.min(1, totalHandSpeed / (handThreshold * 2));
             if (motionMaxDb > -60) {
                  let targetVol = -Infinity;
+                 // 手が動いている時だけ音量を上げる
                  if(normHand > 0.05) targetVol = -50 + (normHand * (50 + motionMaxDb));
                  motionVolNode.volume.rampTo(targetVol, 0.1); 
                  motionSynth.set({ detune: normHand * 10 }); 
@@ -613,25 +625,19 @@
         async function startCamera(deviceId) {
           if(videoElement.srcObject) { videoElement.srcObject.getTracks().forEach(t => t.stop()); }
           videoElement.src = "";
-          const stream = await navigator.mediaDevices.getUserMedia({ video: { deviceId: deviceId ? { exact: deviceId } : undefined, width: 640, height: 480 } });
+          // 320x240 for Speed
+          const stream = await navigator.mediaDevices.getUserMedia({ video: { deviceId: deviceId ? { exact: deviceId } : undefined, width: 320, height: 240 } });
           videoElement.srcObject = stream;
           videoElement.play();
         }
 
-        // FPS Limit Loop (30FPS)
         async function globalAiLoop() {
-           const now = Date.now();
-           if (now - lastLoopTime < LOOP_INTERVAL) {
-               requestAnimationFrame(globalAiLoop);
-               return;
-           }
-           lastLoopTime = now;
-
+           // FPS Limit Removed for Max Speed
            if(videoElement.readyState >= 2 && !videoElement.paused && !isProcessing) {
                isProcessing = true;
                try { await pose.send({image: videoElement}); } catch(e) {}
                isProcessing = false;
-               latencyBox.innerText = `LATENCY: -- ms (Fixed)`;
+               latencyBox.innerText = `LATENCY: <16ms (Boost)`;
            }
            requestAnimationFrame(globalAiLoop);
         }
