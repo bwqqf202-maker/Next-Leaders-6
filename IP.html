@@ -2,27 +2,32 @@
 <html lang="ja">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>10年後のプロダクト - リッチデモ</title>
     <style>
         body { margin: 0; overflow: hidden; background: radial-gradient(circle, #333333 0%, #0a0a0a 100%); font-family: sans-serif; touch-action: none; }
         
+        /* =========================================
+           基本レイアウト (PC & タブレット)
+           ========================================= */
         .status-panel {
             position: absolute; top: 20px; left: 20px;
             background: rgba(0,0,0,0.85); color: white;
             padding: 15px; border-radius: 12px; z-index: 1000;
             border-left: 4px solid #007bff; min-width: 200px;
             box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+            max-height: 80vh; overflow-y: auto; /* パネル自体も縦長すぎたらスクロール */
         }
         
         .controls {
             position: absolute; top: 50%; right: 20px; transform: translateY(-50%);
             display: flex; flex-direction: column; gap: 12px;
-            width: 160px; max-height: 80vh; z-index: 1000;
-            overflow-y: auto; padding-right: 5px;
+            width: 160px; max-height: 90vh; z-index: 1000;
+            overflow-y: auto; padding-right: 5px; /* 縦スクロール許可 */
         }
-        .controls::-webkit-scrollbar { width: 6px; height: 6px; }
-        .controls::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.3); border-radius: 3px; }
+        /* スクロールバーのデザイン */
+        .controls::-webkit-scrollbar { width: 4px; height: 4px; }
+        .controls::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.4); border-radius: 4px; }
 
         button {
             padding: 15px 10px; font-size: 14px; font-weight: bold;
@@ -58,19 +63,57 @@
         #btn-reset { background: rgba(255,255,255,0.15); justify-content: center; margin-top: 5px; }
         #btn-reset:active { background: #fff; color: #000; }
 
-        @media (max-width: 768px) {
+        /* =========================================
+           📱 スマホ・縦向き (Portrait)
+           画面下にボタンを配置
+           ========================================= */
+        @media (max-width: 768px) and (orientation: portrait) {
             .status-panel {
-                top: 10px; left: 10px; padding: 10px; min-width: 150px;
+                top: 10px; left: 10px; padding: 10px; min-width: 140px;
                 transform: scale(0.9); transform-origin: top left;
+                max-height: 40vh; /* パネルが画面を占拠しすぎないように */
             }
             .controls {
-                top: auto; bottom: 20px; right: 50%; transform: translateX(50%);
-                flex-direction: row; width: 95vw; max-height: none;
-                overflow-x: auto; overflow-y: hidden;
-                padding-bottom: 5px; justify-content: flex-start;
+                /* 位置リセット */
+                top: auto; right: auto; transform: none;
+                /* 下部に配置 */
+                bottom: 20px; left: 50%; transform: translateX(-50%);
+                /* 横並び設定 */
+                flex-direction: row; 
+                width: 95vw; max-width: none; max-height: none;
+                justify-content: flex-start;
+                padding-bottom: 5px;
+                overflow-x: auto; /* 横スクロール許可 */
+                overflow-y: hidden;
             }
-            button { font-size: 12px; padding: 12px 15px; }
-            button.auto-btn { margin-bottom: 0; margin-right: 5px; }
+            button { font-size: 12px; padding: 12px 16px; margin-right: 5px; }
+        }
+
+        /* =========================================
+           📱 スマホ・横向き (Landscape)
+           画面右にボタンを配置（縦スクロール）
+           ========================================= */
+        @media (max-height: 600px) and (orientation: landscape) {
+            .status-panel {
+                top: 10px; left: 10px; padding: 8px; min-width: 140px;
+                transform: scale(0.8); transform-origin: top left;
+                max-height: 90vh; overflow-y: auto;
+            }
+            .controls {
+                /* 位置設定：右端 */
+                top: 0; bottom: 0; right: 10px; 
+                left: auto; transform: none;
+                /* 縦並び設定 */
+                flex-direction: column;
+                justify-content: center;
+                width: 130px; height: 100vh; max-height: 100vh;
+                overflow-y: auto; /* 縦スクロール許可 */
+                overflow-x: hidden;
+                padding: 20px 0; /* 上下に余白 */
+            }
+            button { font-size: 11px; padding: 10px 8px; margin-bottom: 5px; }
+            .effect-controls { gap: 4px; margin-top: 8px; padding-top: 8px; }
+            .effect-btn { padding: 6px; font-size: 10px; }
         }
     </style>
 </head>
@@ -117,7 +160,6 @@
         let mirrorFloor, composer;
         let isMirrorActive = false;
         let isBloomActive = false;
-        // ★ 初期状態をON（高画質モード）に変更
         let isHDActive = true; 
 
         let isAutoMode = true;
@@ -138,8 +180,6 @@
 
             renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
             renderer.setSize(window.innerWidth, window.innerHeight);
-            
-            // ★ 初期設定は高画質（デバイスの最大ピクセル比）
             renderer.setPixelRatio(window.devicePixelRatio);
             
             renderer.outputEncoding = THREE.sRGBEncoding;
@@ -185,10 +225,7 @@
             const renderScene = new RenderPass(scene, camera);
             const bloomPass = new UnrealBloomPass(new THREE.Vector2(window.innerWidth, window.innerHeight), 1.0, 0.5, 0.3);
             composer = new EffectComposer(renderer);
-            
-            // ★ 初期状態のBloomも高画質に設定
             composer.setPixelRatio(window.devicePixelRatio); 
-            
             composer.addPass(renderScene);
             composer.addPass(bloomPass);
 
@@ -200,7 +237,6 @@
             loader.load('./final.glb', 
                 (gltf) => {
                     const model = gltf.scene;
-                    
                     const scaleGroup = new THREE.Group();
                     scaleGroup.add(model);
                     scaleGroup.scale.set(8, 8, 8); 
@@ -274,16 +310,11 @@
             const btnReset = document.getElementById('btn-reset');
             const btnHd = document.getElementById('btn-hd');
 
-            // HD MODEの切り替え処理
             btnHd.addEventListener('click', () => {
                 isHDActive = !isHDActive;
-                
-                // OFFなら軽量比率(最大1.2)、ONならデバイスネイティブの最高画質比率
                 const newRatio = isHDActive ? window.devicePixelRatio : Math.min(window.devicePixelRatio, 1.2);
-                
                 renderer.setPixelRatio(newRatio);
                 composer.setPixelRatio(newRatio);
-                
                 btnHd.classList.toggle('active', isHDActive);
                 btnHd.querySelector('.status').innerText = isHDActive ? 'ON' : 'OFF';
             });
@@ -308,8 +339,6 @@
 
                 if (isMirrorActive) btnMirror.click();
                 if (isBloomActive) btnBloom.click();
-                
-                // ★ リセット時はHDモードもON（最高画質）に戻す
                 if (!isHDActive) btnHd.click(); 
 
                 if (!isAutoMode) switchAnim("AUTO");
