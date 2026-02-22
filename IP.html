@@ -7,7 +7,6 @@
     <style>
         body { margin: 0; overflow: hidden; background: radial-gradient(circle, #333333 0%, #0a0a0a 100%); font-family: sans-serif; touch-action: none; }
         
-        /* ステータスパネル (左上) */
         .status-panel {
             position: absolute; top: 20px; left: 20px;
             background: rgba(0,0,0,0.85); color: white;
@@ -16,7 +15,6 @@
             box-shadow: 0 4px 15px rgba(0,0,0,0.5);
         }
         
-        /* アニメーション用ボタン群（PC:右側縦並び） */
         .controls {
             position: absolute; top: 50%; right: 20px; transform: translateY(-50%);
             display: flex; flex-direction: column; gap: 12px;
@@ -33,12 +31,11 @@
             backdrop-filter: blur(8px); transition: 0.3s;
             border: 1px solid rgba(255,255,255,0.2);
             text-transform: uppercase; letter-spacing: 1px;
-            flex-shrink: 0; /* スマホで潰れないように */
+            flex-shrink: 0; 
         }
         button:hover { background: rgba(0, 123, 255, 0.4); border-color: #007bff; }
         button.active { background: #007bff; color: white; border-color: #007bff; box-shadow: 0 0 20px rgba(0,123,255,0.6); }
         
-        /* AUTOモード専用ボタン */
         button.auto-btn { border-color: #ffaa00; color: #ffaa00; margin-bottom: 5px; }
         button.auto-btn:hover { background: rgba(255, 170, 0, 0.2); }
         button.auto-btn.active { background: rgba(255, 170, 0, 0.5); color: white; box-shadow: 0 0 20px rgba(255, 170, 0, 0.6); }
@@ -46,7 +43,6 @@
 
         #progress-bar { width: 0%; height: 4px; background: #007bff; margin-top: 8px; transition: width 0.3s; }
 
-        /* エフェクト＆リセットボタン */
         .effect-controls {
             margin-top: 15px; padding-top: 12px;
             border-top: 1px solid rgba(255,255,255,0.2);
@@ -62,15 +58,11 @@
         #btn-reset { background: rgba(255,255,255,0.15); justify-content: center; margin-top: 5px; }
         #btn-reset:active { background: #fff; color: #000; }
 
-        /* ==========================================
-           📱 スマホ向けレスポンシブ対応
-           ========================================== */
         @media (max-width: 768px) {
             .status-panel {
                 top: 10px; left: 10px; padding: 10px; min-width: 150px;
                 transform: scale(0.9); transform-origin: top left;
             }
-            /* スマホではボタンを画面下部に横並び（スワイプ可能）にする */
             .controls {
                 top: auto; bottom: 20px; right: 50%; transform: translateX(50%);
                 flex-direction: row; width: 95vw; max-height: none;
@@ -91,6 +83,7 @@
         
         <div class="effect-controls">
             <div style="font-size: 10px; color: #aaa; letter-spacing: 1px;">VISUAL EFFECTS</div>
+            <button id="btn-hd" class="effect-btn active">HD MODE <span class="status">ON</span></button>
             <button id="btn-mirror" class="effect-btn">MIRROR FLOOR <span class="status">OFF</span></button>
             <button id="btn-bloom" class="effect-btn">NEON BLOOM <span class="status">OFF</span></button>
             <button id="btn-reset" class="effect-btn">🔄 RESET DEFAULT</button>
@@ -124,13 +117,14 @@
         let mirrorFloor, composer;
         let isMirrorActive = false;
         let isBloomActive = false;
+        // ★ 初期状態をON（高画質モード）に変更
+        let isHDActive = true; 
 
         let isAutoMode = true;
         let autoTimer = null;
         let currentAnimIndex = 0;
         let animSequence = []; 
 
-        // デフォルトのカメラ位置を保存しておく定数
         const DEFAULT_CAMERA_POS = new THREE.Vector3(0, 6, 18);
         const DEFAULT_TARGET_POS = new THREE.Vector3(0, 6, 0);
 
@@ -144,6 +138,8 @@
 
             renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
             renderer.setSize(window.innerWidth, window.innerHeight);
+            
+            // ★ 初期設定は高画質（デバイスの最大ピクセル比）
             renderer.setPixelRatio(window.devicePixelRatio);
             
             renderer.outputEncoding = THREE.sRGBEncoding;
@@ -189,6 +185,10 @@
             const renderScene = new RenderPass(scene, camera);
             const bloomPass = new UnrealBloomPass(new THREE.Vector2(window.innerWidth, window.innerHeight), 1.0, 0.5, 0.3);
             composer = new EffectComposer(renderer);
+            
+            // ★ 初期状態のBloomも高画質に設定
+            composer.setPixelRatio(window.devicePixelRatio); 
+            
             composer.addPass(renderScene);
             composer.addPass(bloomPass);
 
@@ -272,6 +272,21 @@
             const btnMirror = document.getElementById('btn-mirror');
             const btnBloom = document.getElementById('btn-bloom');
             const btnReset = document.getElementById('btn-reset');
+            const btnHd = document.getElementById('btn-hd');
+
+            // HD MODEの切り替え処理
+            btnHd.addEventListener('click', () => {
+                isHDActive = !isHDActive;
+                
+                // OFFなら軽量比率(最大1.2)、ONならデバイスネイティブの最高画質比率
+                const newRatio = isHDActive ? window.devicePixelRatio : Math.min(window.devicePixelRatio, 1.2);
+                
+                renderer.setPixelRatio(newRatio);
+                composer.setPixelRatio(newRatio);
+                
+                btnHd.classList.toggle('active', isHDActive);
+                btnHd.querySelector('.status').innerText = isHDActive ? 'ON' : 'OFF';
+            });
 
             btnMirror.addEventListener('click', () => {
                 isMirrorActive = !isMirrorActive;
@@ -286,18 +301,17 @@
                 btnBloom.querySelector('.status').innerText = isBloomActive ? 'ON' : 'OFF';
             });
 
-            // ★ リセットボタンの処理
             btnReset.addEventListener('click', () => {
-                // 1. カメラを初期位置に戻す
                 camera.position.copy(DEFAULT_CAMERA_POS);
                 controls.target.copy(DEFAULT_TARGET_POS);
                 controls.update();
 
-                // 2. エフェクトをすべてOFFにする
                 if (isMirrorActive) btnMirror.click();
                 if (isBloomActive) btnBloom.click();
+                
+                // ★ リセット時はHDモードもON（最高画質）に戻す
+                if (!isHDActive) btnHd.click(); 
 
-                // 3. AUTOモードに戻す
                 if (!isAutoMode) switchAnim("AUTO");
             });
         }
