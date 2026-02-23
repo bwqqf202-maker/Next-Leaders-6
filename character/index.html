@@ -1,0 +1,505 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>10年後のプロダクト - リッチデモ</title>
+    <style>
+        body { margin: 0; overflow: hidden; background: radial-gradient(circle, #333333 0%, #0a0a0a 100%); font-family: sans-serif; touch-action: none; }
+        
+        .status-panel {
+            position: absolute; top: 20px; left: 20px;
+            background: rgba(0,0,0,0.85); color: white;
+            padding: 15px; border-radius: 12px; z-index: 1000;
+            border-left: 4px solid #007bff; min-width: 200px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+            max-height: 80vh; overflow-y: auto;
+        }
+        
+        .controls {
+            position: absolute; top: 50%; right: 20px; transform: translateY(-50%);
+            display: flex; flex-direction: column; gap: 12px;
+            width: 160px; max-height: 90vh; z-index: 1000;
+            overflow-y: auto; padding-right: 5px;
+        }
+        .controls::-webkit-scrollbar { width: 4px; height: 4px; }
+        .controls::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.4); border-radius: 4px; }
+
+        button {
+            padding: 15px 10px; font-size: 14px; font-weight: bold;
+            cursor: pointer; border: none; border-radius: 8px;
+            background: rgba(255,255,255,0.1); color: white; 
+            backdrop-filter: blur(8px); transition: 0.3s;
+            border: 1px solid rgba(255,255,255,0.2);
+            text-transform: uppercase; letter-spacing: 1px;
+            flex-shrink: 0; 
+            word-wrap: break-word;
+        }
+        button:hover { background: rgba(0, 123, 255, 0.4); border-color: #007bff; }
+        button.active { background: #007bff; color: white; border-color: #007bff; box-shadow: 0 0 20px rgba(0,123,255,0.6); }
+        
+        button.auto-btn { border-color: #ffaa00; color: #ffaa00; margin-bottom: 5px; }
+        button.auto-btn:hover { background: rgba(255, 170, 0, 0.2); }
+        button.auto-btn.active { background: rgba(255, 170, 0, 0.5); color: white; box-shadow: 0 0 20px rgba(255, 170, 0, 0.6); }
+        button.playing-in-auto { background: rgba(255,255,255,0.25); border-left: 4px solid #ffaa00; }
+
+        #progress-bar { width: 0%; height: 4px; background: #007bff; margin-top: 8px; transition: width 0.3s; }
+
+        .effect-controls {
+            margin-top: 15px; padding-top: 12px;
+            border-top: 1px solid rgba(255,255,255,0.2);
+            display: flex; gap: 8px; flex-direction: column;
+        }
+        .effect-btn {
+            padding: 10px 8px; font-size: 11px; border-radius: 6px;
+            display: flex; justify-content: space-between; align-items: center;
+        }
+        .effect-btn span.status { font-weight: normal; color: #888; }
+        .effect-btn.active span.status { color: #fff; font-weight: bold; }
+        
+        #btn-smile { border-color: #ff6b81; color: #ff6b81; }
+        #btn-smile:hover { background: rgba(255, 107, 129, 0.2); }
+        #btn-smile.active { background: #ff6b81; color: white; box-shadow: 0 0 15px rgba(255, 107, 129, 0.6); border-color: #ff6b81; }
+
+        /* マイク用ボタンのスタイル復活 */
+        #btn-mic { border-color: #00e676; color: #00e676; margin-bottom: 5px; }
+        #btn-mic:hover { background: rgba(0, 230, 118, 0.2); }
+        #btn-mic.active { background: #00e676; color: #000; box-shadow: 0 0 15px rgba(0, 230, 118, 0.6); border-color: #00e676; }
+        #mic-level-bar { width: 0%; height: 4px; background: #00e676; margin-top: 4px; transition: width 0.1s; }
+
+        #btn-reset { background: rgba(255,255,255,0.15); justify-content: center; margin-top: 5px; color: #fff; border-color: rgba(255,255,255,0.2);}
+        #btn-reset:active { background: #fff; color: #000; }
+
+    </style>
+</head>
+<body>
+
+    <div class="status-panel">
+        <div id="loading" style="font-weight:bold;">Model: Loading...</div>
+        <div id="progress-bar"></div>
+        <div id="current-anim" style="font-size: 12px; color: #007bff; margin-top: 8px; margin-bottom: 5px;">Waiting for file...</div>
+        
+        <div class="effect-controls">
+            <button id="btn-mic" class="effect-btn">🎤 MIC: REAL SOUND <span class="status">OFF</span></button>
+            <div id="mic-level-bar"></div>
+
+            <div style="font-size: 10px; color: #aaa; letter-spacing: 1px; margin-top: 10px;">VISUAL EFFECTS</div>
+            <button id="btn-smile" class="effect-btn">FORCE SMILE <span class="status">OFF</span></button>
+            <button id="btn-hd" class="effect-btn active">HD MODE <span class="status">ON</span></button>
+            <button id="btn-mirror" class="effect-btn">MIRROR FLOOR <span class="status">OFF</span></button>
+            <button id="btn-reset" class="effect-btn">🔄 RESET DEFAULT</button>
+        </div>
+    </div>
+
+    <div class="controls" id="btn-container"></div>
+
+    <script async src="https://unpkg.com/es-module-shims@1.6.3/dist/es-module-shims.js"></script>
+    <script type="importmap">
+    {
+        "imports": {
+            "three": "https://unpkg.com/three@0.150.1/build/three.module.js",
+            "three/addons/": "https://unpkg.com/three@0.150.1/examples/jsm/"
+        }
+    }
+    </script>
+
+    <script type="module">
+        import * as THREE from 'three';
+        import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+        import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+        import { Reflector } from 'three/addons/objects/Reflector.js';
+
+        let scene, camera, renderer, mixer, controls, actions = {};
+        const clock = new THREE.Clock();
+        
+        let mirrorFloor;
+        let isMirrorActive = false;
+        let isHDActive = true; 
+        
+        let isSmileActive = false;
+        let targetSmileValue = 0.0;
+        let currentSmileValue = 0.0;
+        let blinkTimer = Math.random() * 3 + 2; 
+        let isBlinking = false;
+        let isBlinkClosing = false;
+        let currentBlinkValue = 0.0;
+        const BLINK_SPEED = 15.0; 
+        let morphMeshes = [];
+        let currentPlayAnim = 'IDOL'; 
+
+        const audioSoccer1 = new Audio('./soccer1.mp3');
+        const audioSoccer2 = new Audio('./soccer2.mp3');
+        const audioClap = new Audio('./cheer.mp3');
+        
+        let audioTimerSoccer = null;
+        let audioTimerClap = null;
+
+        // マイク用変数復活
+        let audioContext, analyser, microphone, dataArray;
+        let isMicActive = false;
+        let lastReactionTime = 0; 
+
+        let isAutoMode = true;
+        let autoTimer = null;
+        let currentAnimIndex = 0;
+        let animSequence = []; 
+
+        const DEFAULT_CAMERA_POS = new THREE.Vector3(0, 6, 18);
+        const DEFAULT_TARGET_POS = new THREE.Vector3(0, 6, 0);
+
+        function triggerSoccerSound() {
+            if (audioTimerSoccer) clearTimeout(audioTimerSoccer);
+            audioTimerSoccer = setTimeout(() => {
+                if (currentPlayAnim !== 'SOCCER') return; 
+
+                const isRare = Math.random() < 0.1; 
+                if (isRare) {
+                    audioSoccer2.currentTime = 0; 
+                    audioSoccer2.play().catch(e => console.log(e));
+                    console.log("🔥 レア演出：爆音キック発動！！");
+                } else {
+                    audioSoccer1.currentTime = 0; 
+                    audioSoccer1.play().catch(e => console.log(e));
+                }
+            }, 800); 
+        }
+
+        function triggerClapSound() {
+            if (audioTimerClap) clearTimeout(audioTimerClap);
+            audioTimerClap = setTimeout(() => {
+                if (currentPlayAnim !== 'CLAP') return;
+                audioClap.currentTime = 0; 
+                audioClap.play().catch(e => console.log(e));
+            }, 400); 
+        }
+
+        init();
+
+        function init() {
+            scene = new THREE.Scene();
+            camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 1000);
+            camera.position.copy(DEFAULT_CAMERA_POS);
+
+            renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            renderer.setPixelRatio(window.devicePixelRatio);
+            renderer.outputEncoding = THREE.sRGBEncoding;
+            renderer.toneMapping = THREE.ACESFilmicToneMapping;
+            renderer.shadowMap.enabled = true;
+            renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+            document.body.appendChild(renderer.domElement);
+
+            scene.add(new THREE.AmbientLight(0xffffff, 0.5));
+            const sunLight = new THREE.DirectionalLight(0xffffff, 1.2);
+            sunLight.position.set(5, 10, 7.5);
+            sunLight.castShadow = true;
+            scene.add(sunLight);
+
+            const floor = new THREE.Mesh(
+                new THREE.PlaneGeometry(100, 100),
+                new THREE.ShadowMaterial({ opacity: 0.4 })
+            );
+            floor.rotation.x = -Math.PI / 2;
+            floor.receiveShadow = true;
+            scene.add(floor);
+
+            mirrorFloor = new Reflector( new THREE.PlaneGeometry( 100, 100 ), {
+                clipBias: 0.003,
+                textureWidth: window.innerWidth * window.devicePixelRatio,
+                textureHeight: window.innerHeight * window.devicePixelRatio,
+                color: 0x444444
+            });
+            mirrorFloor.rotation.x = -Math.PI / 2;
+            mirrorFloor.position.y = 0.01; 
+            mirrorFloor.visible = false;
+            scene.add(mirrorFloor);
+
+            controls = new OrbitControls(camera, renderer.domElement);
+            controls.enableDamping = true;
+            controls.target.copy(DEFAULT_TARGET_POS);
+
+            const loader = new GLTFLoader();
+            loader.load('./final.glb', 
+                (gltf) => {
+                    try {
+                        const model = gltf.scene;
+                        const scaleGroup = new THREE.Group();
+                        scaleGroup.add(model);
+                        scaleGroup.scale.set(8, 8, 8); 
+
+                        model.traverse((object) => {
+                            if (object.isMesh) {
+                                object.castShadow = true;
+                                object.receiveShadow = true;
+                                if (object.morphTargetDictionary) {
+                                    morphMeshes.push(object);
+                                }
+                            }
+                        });
+
+                        scene.add(scaleGroup);
+                        mixer = new THREE.AnimationMixer(model);
+
+                        mixer.addEventListener('loop', (e) => {
+                            if (e.action === actions['SOCCER'] && currentPlayAnim === 'SOCCER') {
+                                triggerSoccerSound();
+                            }
+                        });
+
+                        if (gltf.animations && gltf.animations.length > 0) {
+                            gltf.animations.forEach((clip) => {
+                                let cleanName = clip.name.replace(/mixamorig:|Armature\|/gi, '').replace(/\.com/g, '').toUpperCase().trim();
+                                if (cleanName === 'IDLE') cleanName = 'IDOL';
+                                if (cleanName.includes('TRIPO') || cleanName.includes('MESH') || cleanName.includes('NODE')) return; 
+                                actions[cleanName] = mixer.clipAction(clip);
+                            });
+
+                            const container = document.getElementById('btn-container');
+                            if (Object.keys(actions).length > 0) {
+                                const autoBtn = document.createElement('button');
+                                autoBtn.innerHTML = "⭐ AUTO";
+                                autoBtn.onclick = () => switchAnim("AUTO");
+                                autoBtn.id = "btn-AUTO";
+                                autoBtn.className = "auto-btn";
+                                container.appendChild(autoBtn);
+
+                                const customOrder = ['IDOL', 'HAPPY', 'CLAP', 'SOCCER']; 
+                                
+                                customOrder.forEach(name => {
+                                    if (actions[name]) {
+                                        animSequence.push(name);
+                                        const btn = document.createElement('button');
+                                        btn.innerText = name;
+                                        btn.onclick = () => switchAnim(name);
+                                        btn.id = "btn-" + name;
+                                        container.appendChild(btn);
+                                    }
+                                });
+
+                                Object.keys(actions).forEach(name => {
+                                    if (!customOrder.includes(name)) {
+                                        animSequence.push(name);
+                                        const btn = document.createElement('button');
+                                        btn.innerText = name;
+                                        btn.onclick = () => switchAnim(name);
+                                        btn.id = "btn-" + name;
+                                        container.appendChild(btn);
+                                    }
+                                });
+                            }
+                        }
+
+                        document.getElementById('loading').innerText = "Model: Online";
+                        document.getElementById('progress-bar').style.width = "100%";
+
+                    } catch (error) {
+                        console.error("エラー:", error);
+                    }
+                }
+            );
+
+            setupButtons();
+            window.addEventListener('resize', onWindowResize);
+            animate();
+        }
+
+        function setupButtons() {
+            // マイクボタンの処理復活
+            const btnMic = document.getElementById('btn-mic');
+            btnMic.addEventListener('click', async () => {
+                if (!isMicActive) {
+                    try {
+                        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                        audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                        analyser = audioContext.createAnalyser();
+                        microphone = audioContext.createMediaStreamSource(stream);
+                        microphone.connect(analyser);
+                        analyser.fftSize = 256;
+                        dataArray = new Uint8Array(analyser.frequencyBinCount);
+                        
+                        isMicActive = true;
+                        btnMic.classList.add('active');
+                        btnMic.querySelector('.status').innerText = 'ON';
+                    } catch (err) {
+                        console.error("Mic error:", err);
+                        alert("マイクの使用が許可されませんでした。");
+                    }
+                } else {
+                    isMicActive = false;
+                    btnMic.classList.remove('active');
+                    btnMic.querySelector('.status').innerText = 'OFF';
+                    document.getElementById('mic-level-bar').style.width = "0%";
+                }
+            });
+
+            const btnMirror = document.getElementById('btn-mirror');
+            const btnReset = document.getElementById('btn-reset');
+            const btnHd = document.getElementById('btn-hd');
+            const btnSmile = document.getElementById('btn-smile');
+
+            btnSmile.addEventListener('click', () => {
+                isSmileActive = !isSmileActive;
+                btnSmile.classList.toggle('active', isSmileActive);
+                btnSmile.querySelector('.status').innerText = isSmileActive ? 'ON' : 'OFF';
+            });
+
+            btnHd.addEventListener('click', () => {
+                isHDActive = !isHDActive;
+                const newRatio = isHDActive ? window.devicePixelRatio : Math.min(window.devicePixelRatio, 1.2);
+                renderer.setPixelRatio(newRatio);
+                btnHd.classList.toggle('active', isHDActive);
+                btnHd.querySelector('.status').innerText = isHDActive ? 'ON' : 'OFF';
+            });
+
+            btnMirror.addEventListener('click', () => {
+                isMirrorActive = !isMirrorActive;
+                mirrorFloor.visible = isMirrorActive;
+                btnMirror.classList.toggle('active', isMirrorActive);
+                btnMirror.querySelector('.status').innerText = isMirrorActive ? 'ON' : 'OFF';
+            });
+
+            btnReset.addEventListener('click', () => {
+                camera.position.copy(DEFAULT_CAMERA_POS);
+                controls.target.copy(DEFAULT_TARGET_POS);
+                controls.update();
+
+                if (isMirrorActive) btnMirror.click();
+                if (!isHDActive) btnHd.click(); 
+                if (isSmileActive) btnSmile.click(); 
+
+                if (!isAutoMode && animSequence.length > 0) switchAnim("AUTO");
+            });
+        }
+
+        window.switchAnim = function(name, isFromAuto = false) {
+            if (!actions[name] && name !== 'AUTO') return;
+
+            if (name === 'AUTO') {
+                isAutoMode = true;
+                if (autoTimer) clearTimeout(autoTimer);
+                switchAnim(animSequence[0], true);
+                return;
+            }
+
+            if (!isFromAuto) {
+                isAutoMode = false;
+                if (autoTimer) clearTimeout(autoTimer);
+                const idx = animSequence.indexOf(name);
+                if (idx !== -1) currentAnimIndex = idx;
+            }
+
+            currentPlayAnim = name;
+
+            if (audioTimerSoccer) clearTimeout(audioTimerSoccer);
+            if (audioTimerClap) clearTimeout(audioTimerClap);
+
+            if (name === 'SOCCER') {
+                triggerSoccerSound();
+            } else if (name === 'CLAP') {
+                triggerClapSound(); 
+            }
+
+            const nextAction = actions[name];
+            Object.values(actions).forEach(action => {
+                if (action !== nextAction) action.fadeOut(0.4);
+            });
+            nextAction.reset().fadeIn(0.4).play();
+
+            document.querySelectorAll('#btn-container button').forEach(b => {
+                b.classList.remove('active'); b.classList.remove('playing-in-auto');
+            });
+
+            if (isAutoMode) {
+                document.getElementById('btn-AUTO').classList.add('active');
+                const playingBtn = document.getElementById("btn-" + name);
+                if(playingBtn) playingBtn.classList.add('playing-in-auto');
+                document.getElementById('current-anim').innerText = "Mode: AUTO (" + name + ")";
+                
+                autoTimer = setTimeout(() => {
+                    currentAnimIndex = (currentAnimIndex + 1) % animSequence.length;
+                    switchAnim(animSequence[currentAnimIndex], true);
+                }, 6000); 
+            } else {
+                const activeBtn = document.getElementById("btn-" + name);
+                if(activeBtn) activeBtn.classList.add('active');
+                document.getElementById('current-anim').innerText = "Mode: MANUAL (" + name + ")";
+            }
+        };
+
+        function onWindowResize() {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        }
+
+        function animate() {
+            requestAnimationFrame(animate);
+            const delta = clock.getDelta();
+            const time = clock.getElapsedTime(); 
+            
+            if (mixer) mixer.update(delta);
+            if (controls) controls.update();
+            
+            // マイクによるCLAP反応処理復活
+            if (isMicActive && analyser) {
+                analyser.getByteFrequencyData(dataArray);
+                let sum = 0;
+                for(let i = 0; i < dataArray.length; i++) {
+                    sum += dataArray[i];
+                }
+                let averageVolume = sum / dataArray.length; 
+                document.getElementById('mic-level-bar').style.width = Math.min(averageVolume, 100) + "%";
+
+                if (averageVolume > 80 && (time - lastReactionTime > 4.0)) {
+                    isAutoMode = false; 
+                    if (autoTimer) clearTimeout(autoTimer);
+                    
+                    switchAnim('CLAP'); 
+                    lastReactionTime = time;
+                }
+            }
+
+            if (morphMeshes.length > 0) {
+                let autoSmileValue = 0.0;
+                if (currentPlayAnim === 'CLAP' || currentPlayAnim === 'HAPPY') {
+                    autoSmileValue = 1.0;
+                } else if (currentPlayAnim === 'IDOL') {
+                    autoSmileValue = 0.45 + Math.sin(time * 2.0) * 0.25;
+                } else {
+                    autoSmileValue = 0.3;
+                }
+                targetSmileValue = isSmileActive ? 1.0 : autoSmileValue;
+                currentSmileValue = THREE.MathUtils.lerp(currentSmileValue, targetSmileValue, 8 * delta);
+
+                if (!isBlinking) {
+                    blinkTimer -= delta;
+                    if (blinkTimer <= 0) { isBlinking = true; isBlinkClosing = true; }
+                } else {
+                    if (isBlinkClosing) {
+                        currentBlinkValue += BLINK_SPEED * delta;
+                        if (currentBlinkValue >= 1.0) { currentBlinkValue = 1.0; isBlinkClosing = false; }
+                    } else {
+                        currentBlinkValue -= BLINK_SPEED * delta;
+                        if (currentBlinkValue <= 0.0) {
+                            currentBlinkValue = 0.0; isBlinking = false;
+                            blinkTimer = Math.random() * 3 + 2; 
+                        }
+                    }
+                }
+
+                morphMeshes.forEach(mesh => {
+                    if(mesh.morphTargetDictionary && mesh.morphTargetInfluences) {
+                        const smileIndex = mesh.morphTargetDictionary['Smile'];
+                        if (smileIndex !== undefined) mesh.morphTargetInfluences[smileIndex] = currentSmileValue;
+                        
+                        let blinkIndex = mesh.morphTargetDictionary['Blink'] || mesh.morphTargetDictionary['Close'];
+                        if (blinkIndex !== undefined) mesh.morphTargetInfluences[blinkIndex] = currentBlinkValue;
+                    }
+                });
+            }
+
+            renderer.render(scene, camera);
+        }
+    </script>
+</body>
+</html>
