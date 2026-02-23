@@ -5,7 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>10年後のプロダクト - リッチデモ</title>
     <style>
-        body { margin: 0; overflow: hidden; background: radial-gradient(circle, #333333 0%, #0a0a0a 100%); font-family: sans-serif; touch-action: none; }
+        /* タッチ操作の制限を外し、UIのスクロールを許可 */
+        body { margin: 0; overflow: hidden; background: radial-gradient(circle, #333333 0%, #0a0a0a 100%); font-family: sans-serif; }
         
         .status-panel {
             position: absolute; top: 20px; left: 20px;
@@ -21,6 +22,8 @@
             display: flex; flex-direction: column; gap: 12px;
             width: 160px; max-height: 90vh; z-index: 1000;
             overflow-y: auto; padding-right: 5px;
+            /* スクロール時の操作を許可 */
+            touch-action: pan-y; 
         }
         .controls::-webkit-scrollbar { width: 4px; height: 4px; }
         .controls::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.4); border-radius: 4px; }
@@ -61,7 +64,6 @@
         #btn-smile:hover { background: rgba(255, 107, 129, 0.2); }
         #btn-smile.active { background: #ff6b81; color: white; box-shadow: 0 0 15px rgba(255, 107, 129, 0.6); border-color: #ff6b81; }
 
-        /* マイク用ボタンのスタイル復活 */
         #btn-mic { border-color: #00e676; color: #00e676; margin-bottom: 5px; }
         #btn-mic:hover { background: rgba(0, 230, 118, 0.2); }
         #btn-mic.active { background: #00e676; color: #000; box-shadow: 0 0 15px rgba(0, 230, 118, 0.6); border-color: #00e676; }
@@ -70,6 +72,60 @@
         #btn-reset { background: rgba(255,255,255,0.15); justify-content: center; margin-top: 5px; color: #fff; border-color: rgba(255,255,255,0.2);}
         #btn-reset:active { background: #fff; color: #000; }
 
+        /* =========================================
+           📱 スマホ・タブレット用レスポンシブデザイン
+           ========================================= */
+        @media (max-width: 768px) {
+            .status-panel {
+                top: 10px; left: 10px; right: 10px; /* 横幅いっぱいに広げる */
+                padding: 12px;
+                min-width: unset;
+                max-height: 45vh; /* 画面の半分以上は覆わない */
+            }
+            .effect-controls {
+                flex-direction: row;
+                flex-wrap: wrap;
+                gap: 6px;
+                margin-top: 10px;
+            }
+            .effect-btn {
+                flex: 1 1 calc(50% - 6px); /* 2列配置にしてコンパクトに */
+                padding: 10px 8px;
+            }
+            #btn-mic {
+                flex: 1 1 100%; /* マイクは重要なので1列で大きく */
+                padding: 12px;
+                font-size: 13px;
+            }
+            #btn-reset {
+                flex: 1 1 100%;
+            }
+            
+            /* アニメーションボタンを画面下部に横スクロールで配置 */
+            .controls {
+                top: auto; bottom: 20px; left: 0; right: 0;
+                transform: none;
+                flex-direction: row;
+                width: 100%;
+                max-height: unset;
+                padding: 0 15px;
+                box-sizing: border-box;
+                overflow-x: auto; /* 横スクロールをON */
+                overflow-y: hidden;
+                touch-action: pan-x; /* スワイプ操作を許可 */
+                -webkit-overflow-scrolling: touch;
+                align-items: center;
+            }
+            .controls::-webkit-scrollbar {
+                display: none; /* スマホではスクロールバーを消してスッキリ見せる */
+            }
+            .controls button {
+                padding: 12px 24px;
+                border-radius: 25px; /* 指で押しやすいように丸っこいデザインに */
+                white-space: nowrap; /* 文字が縦に折り返さないようにする */
+                font-size: 13px;
+            }
+        }
     </style>
 </head>
 <body>
@@ -83,11 +139,11 @@
             <button id="btn-mic" class="effect-btn">🎤 MIC: REAL SOUND <span class="status">OFF</span></button>
             <div id="mic-level-bar"></div>
 
-            <div style="font-size: 10px; color: #aaa; letter-spacing: 1px; margin-top: 10px;">VISUAL EFFECTS</div>
+            <div style="font-size: 10px; color: #aaa; letter-spacing: 1px; margin-top: 10px; flex-basis: 100%;">VISUAL EFFECTS</div>
             <button id="btn-smile" class="effect-btn">FORCE SMILE <span class="status">OFF</span></button>
             <button id="btn-hd" class="effect-btn active">HD MODE <span class="status">ON</span></button>
             <button id="btn-mirror" class="effect-btn">MIRROR FLOOR <span class="status">OFF</span></button>
-            <button id="btn-reset" class="effect-btn">🔄 RESET DEFAULT</button>
+            <button id="btn-reset" class="effect-btn">🔄 RESET</button>
         </div>
     </div>
 
@@ -127,14 +183,13 @@
         let morphMeshes = [];
         let currentPlayAnim = 'IDOL'; 
 
-        const audioSoccer1 = new Audio('./soccer1.mp3');
-        const audioSoccer2 = new Audio('./soccer2.mp3');
-        const audioClap = new Audio('./cheer.mp3');
+        const audioSoccer1 = new Audio('./audio/soccer1.mp3');
+        const audioSoccer2 = new Audio('./audio/soccer2.mp3');
+        const audioClap = new Audio('./audio/cheer.mp3');
         
         let audioTimerSoccer = null;
         let audioTimerClap = null;
 
-        // マイク用変数復活
         let audioContext, analyser, microphone, dataArray;
         let isMicActive = false;
         let lastReactionTime = 0; 
@@ -304,7 +359,6 @@
         }
 
         function setupButtons() {
-            // マイクボタンの処理復活
             const btnMic = document.getElementById('btn-mic');
             btnMic.addEventListener('click', async () => {
                 if (!isMicActive) {
@@ -440,7 +494,6 @@
             if (mixer) mixer.update(delta);
             if (controls) controls.update();
             
-            // マイクによるCLAP反応処理復活
             if (isMicActive && analyser) {
                 analyser.getByteFrequencyData(dataArray);
                 let sum = 0;
