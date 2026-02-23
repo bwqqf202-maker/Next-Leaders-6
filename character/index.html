@@ -185,19 +185,15 @@
         let morphMeshes = [];
         let currentPlayAnim = 'IDOL'; 
 
-        // ==========================================
-        // ★ 音声ファイル設定の更新
-        // ==========================================
         const audioSoccer1 = new Audio('./audio/soccer1.mp3');
         const audioSoccer2 = new Audio('./audio/soccer2.mp3');
-        const audioCheer1 = new Audio('./audio/cheer1.mp3'); // cheer1に変更
-        const audioCheer2 = new Audio('./audio/cheer2.mp3'); // cheer2を追加
-        const audioHappy = new Audio('./audio/happy.mp3');   // HAPPY用を追加
+        const audioCheer1 = new Audio('./audio/cheer1.mp3'); 
+        const audioCheer2 = new Audio('./audio/cheer2.mp3'); 
+        const audioHappy = new Audio('./audio/happy.mp3');   
         
-        // ★ 各音声用のタイマー変数
         let audioTimerSoccer = null;
         let audioTimerClap1 = null;
-        let audioTimerClap2 = null; // cheer2の遅延用
+        let audioTimerClap2 = null; 
         let audioTimerHappy = null;
 
         let audioContext, analyser, microphone, dataArray;
@@ -221,7 +217,6 @@
                 if (isRare) {
                     audioSoccer2.currentTime = 0; 
                     audioSoccer2.play().catch(e => console.log(e));
-                    console.log("🔥 レア演出：爆音キック発動！！");
                 } else {
                     audioSoccer1.currentTime = 0; 
                     audioSoccer1.play().catch(e => console.log(e));
@@ -230,42 +225,35 @@
         }
 
         // ==========================================
-        // ★ CLAP音声コンボの処理（cheer1 → 1秒待機 → cheer2）
+        // ★ CLAPの音声を完全にタイマー制御に変更！
         // ==========================================
         function triggerClapSound() {
             if (audioTimerClap1) clearTimeout(audioTimerClap1);
             if (audioTimerClap2) clearTimeout(audioTimerClap2);
             
+            // ① 0.4秒後に「すごいすごい！(cheer1)」
             audioTimerClap1 = setTimeout(() => {
                 if (currentPlayAnim !== 'CLAP') return;
                 audioCheer1.currentTime = 0; 
-                audioCheer1.play().catch(e => console.log(e));
-
-                // cheer1 の再生が完全に終わった瞬間（onended）を検知して次へ繋ぐ
-                audioCheer1.onended = () => {
-                    // もしcheer1が終わった時に別のアニメーションに切り替わっていたら中止する
-                    if (currentPlayAnim !== 'CLAP') return;
-
-                    // cheer1終了から「1000ミリ秒（1秒）」待ってcheer2を再生
-                    audioTimerClap2 = setTimeout(() => {
-                        if (currentPlayAnim !== 'CLAP') return;
-                        audioCheer2.currentTime = 0;
-                        audioCheer2.play().catch(e => console.log(e));
-                    }, 1000);
-                };
+                audioCheer1.play().catch(e => console.log("cheer1エラー:", e));
             }, 400); 
+
+            // ② 3.4秒後に「よくできました！(cheer2)」
+            // ※「cheer1の音声の長さ＋1秒のタメ」に合わせて、この3400の数字を微調整してください！
+            audioTimerClap2 = setTimeout(() => {
+                if (currentPlayAnim !== 'CLAP') return;
+                audioCheer2.currentTime = 0;
+                audioCheer2.play().catch(e => console.log("cheer2エラー:", e));
+            }, 3400); 
         }
 
-        // ==========================================
-        // ★ HAPPY音声の処理
-        // ==========================================
         function triggerHappySound() {
             if (audioTimerHappy) clearTimeout(audioTimerHappy);
             audioTimerHappy = setTimeout(() => {
                 if (currentPlayAnim !== 'HAPPY') return;
                 audioHappy.currentTime = 0; 
-                audioHappy.play().catch(e => console.log(e));
-            }, 300); // アニメーション開始から0.3秒後に再生（お好みで調整してください！）
+                audioHappy.play().catch(e => console.log("happyエラー:", e));
+            }, 300); 
         }
 
         init();
@@ -506,13 +494,16 @@
 
             currentPlayAnim = name;
 
-            // アニメーション切り替え時に全ての音声タイマーをリセット
+            lastReactionTime = clock.getElapsedTime();
+            if (name === 'CLAP') {
+                lastReactionTime += 4.0; 
+            }
+
             if (audioTimerSoccer) clearTimeout(audioTimerSoccer);
             if (audioTimerClap1) clearTimeout(audioTimerClap1);
             if (audioTimerClap2) clearTimeout(audioTimerClap2);
             if (audioTimerHappy) clearTimeout(audioTimerHappy);
 
-            // ★ ここで各モーションに合わせた音をトリガー
             if (name === 'SOCCER') {
                 triggerSoccerSound();
             } else if (name === 'CLAP') {
