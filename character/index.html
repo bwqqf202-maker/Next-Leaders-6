@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>キャラクターデモ</title>
+    <title>10年後のプロダクト - リッチデモ</title>
     <style>
         body { margin: 0; overflow: hidden; background: radial-gradient(circle, #333333 0%, #0a0a0a 100%); font-family: sans-serif; }
         
@@ -66,6 +66,10 @@
         .effect-btn span.status { font-weight: normal; color: #888; }
         .effect-btn.active span.status { color: #fff; font-weight: bold; }
         
+        #btn-bgm { border-color: #ffd700; color: #ffd700; }
+        #btn-bgm:hover { background: rgba(255, 215, 0, 0.2); }
+        #btn-bgm.active { background: #ffd700; color: #000; box-shadow: 0 0 15px rgba(255, 215, 0, 0.6); border-color: #ffd700; }
+
         #btn-smile { border-color: #ff6b81; color: #ff6b81; }
         #btn-smile:hover { background: rgba(255, 107, 129, 0.2); }
         #btn-smile.active { background: #ff6b81; color: white; box-shadow: 0 0 15px rgba(255, 107, 129, 0.6); border-color: #ff6b81; }
@@ -74,6 +78,11 @@
         #btn-mic:hover { background: rgba(0, 230, 118, 0.2); }
         #btn-mic.active { background: #00e676; color: #000; box-shadow: 0 0 15px rgba(0, 230, 118, 0.6); border-color: #00e676; }
         #mic-level-bar { width: 0%; height: 4px; background: #00e676; margin-top: 4px; transition: width 0.1s; }
+
+        /* ★ サイバー空間ボタンのデザイン追加 */
+        #btn-cyber { border-color: #00ffff; color: #00ffff; }
+        #btn-cyber:hover { background: rgba(0, 255, 255, 0.2); }
+        #btn-cyber.active { background: #00ffff; color: #000; box-shadow: 0 0 15px rgba(0, 255, 255, 0.6); border-color: #00ffff; }
 
         #btn-reset { background: rgba(255,255,255,0.15); justify-content: center; margin-top: 5px; color: #fff; border-color: rgba(255,255,255,0.2);}
         #btn-reset:active { background: #fff; color: #000; }
@@ -141,9 +150,11 @@
             <button id="btn-mic" class="effect-btn">🎤 MIC: REAL SOUND <span class="status">OFF</span></button>
             <div id="mic-level-bar"></div>
 
-            <div style="font-size: 10px; color: #aaa; letter-spacing: 1px; margin-top: 10px; flex-basis: 100%;">VISUAL EFFECTS</div>
+            <div style="font-size: 10px; color: #aaa; letter-spacing: 1px; margin-top: 10px; flex-basis: 100%;">VISUAL & AUDIO</div>
+            <button id="btn-bgm" class="effect-btn">🎵 BGM <span class="status">OFF</span></button>
             <button id="btn-smile" class="effect-btn">FORCE SMILE <span class="status">OFF</span></button>
             <button id="btn-hd" class="effect-btn active">HD MODE <span class="status">ON</span></button>
+            <button id="btn-cyber" class="effect-btn">CYBER SPACE <span class="status">OFF</span></button>
             <button id="btn-mirror" class="effect-btn">MIRROR FLOOR <span class="status">OFF</span></button>
             <button id="btn-reset" class="effect-btn">🔄 RESET</button>
         </div>
@@ -174,6 +185,11 @@
         let isMirrorActive = false;
         let isHDActive = true; 
         
+        // ★ サイバー空間用の変数追加
+        let cyberGroup;
+        let cyberParticles;
+        let isCyberActive = false;
+
         let isSmileActive = false;
         let targetSmileValue = 0.0;
         let currentSmileValue = 0.0;
@@ -183,24 +199,38 @@
         let currentBlinkValue = 0.0;
         const BLINK_SPEED = 15.0; 
         let morphMeshes = [];
-        let currentPlayAnim = 'IDOL'; 
+        let currentPlayAnim = 'HAPPY'; 
+        
+        let activeAction = null; 
 
         const audioSoccer1 = new Audio('./audio/soccer1.mp3');
         const audioSoccer2 = new Audio('./audio/soccer2.mp3');
         const audioCheer1 = new Audio('./audio/cheer1.mp3'); 
         const audioCheer2 = new Audio('./audio/cheer2.mp3'); 
+        const audioCheer3 = new Audio('./audio/cheer3.mp3'); 
+        const audioCheer4 = new Audio('./audio/cheer4.mp3'); 
         const audioHappy = new Audio('./audio/happy.mp3');   
+        
+        const audioBgm1 = new Audio('./audio/BGM_.mp3');
+        const audioBgm2 = new Audio('./audio/BGM_.mp3');
+        let activeBgm = audioBgm1;
+        let nextBgm = audioBgm2;
+        const BGM_MAX_VOL = 0.05; 
+        const BGM_CROSSFADE_TIME = 3.0; 
+        let isBgmActive = false;
         
         let audioTimerSoccer = null;
         let audioTimerClap1 = null;
         let audioTimerClap2 = null; 
         let audioTimerHappy = null;
+        let audioTimerReturn = null; 
+        let idleTimer = null;
 
         let audioContext, analyser, microphone, dataArray;
         let isMicActive = false;
         let lastReactionTime = 0; 
 
-        let isAutoMode = true;
+        let isAutoMode = false;
         let autoTimer = null;
         let currentAnimIndex = 0;
         let animSequence = []; 
@@ -224,27 +254,35 @@
             }, 800); 
         }
 
-        // ==========================================
-        // ★ CLAPの音声を完全にタイマー制御に変更！
-        // ==========================================
         function triggerClapSound() {
             if (audioTimerClap1) clearTimeout(audioTimerClap1);
             if (audioTimerClap2) clearTimeout(audioTimerClap2);
+            if (audioTimerReturn) clearTimeout(audioTimerReturn);
             
-            // ① 0.4秒後に「すごいすごい！(cheer1)」
+            const isPatternA = Math.random() < 0.5;
+            const firstCheer = isPatternA ? audioCheer1 : audioCheer3;
+            const secondCheer = isPatternA ? audioCheer2 : audioCheer4;
+            
+            const secondDelay = isPatternA ? 2400 : 1200; 
+            const returnDelay = isPatternA ? 9000 : 7500; 
+
             audioTimerClap1 = setTimeout(() => {
                 if (currentPlayAnim !== 'CLAP') return;
-                audioCheer1.currentTime = 0; 
-                audioCheer1.play().catch(e => console.log("cheer1エラー:", e));
+                firstCheer.currentTime = 0; 
+                firstCheer.play().catch(e => console.log("cheer前半エラー:", e));
             }, 400); 
 
-            // ② 3.4秒後に「よくできました！(cheer2)」
-            // ※「cheer1の音声の長さ＋1秒のタメ」に合わせて、この3400の数字を微調整してください！
             audioTimerClap2 = setTimeout(() => {
                 if (currentPlayAnim !== 'CLAP') return;
-                audioCheer2.currentTime = 0;
-                audioCheer2.play().catch(e => console.log("cheer2エラー:", e));
-            }, 3400); 
+                secondCheer.currentTime = 0;
+                secondCheer.play().catch(e => console.log("cheer後半エラー:", e));
+            }, secondDelay); 
+
+            audioTimerReturn = setTimeout(() => {
+                if (currentPlayAnim === 'CLAP') {
+                    switchAnim('HAPPY', false, true); 
+                }
+            }, returnDelay); 
         }
 
         function triggerHappySound() {
@@ -285,6 +323,37 @@
             floor.rotation.x = -Math.PI / 2;
             floor.receiveShadow = true;
             scene.add(floor);
+
+            // ==========================================
+            // ★ サイバー空間オブジェクトの生成
+            // ==========================================
+            cyberGroup = new THREE.Group();
+            cyberGroup.visible = false; // 初期状態は非表示
+            scene.add(cyberGroup);
+
+            // ① ネオングリッド床
+            const grid = new THREE.GridHelper(200, 100, 0x00ffff, 0x004444);
+            grid.position.y = 0.02; // 床より少しだけ浮かせる
+            cyberGroup.add(grid);
+
+            // ② デジタルパーティクル（光の粒）
+            const particlesGeo = new THREE.BufferGeometry();
+            const particlesCount = 1500;
+            const posArray = new Float32Array(particlesCount * 3);
+            for(let i = 0; i < particlesCount * 3; i++) {
+                posArray[i] = (Math.random() - 0.5) * 60; // 空間の広がり
+                if(i%3 === 1) posArray[i] = Math.random() * 40; // Y軸（高さ）
+            }
+            particlesGeo.setAttribute('position', new THREE.BufferAttribute(posArray, 3));
+            const particlesMat = new THREE.PointsMaterial({
+                size: 0.15,
+                color: 0x00ffff,
+                transparent: true,
+                opacity: 0.8,
+                blending: THREE.AdditiveBlending // 光の重なりを表現
+            });
+            cyberParticles = new THREE.Points(particlesGeo, particlesMat);
+            cyberGroup.add(cyberParticles);
 
             mirrorFloor = new Reflector( new THREE.PlaneGeometry( 100, 100 ), {
                 clipBias: 0.003,
@@ -346,7 +415,7 @@
                                 autoBtn.className = "auto-btn";
                                 container.appendChild(autoBtn);
 
-                                const customOrder = ['IDOL', 'HAPPY', 'CLAP', 'SOCCER']; 
+                                const customOrder = ['HAPPY', 'IDOL', 'CLAP', 'SOCCER']; 
                                 
                                 customOrder.forEach(name => {
                                     if (actions[name]) {
@@ -375,6 +444,13 @@
                         document.getElementById('loading').innerText = "Model: Online";
                         document.getElementById('progress-bar').style.width = "100%";
 
+                        switchAnim('HAPPY', false, true);
+
+                        setTimeout(() => {
+                            if (!isMicActive) document.getElementById('btn-mic').click();
+                            if (!isBgmActive) document.getElementById('btn-bgm').click();
+                        }, 800);
+
                     } catch (error) {
                         console.error("エラー:", error);
                     }
@@ -385,9 +461,36 @@
             setupUIAutoHide(); 
             window.addEventListener('resize', onWindowResize);
             animate();
+
+            const startAudio = () => {
+                if (isBgmActive && activeBgm.paused) {
+                    activeBgm.volume = 0; 
+                    activeBgm.play().catch(e => console.log("BGM再生エラー:", e));
+                }
+                window.removeEventListener('click', startAudio);
+                window.removeEventListener('touchstart', startAudio);
+            };
+            window.addEventListener('click', startAudio);
+            window.addEventListener('touchstart', startAudio);
         }
 
         function setupButtons() {
+            const btnBgm = document.getElementById('btn-bgm');
+            btnBgm.addEventListener('click', () => {
+                isBgmActive = !isBgmActive;
+                if (isBgmActive) {
+                    activeBgm.volume = 0; 
+                    activeBgm.play().catch(e => console.log("BGMエラー:", e));
+                    btnBgm.classList.add('active');
+                    btnBgm.querySelector('.status').innerText = 'ON';
+                } else {
+                    activeBgm.pause();
+                    nextBgm.pause();
+                    btnBgm.classList.remove('active');
+                    btnBgm.querySelector('.status').innerText = 'OFF';
+                }
+            });
+
             const btnMic = document.getElementById('btn-mic');
             btnMic.addEventListener('click', async () => {
                 if (!isMicActive) {
@@ -413,6 +516,23 @@
                     btnMic.querySelector('.status').innerText = 'OFF';
                     document.getElementById('mic-level-bar').style.width = "0%";
                 }
+            });
+
+            // ★ サイバー空間ボタンのイベント追加
+            const btnCyber = document.getElementById('btn-cyber');
+            btnCyber.addEventListener('click', () => {
+                isCyberActive = !isCyberActive;
+                cyberGroup.visible = isCyberActive; // グループごと表示/非表示を切り替え
+                
+                // サイバー空間時は背景を真っ黒にする演出を追加
+                if (isCyberActive) {
+                    document.body.style.background = "#000";
+                } else {
+                    document.body.style.background = "radial-gradient(circle, #333333 0%, #0a0a0a 100%)";
+                }
+
+                btnCyber.classList.toggle('active', isCyberActive);
+                btnCyber.querySelector('.status').innerText = isCyberActive ? 'ON' : 'OFF';
             });
 
             const btnMirror = document.getElementById('btn-mirror');
@@ -447,10 +567,11 @@
                 controls.update();
 
                 if (isMirrorActive) btnMirror.click();
+                if (isCyberActive) btnCyber.click(); // リセット時にサイバーもOFFにする
                 if (!isHDActive) btnHd.click(); 
                 if (isSmileActive) btnSmile.click(); 
 
-                if (!isAutoMode && animSequence.length > 0) switchAnim("AUTO");
+                switchAnim('HAPPY', false, true);
             });
         }
 
@@ -475,7 +596,7 @@
             showUI();
         }
 
-        window.switchAnim = function(name, isFromAuto = false) {
+        window.switchAnim = function(name, isFromAuto = false, muteSound = false) {
             if (!actions[name] && name !== 'AUTO') return;
 
             if (name === 'AUTO') {
@@ -496,27 +617,50 @@
 
             lastReactionTime = clock.getElapsedTime();
             if (name === 'CLAP') {
-                lastReactionTime += 4.0; 
+                lastReactionTime += 10.0; 
             }
 
             if (audioTimerSoccer) clearTimeout(audioTimerSoccer);
             if (audioTimerClap1) clearTimeout(audioTimerClap1);
             if (audioTimerClap2) clearTimeout(audioTimerClap2);
             if (audioTimerHappy) clearTimeout(audioTimerHappy);
+            if (audioTimerReturn) clearTimeout(audioTimerReturn);
+            if (idleTimer) clearTimeout(idleTimer); 
 
-            if (name === 'SOCCER') {
-                triggerSoccerSound();
-            } else if (name === 'CLAP') {
-                triggerClapSound(); 
-            } else if (name === 'HAPPY') {
-                triggerHappySound();
+            if (name === 'HAPPY') {
+                idleTimer = setTimeout(() => {
+                    if (currentPlayAnim === 'HAPPY') {
+                        switchAnim('DANCE', false, true); 
+                    }
+                }, 15000); 
+            } else if (name === 'DANCE') {
+                idleTimer = setTimeout(() => {
+                    if (currentPlayAnim === 'DANCE') {
+                        switchAnim('HAPPY', false, true); 
+                    }
+                }, 8000);
+            }
+
+            if (!muteSound) {
+                if (name === 'SOCCER') {
+                    triggerSoccerSound();
+                } else if (name === 'CLAP') {
+                    triggerClapSound(); 
+                } else if (name === 'HAPPY') {
+                    triggerHappySound();
+                }
             }
 
             const nextAction = actions[name];
-            Object.values(actions).forEach(action => {
-                if (action !== nextAction) action.fadeOut(0.4);
-            });
-            nextAction.reset().fadeIn(0.4).play();
+            
+            if (activeAction && activeAction !== nextAction) {
+                nextAction.reset();
+                nextAction.play();
+                activeAction.crossFadeTo(nextAction, 0.4, true);
+            } else {
+                nextAction.reset().play();
+            }
+            activeAction = nextAction;
 
             document.querySelectorAll('#btn-container button').forEach(b => {
                 b.classList.remove('active'); b.classList.remove('playing-in-auto');
@@ -562,24 +706,61 @@
                 let averageVolume = sum / dataArray.length; 
                 document.getElementById('mic-level-bar').style.width = Math.min(averageVolume, 100) + "%";
 
-                if (averageVolume > 80 && (time - lastReactionTime > 4.0)) {
+                if (averageVolume > 80 && (time - lastReactionTime > 2.0)) {
                     isAutoMode = false; 
                     if (autoTimer) clearTimeout(autoTimer);
-                    
                     switchAnim('CLAP'); 
-                    lastReactionTime = time;
                 }
+            }
+
+            if (isBgmActive && activeBgm) {
+                if (activeBgm.duration && activeBgm.currentTime >= activeBgm.duration - BGM_CROSSFADE_TIME) {
+                    if (nextBgm.paused) {
+                        nextBgm.currentTime = 0;
+                        nextBgm.volume = 0;
+                        nextBgm.play().catch(e=>console.log(e)); 
+                    }
+                    let ratio = (activeBgm.duration - activeBgm.currentTime) / BGM_CROSSFADE_TIME;
+                    ratio = Math.max(0, Math.min(1, ratio)); 
+                    activeBgm.volume = BGM_MAX_VOL * ratio;
+                    nextBgm.volume = BGM_MAX_VOL * (1 - ratio);
+
+                    if (activeBgm.currentTime >= activeBgm.duration - 0.1) {
+                        activeBgm.pause();
+                        activeBgm.currentTime = 0;
+                        let temp = activeBgm;
+                        activeBgm = nextBgm;
+                        nextBgm = temp;
+                        activeBgm.volume = BGM_MAX_VOL;
+                    }
+                } else {
+                    if (activeBgm.volume < BGM_MAX_VOL) {
+                        activeBgm.volume = Math.min(BGM_MAX_VOL, activeBgm.volume + (BGM_MAX_VOL / 2.0) * delta); 
+                    }
+                }
+            }
+
+            // ==========================================
+            // ★ サイバー空間アニメーション（パーティクルをゆっくり回転）
+            // ==========================================
+            if (isCyberActive && cyberParticles) {
+                cyberParticles.rotation.y = time * 0.05; // Y軸を中心にゆっくり回る
+                // cyberParticles.position.y = Math.sin(time) * 1.5; // (お好みで上下にフワフワさせるのもありです！)
             }
 
             if (morphMeshes.length > 0) {
                 let autoSmileValue = 0.0;
-                if (currentPlayAnim === 'CLAP' || currentPlayAnim === 'HAPPY') {
+                
+                if (currentPlayAnim === 'CLAP') {
                     autoSmileValue = 1.0;
+                } else if (currentPlayAnim === 'HAPPY') {
+                    autoSmileValue = 0.5 + Math.sin(time * 1.5) * 0.4;
                 } else if (currentPlayAnim === 'IDOL') {
-                    autoSmileValue = 0.45 + Math.sin(time * 2.0) * 0.25;
+                    autoSmileValue = 0.3 + Math.sin(time * 2.0) * 0.2;
                 } else {
-                    autoSmileValue = 0.3;
+                    autoSmileValue = 0.2;
                 }
+                
                 targetSmileValue = isSmileActive ? 1.0 : autoSmileValue;
                 currentSmileValue = THREE.MathUtils.lerp(currentSmileValue, targetSmileValue, 8 * delta);
 
