@@ -5,14 +5,15 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>10年後のプロダクト - リッチデモ</title>
     <style>
-        body { margin: 0; overflow: hidden; background: radial-gradient(circle, #333333 0%, #0a0a0a 100%); font-family: sans-serif; }
+        body { margin: 0; overflow: hidden; background: #000; font-family: sans-serif; }
         
         .status-panel, .controls {
-            transition: opacity 0.5s ease, visibility 0.5s ease;
+            transition: opacity 0.5s ease, visibility 0.5s ease, min-width 0.3s;
         }
         .ui-hidden {
             opacity: 0;
             visibility: hidden;
+            pointer-events: none;
         }
 
         .status-panel {
@@ -70,22 +71,49 @@
         #btn-bgm:hover { background: rgba(255, 215, 0, 0.2); }
         #btn-bgm.active { background: #ffd700; color: #000; box-shadow: 0 0 15px rgba(255, 215, 0, 0.6); border-color: #ffd700; }
 
-        #btn-smile { border-color: #ff6b81; color: #ff6b81; }
-        #btn-smile:hover { background: rgba(255, 107, 129, 0.2); }
-        #btn-smile.active { background: #ff6b81; color: white; box-shadow: 0 0 15px rgba(255, 107, 129, 0.6); border-color: #ff6b81; }
-
         #btn-mic { border-color: #00e676; color: #00e676; margin-bottom: 5px; }
         #btn-mic:hover { background: rgba(0, 230, 118, 0.2); }
         #btn-mic.active { background: #00e676; color: #000; box-shadow: 0 0 15px rgba(0, 230, 118, 0.6); border-color: #00e676; }
         #mic-level-bar { width: 0%; height: 4px; background: #00e676; margin-top: 4px; transition: width 0.1s; }
 
-        /* ★ サイバー空間ボタンのデザイン追加 */
         #btn-cyber { border-color: #00ffff; color: #00ffff; }
         #btn-cyber:hover { background: rgba(0, 255, 255, 0.2); }
         #btn-cyber.active { background: #00ffff; color: #000; box-shadow: 0 0 15px rgba(0, 255, 255, 0.6); border-color: #00ffff; }
 
+        #btn-game { border-color: #ff6600; color: #ff6600; margin-top: 8px; border-width: 2px; }
+        #btn-game:hover { background: rgba(255, 102, 0, 0.2); }
+        #btn-game.active { background: #ff6600; color: #fff; box-shadow: 0 0 20px rgba(255, 102, 0, 0.8); border-color: #ff6600; }
+
         #btn-reset { background: rgba(255,255,255,0.15); justify-content: center; margin-top: 5px; color: #fff; border-color: rgba(255,255,255,0.2);}
         #btn-reset:active { background: #fff; color: #000; }
+
+        .status-panel.game-mode-ui {
+            min-width: unset; 
+            padding: 10px;
+        }
+        .status-panel.game-mode-ui #loading,
+        .status-panel.game-mode-ui #progress-bar,
+        .status-panel.game-mode-ui #current-anim,
+        .status-panel.game-mode-ui .effect-controls > div,
+        .status-panel.game-mode-ui .effect-controls .effect-btn:not(#btn-game) {
+            display: none !important;
+        }
+
+        /* ★ カットイン動画用スタイル */
+        #cutin-video-container {
+            position: absolute;
+            top: 0; left: 0; width: 100vw; height: 100vh;
+            background: #000;
+            z-index: 3000; 
+            display: none; 
+            justify-content: center; align-items: center;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+        #cutin-video {
+            width: 100%; height: 100%;
+            object-fit: contain; 
+        }
 
         @media (max-width: 768px) {
             .status-panel {
@@ -104,7 +132,7 @@
                 flex: 1 1 calc(50% - 6px); 
                 padding: 10px 8px;
             }
-            #btn-mic {
+            #btn-mic, #btn-game {
                 flex: 1 1 100%; 
                 padding: 12px;
                 font-size: 13px;
@@ -137,11 +165,26 @@
                 font-size: 13px;
             }
         }
+
+        #game-toast {
+            position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+            background: rgba(255, 102, 0, 0.9); color: white;
+            padding: 15px 30px; border-radius: 30px; font-weight: bold; font-size: 18px;
+            pointer-events: none; opacity: 0; transition: opacity 0.5s; z-index: 2000;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+        }
+        #game-toast.show { opacity: 1; }
     </style>
 </head>
 <body>
 
-    <div class="status-panel">
+    <div id="cutin-video-container">
+        <video id="cutin-video" playsinline preload="auto">
+            <source src="./soccer_movie.mp4" type="video/mp4">
+        </video>
+    </div>
+
+    <div class="status-panel" id="main-status-panel">
         <div id="loading" style="font-weight:bold;">Model: Loading...</div>
         <div id="progress-bar"></div>
         <div id="current-anim" style="font-size: 12px; color: #007bff; margin-top: 8px; margin-bottom: 5px;">Waiting for file...</div>
@@ -150,17 +193,19 @@
             <button id="btn-mic" class="effect-btn">🎤 MIC: REAL SOUND <span class="status">OFF</span></button>
             <div id="mic-level-bar"></div>
 
+            <button id="btn-game" class="effect-btn">⚽ MINI GAME <span class="status">OFF</span></button>
+
             <div style="font-size: 10px; color: #aaa; letter-spacing: 1px; margin-top: 10px; flex-basis: 100%;">VISUAL & AUDIO</div>
             <button id="btn-bgm" class="effect-btn">🎵 BGM <span class="status">OFF</span></button>
-            <button id="btn-smile" class="effect-btn">FORCE SMILE <span class="status">OFF</span></button>
             <button id="btn-hd" class="effect-btn active">HD MODE <span class="status">ON</span></button>
-            <button id="btn-cyber" class="effect-btn">CYBER SPACE <span class="status">OFF</span></button>
+            <button id="btn-cyber" class="effect-btn active">CYBER SPACE <span class="status">ON</span></button>
             <button id="btn-mirror" class="effect-btn">MIRROR FLOOR <span class="status">OFF</span></button>
             <button id="btn-reset" class="effect-btn">🔄 RESET</button>
         </div>
     </div>
 
     <div class="controls" id="btn-container"></div>
+    <div id="game-toast">👆 ボールをタップしてゴールを狙え！</div>
 
     <script async src="https://unpkg.com/es-module-shims@1.6.3/dist/es-module-shims.js"></script>
     <script type="importmap">
@@ -185,12 +230,10 @@
         let isMirrorActive = false;
         let isHDActive = true; 
         
-        // ★ サイバー空間用の変数追加
         let cyberGroup;
         let cyberParticles;
-        let isCyberActive = false;
+        let isCyberActive = true;
 
-        let isSmileActive = false;
         let targetSmileValue = 0.0;
         let currentSmileValue = 0.0;
         let blinkTimer = Math.random() * 3 + 2; 
@@ -202,6 +245,8 @@
         let currentPlayAnim = 'HAPPY'; 
         
         let activeAction = null; 
+        let characterModel = null;
+        let targetCharacterX = 0; 
 
         const audioSoccer1 = new Audio('./audio/soccer1.mp3');
         const audioSoccer2 = new Audio('./audio/soccer2.mp3');
@@ -235,14 +280,27 @@
         let currentAnimIndex = 0;
         let animSequence = []; 
 
-        const DEFAULT_CAMERA_POS = new THREE.Vector3(0, 6, 18);
+        const DEFAULT_CAMERA_POS = new THREE.Vector3(0, 6, 22);
         const DEFAULT_TARGET_POS = new THREE.Vector3(0, 6, 0);
+
+        let isGameMode = false;
+        let soccerBall = null;
+        let targetRing = null; 
+        let isBallKicked = false;
+        let isTargetHit = false; 
+        let ballVelocity = new THREE.Vector3(0, 0, 0);
+        let raycaster = new THREE.Raycaster();
+        let mouse = new THREE.Vector2();
+        let ballResetTimer = null;
+        
+        let cameraShakeTime = 0; 
+        let particles = []; 
+        let trails = []; 
 
         function triggerSoccerSound() {
             if (audioTimerSoccer) clearTimeout(audioTimerSoccer);
             audioTimerSoccer = setTimeout(() => {
                 if (currentPlayAnim !== 'SOCCER') return; 
-
                 const isRare = Math.random() < 0.1; 
                 if (isRare) {
                     audioSoccer2.currentTime = 0; 
@@ -306,8 +364,6 @@
             renderer.setPixelRatio(window.devicePixelRatio);
             renderer.outputEncoding = THREE.sRGBEncoding;
             renderer.toneMapping = THREE.ACESFilmicToneMapping;
-            renderer.shadowMap.enabled = true;
-            renderer.shadowMap.type = THREE.PCFSoftShadowMap;
             document.body.appendChild(renderer.domElement);
 
             scene.add(new THREE.AmbientLight(0xffffff, 0.5));
@@ -324,33 +380,28 @@
             floor.receiveShadow = true;
             scene.add(floor);
 
-            // ==========================================
-            // ★ サイバー空間オブジェクトの生成
-            // ==========================================
             cyberGroup = new THREE.Group();
-            cyberGroup.visible = false; // 初期状態は非表示
+            cyberGroup.visible = true; 
             scene.add(cyberGroup);
 
-            // ① ネオングリッド床
-            const grid = new THREE.GridHelper(200, 100, 0x00ffff, 0x004444);
-            grid.position.y = 0.02; // 床より少しだけ浮かせる
+            const grid = new THREE.GridHelper(200, 100, 0x00ff00, 0x004400);
+            grid.position.y = 0.02; 
             cyberGroup.add(grid);
 
-            // ② デジタルパーティクル（光の粒）
             const particlesGeo = new THREE.BufferGeometry();
             const particlesCount = 1500;
             const posArray = new Float32Array(particlesCount * 3);
             for(let i = 0; i < particlesCount * 3; i++) {
-                posArray[i] = (Math.random() - 0.5) * 60; // 空間の広がり
-                if(i%3 === 1) posArray[i] = Math.random() * 40; // Y軸（高さ）
+                posArray[i] = (Math.random() - 0.5) * 60; 
+                if(i%3 === 1) posArray[i] = Math.random() * 40; 
             }
             particlesGeo.setAttribute('position', new THREE.BufferAttribute(posArray, 3));
             const particlesMat = new THREE.PointsMaterial({
                 size: 0.15,
-                color: 0x00ffff,
+                color: 0x00ff00,
                 transparent: true,
                 opacity: 0.8,
-                blending: THREE.AdditiveBlending // 光の重なりを表現
+                blending: THREE.AdditiveBlending 
             });
             cyberParticles = new THREE.Points(particlesGeo, particlesMat);
             cyberGroup.add(cyberParticles);
@@ -389,6 +440,7 @@
                             }
                         });
 
+                        characterModel = scaleGroup;
                         scene.add(scaleGroup);
                         mixer = new THREE.AnimationMixer(model);
 
@@ -460,6 +512,9 @@
             setupButtons();
             setupUIAutoHide(); 
             window.addEventListener('resize', onWindowResize);
+            
+            window.addEventListener('pointerdown', onPointerDown);
+
             animate();
 
             const startAudio = () => {
@@ -474,7 +529,220 @@
             window.addEventListener('touchstart', startAudio);
         }
 
+        function setupGameMode() {
+            if (!soccerBall) {
+                const geo = new THREE.IcosahedronGeometry(0.8, 1);
+                const mat = new THREE.MeshStandardMaterial({ 
+                    color: 0x002200, 
+                    emissive: 0x00ff00, 
+                    emissiveIntensity: 0.8, 
+                    flatShading: true, 
+                    roughness: 0.5 
+                });
+                soccerBall = new THREE.Mesh(geo, mat);
+                const wireframe = new THREE.LineSegments(
+                    new THREE.WireframeGeometry(geo),
+                    new THREE.LineBasicMaterial({ color: 0x00ff00, linewidth: 2 })
+                );
+                soccerBall.add(wireframe);
+                soccerBall.castShadow = true;
+                soccerBall.receiveShadow = true;
+                scene.add(soccerBall);
+            }
+            
+            if (!targetRing) {
+                targetRing = new THREE.Group();
+                targetRing.position.set(0, 0.8, -25); 
+                scene.add(targetRing);
+
+                const poleMat = new THREE.MeshBasicMaterial({ color: 0x00ff00 });
+                
+                const leftPost = new THREE.Mesh(new THREE.CylinderGeometry(0.2, 0.2, 8), poleMat);
+                leftPost.position.set(-6.4, 4, 0);
+                targetRing.add(leftPost);
+                
+                const rightPost = new THREE.Mesh(new THREE.CylinderGeometry(0.2, 0.2, 8), poleMat);
+                rightPost.position.set(6.4, 4, 0);
+                targetRing.add(rightPost);
+                
+                const crossBar = new THREE.Mesh(new THREE.CylinderGeometry(0.2, 0.2, 13), poleMat);
+                crossBar.rotation.z = Math.PI / 2;
+                crossBar.position.set(0, 8, 0);
+                targetRing.add(crossBar);
+                
+                const netGeo = new THREE.PlaneGeometry(12.8, 8, 12, 8);
+                const netMat = new THREE.MeshBasicMaterial({ color: 0x00ff00, wireframe: true, transparent: true, opacity: 0.4 });
+                const net = new THREE.Mesh(netGeo, netMat);
+                net.position.set(0, 4, -2.0); 
+                net.rotation.x = -0.15; 
+                targetRing.add(net);
+            }
+
+            soccerBall.visible = true;
+            targetRing.visible = true;
+            resetBall();
+        }
+
+        function resetBall() {
+            if (!soccerBall) return;
+            isBallKicked = false;
+            isTargetHit = false;
+            
+            soccerBall.position.set(0, 0.8, 5); 
+            soccerBall.rotation.set(0, 0, 0);
+            ballVelocity.set(0, 0, 0);
+            
+            if (targetRing) {
+                targetRing.children.forEach(c => {
+                    if (c.material) c.material.color.setHex(0x00ff00); 
+                });
+            }
+        }
+
+        function createParticles(pos, count, colorHex) {
+            const geo = new THREE.BoxGeometry(0.2, 0.2, 0.2);
+            const mat = new THREE.MeshBasicMaterial({ color: colorHex, transparent: true, opacity: 1 });
+            for (let i = 0; i < count; i++) {
+                const mesh = new THREE.Mesh(geo, mat);
+                mesh.position.copy(pos);
+                mesh.velocity = new THREE.Vector3(
+                    (Math.random() - 0.5) * 1.5,
+                    (Math.random() - 0.5) * 1.5,
+                    (Math.random() - 0.5) * 1.5
+                );
+                mesh.life = 1.0;
+                scene.add(mesh);
+                particles.push(mesh);
+            }
+        }
+
+        function onPointerDown(event) {
+            if (event.target.tagName === 'BUTTON' || event.target.tagName === 'SPAN') return;
+            if (!isGameMode || !soccerBall || !soccerBall.visible || isBallKicked) return;
+
+            mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
+            mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
+
+            raycaster.setFromCamera(mouse, camera);
+            const intersects = raycaster.intersectObject(soccerBall);
+
+            if (intersects.length > 0) {
+                kickBall();
+            }
+        }
+
+        function kickBall() {
+            isBallKicked = true;
+            cameraShakeTime = 0.15; 
+            
+            ballVelocity.set((Math.random() - 0.5) * 0.4, 0.7 + Math.random() * 0.2, -1.2 - Math.random() * 0.3);
+            
+            audioSoccer1.currentTime = 0;
+            audioSoccer1.play().catch(e => console.log(e));
+
+            document.getElementById('game-toast').classList.remove('show');
+
+            createParticles(soccerBall.position, 15, 0x00ff00);
+
+            setTimeout(() => {
+                if (!isTargetHit && currentPlayAnim !== 'HAPPY') switchAnim('CLAP'); 
+            }, 1000);
+
+            if (ballResetTimer) clearTimeout(ballResetTimer);
+            ballResetTimer = setTimeout(() => {
+                if(isGameMode) {
+                    resetBall();
+                    document.getElementById('game-toast').classList.add('show'); 
+                }
+            }, 5500);
+        }
+
+        // ==========================================
+        // ★ ゲーム開始の処理（カットイン動画＆UI制御）
+        // ==========================================
+        function startGame() {
+            isGameMode = true;
+            const btnGame = document.getElementById('btn-game');
+            const mainStatusPanel = document.getElementById('main-status-panel');
+            const rightBtnContainer = document.getElementById('btn-container');
+            const toast = document.getElementById('game-toast');
+
+            btnGame.classList.add('active');
+            btnGame.querySelector('.status').innerText = 'ON';
+
+            targetCharacterX = -8.5; // キャラを左に避ける
+            setupGameMode();
+            switchAnim('IDOL', false, true);
+            toast.classList.add('show');
+            
+            // UIを最小化
+            mainStatusPanel.classList.add('game-mode-ui');
+            rightBtnContainer.classList.add('ui-hidden');
+        }
+
         function setupButtons() {
+            const btnGame = document.getElementById('btn-game');
+            const mainStatusPanel = document.getElementById('main-status-panel');
+            const rightBtnContainer = document.getElementById('btn-container');
+            const cutinContainer = document.getElementById('cutin-video-container');
+            const cutinVideo = document.getElementById('cutin-video');
+
+            btnGame.addEventListener('click', () => {
+                if (!isGameMode) {
+                    // ★ ゲーム開始時、まずカットイン動画を再生
+                    cutinContainer.style.display = 'flex';
+                    // 少し時間差でふわっと表示
+                    setTimeout(() => { cutinContainer.style.opacity = '1'; }, 50);
+
+                    // BGMが鳴っていれば一時停止
+                    let wasBgmPlaying = isBgmActive && !activeBgm.paused;
+                    if (wasBgmPlaying) activeBgm.pause();
+
+                    cutinVideo.currentTime = 0;
+                    cutinVideo.play().catch(e => {
+                        console.error("動画再生エラー（スキップします）:", e);
+                        cutinContainer.style.opacity = '0';
+                        setTimeout(() => { cutinContainer.style.display = 'none'; }, 300);
+                        if (wasBgmPlaying) activeBgm.play();
+                        startGame(); // エラー時はすぐゲームへ
+                    });
+
+                    // 動画終了時
+                    cutinVideo.onended = () => {
+                        cutinContainer.style.opacity = '0';
+                        setTimeout(() => { cutinContainer.style.display = 'none'; }, 300);
+                        if (wasBgmPlaying) activeBgm.play();
+                        startGame();
+                    };
+
+                    // タップでスキップ可能にする
+                    cutinContainer.onclick = () => {
+                        cutinVideo.pause();
+                        cutinContainer.style.opacity = '0';
+                        setTimeout(() => { cutinContainer.style.display = 'none'; }, 300);
+                        if (wasBgmPlaying) activeBgm.play();
+                        startGame();
+                    };
+
+                } else {
+                    // ★ ゲーム終了時
+                    isGameMode = false;
+                    btnGame.classList.remove('active');
+                    btnGame.querySelector('.status').innerText = 'OFF';
+
+                    targetCharacterX = 0; // キャラを戻す
+                    if (soccerBall) soccerBall.visible = false;
+                    if (targetRing) targetRing.visible = false;
+                    document.getElementById('game-toast').classList.remove('show');
+                    
+                    // UIを元に戻す
+                    mainStatusPanel.classList.remove('game-mode-ui');
+                    rightBtnContainer.classList.remove('ui-hidden');
+                    
+                    switchAnim('HAPPY', false, true); 
+                }
+            });
+
             const btnBgm = document.getElementById('btn-bgm');
             btnBgm.addEventListener('click', () => {
                 isBgmActive = !isBgmActive;
@@ -518,13 +786,11 @@
                 }
             });
 
-            // ★ サイバー空間ボタンのイベント追加
             const btnCyber = document.getElementById('btn-cyber');
             btnCyber.addEventListener('click', () => {
                 isCyberActive = !isCyberActive;
-                cyberGroup.visible = isCyberActive; // グループごと表示/非表示を切り替え
+                cyberGroup.visible = isCyberActive; 
                 
-                // サイバー空間時は背景を真っ黒にする演出を追加
                 if (isCyberActive) {
                     document.body.style.background = "#000";
                 } else {
@@ -535,17 +801,7 @@
                 btnCyber.querySelector('.status').innerText = isCyberActive ? 'ON' : 'OFF';
             });
 
-            const btnMirror = document.getElementById('btn-mirror');
-            const btnReset = document.getElementById('btn-reset');
             const btnHd = document.getElementById('btn-hd');
-            const btnSmile = document.getElementById('btn-smile');
-
-            btnSmile.addEventListener('click', () => {
-                isSmileActive = !isSmileActive;
-                btnSmile.classList.toggle('active', isSmileActive);
-                btnSmile.querySelector('.status').innerText = isSmileActive ? 'ON' : 'OFF';
-            });
-
             btnHd.addEventListener('click', () => {
                 isHDActive = !isHDActive;
                 const newRatio = isHDActive ? window.devicePixelRatio : Math.min(window.devicePixelRatio, 1.2);
@@ -554,6 +810,7 @@
                 btnHd.querySelector('.status').innerText = isHDActive ? 'ON' : 'OFF';
             });
 
+            const btnMirror = document.getElementById('btn-mirror');
             btnMirror.addEventListener('click', () => {
                 isMirrorActive = !isMirrorActive;
                 mirrorFloor.visible = isMirrorActive;
@@ -561,15 +818,17 @@
                 btnMirror.querySelector('.status').innerText = isMirrorActive ? 'ON' : 'OFF';
             });
 
+            const btnReset = document.getElementById('btn-reset');
             btnReset.addEventListener('click', () => {
                 camera.position.copy(DEFAULT_CAMERA_POS);
                 controls.target.copy(DEFAULT_TARGET_POS);
                 controls.update();
 
                 if (isMirrorActive) btnMirror.click();
-                if (isCyberActive) btnCyber.click(); // リセット時にサイバーもOFFにする
+                if (!isCyberActive) btnCyber.click(); 
                 if (!isHDActive) btnHd.click(); 
-                if (isSmileActive) btnSmile.click(); 
+                // もしゲーム中なら終了する
+                if (isGameMode) btnGame.click(); 
 
                 switchAnim('HAPPY', false, true);
             });
@@ -577,7 +836,7 @@
 
         function setupUIAutoHide() {
             let uiTimeout;
-            const uiElements = document.querySelectorAll('.status-panel, .controls');
+            const uiElements = document.querySelectorAll('.controls'); 
 
             function hideUI() {
                 uiElements.forEach(el => el.classList.add('ui-hidden'));
@@ -629,7 +888,7 @@
 
             if (name === 'HAPPY') {
                 idleTimer = setTimeout(() => {
-                    if (currentPlayAnim === 'HAPPY') {
+                    if (currentPlayAnim === 'HAPPY' && !isGameMode) {
                         switchAnim('DANCE', false, true); 
                     }
                 }, 15000); 
@@ -697,6 +956,10 @@
             if (mixer) mixer.update(delta);
             if (controls) controls.update();
             
+            if (characterModel) {
+                characterModel.position.x = THREE.MathUtils.lerp(characterModel.position.x, targetCharacterX, delta * 4.0);
+            }
+
             if (isMicActive && analyser) {
                 analyser.getByteFrequencyData(dataArray);
                 let sum = 0;
@@ -706,7 +969,7 @@
                 let averageVolume = sum / dataArray.length; 
                 document.getElementById('mic-level-bar').style.width = Math.min(averageVolume, 100) + "%";
 
-                if (averageVolume > 80 && (time - lastReactionTime > 2.0)) {
+                if (averageVolume > 100 && (time - lastReactionTime > 2.0)) {
                     isAutoMode = false; 
                     if (autoTimer) clearTimeout(autoTimer);
                     switchAnim('CLAP'); 
@@ -740,12 +1003,75 @@
                 }
             }
 
-            // ==========================================
-            // ★ サイバー空間アニメーション（パーティクルをゆっくり回転）
-            // ==========================================
+            if (cameraShakeTime > 0) {
+                cameraShakeTime -= delta;
+                camera.position.x = DEFAULT_CAMERA_POS.x + (Math.random() - 0.5) * 0.5;
+                camera.position.y = DEFAULT_CAMERA_POS.y + (Math.random() - 0.5) * 0.5;
+            } else {
+                camera.position.lerp(DEFAULT_CAMERA_POS, 0.1);
+            }
+
             if (isCyberActive && cyberParticles) {
-                cyberParticles.rotation.y = time * 0.05; // Y軸を中心にゆっくり回る
-                // cyberParticles.position.y = Math.sin(time) * 1.5; // (お好みで上下にフワフワさせるのもありです！)
+                cyberParticles.rotation.y = time * 0.05; 
+            }
+
+            if (isGameMode && soccerBall && isBallKicked) {
+                soccerBall.position.add(ballVelocity);
+                ballVelocity.y -= 0.015; 
+
+                if (soccerBall.position.y <= 0.8) {
+                    soccerBall.position.y = 0.8;
+                    ballVelocity.y *= -0.6; 
+                    ballVelocity.x *= 0.8; 
+                    ballVelocity.z *= 0.8;
+                }
+
+                soccerBall.rotation.x -= ballVelocity.z * 0.5;
+                soccerBall.rotation.z += ballVelocity.x * 0.5;
+
+                if (ballVelocity.lengthSq() > 0.02 && Math.random() > 0.3) {
+                    const trailGeo = new THREE.IcosahedronGeometry(0.8, 0); 
+                    const trailMat = new THREE.MeshBasicMaterial({ color: isTargetHit ? 0xccffcc : 0x00ff00, transparent: true, opacity: 0.5, wireframe: true });
+                    const trailMesh = new THREE.Mesh(trailGeo, trailMat);
+                    trailMesh.position.copy(soccerBall.position);
+                    trailMesh.rotation.copy(soccerBall.rotation);
+                    scene.add(trailMesh);
+                    trails.push(trailMesh);
+                }
+
+                if (!isTargetHit && targetRing && soccerBall.position.z < -23 && soccerBall.position.z > -28) {
+                    if (soccerBall.position.x > -6.4 && soccerBall.position.x < 6.4 && soccerBall.position.y < 8.2) {
+                        isTargetHit = true;
+                        
+                        createParticles(new THREE.Vector3(soccerBall.position.x, soccerBall.position.y, -25), 80, 0x00ff00); 
+                        targetRing.children.forEach(c => {
+                            if (c.material) c.material.color.setHex(0xccffcc); 
+                        });
+                        
+                        audioSoccer2.currentTime = 0; 
+                        audioSoccer2.play(); 
+                        
+                        switchAnim('HAPPY'); 
+                        setTimeout(() => triggerClapSound(), 600); 
+
+                        ballVelocity.set((Math.random() - 0.5) * 0.2, -0.2, 0.2);
+                    }
+                }
+            }
+
+            for (let i = particles.length - 1; i >= 0; i--) {
+                let p = particles[i];
+                p.position.add(p.velocity);
+                p.life -= delta * 1.5;
+                p.material.opacity = p.life;
+                p.rotation.x += 0.2; p.rotation.y += 0.2;
+                if (p.life <= 0) { scene.remove(p); particles.splice(i, 1); }
+            }
+            for (let i = trails.length - 1; i >= 0; i--) {
+                let t = trails[i];
+                t.scale.multiplyScalar(0.85); 
+                t.material.opacity -= delta * 3;
+                if (t.material.opacity <= 0) { scene.remove(t); trails.splice(i, 1); }
             }
 
             if (morphMeshes.length > 0) {
@@ -761,8 +1087,8 @@
                     autoSmileValue = 0.2;
                 }
                 
-                targetSmileValue = isSmileActive ? 1.0 : autoSmileValue;
-                currentSmileValue = THREE.MathUtils.lerp(currentSmileValue, targetSmileValue, 8 * delta);
+                let currentSmileValue = morphMeshes[0].morphTargetInfluences[morphMeshes[0].morphTargetDictionary['Smile']] || 0;
+                currentSmileValue = THREE.MathUtils.lerp(currentSmileValue, autoSmileValue, 8 * delta);
 
                 if (!isBlinking) {
                     blinkTimer -= delta;
