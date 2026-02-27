@@ -80,13 +80,24 @@
         #btn-cyber:hover { background: rgba(0, 255, 255, 0.2); }
         #btn-cyber.active { background: #00ffff; color: #000; box-shadow: 0 0 15px rgba(0, 255, 255, 0.6); border-color: #00ffff; }
 
-        /* ★ SOCCER MODE 統合ボタン */
-        #btn-soccer-mode { border-color: #ff6600; color: #ff6600; margin-top: 4px; border-width: 2px; }
-        #btn-soccer-mode:hover { background: rgba(255, 102, 0, 0.2); }
-        #btn-soccer-mode.active { background: #ff6600; color: #fff; box-shadow: 0 0 20px rgba(255, 102, 0, 0.8); border-color: #ff6600; }
+        #btn-strikeout, #btn-longkick { border-color: #ff6600; color: #ff6600; margin-top: 4px; border-width: 2px; }
+        #btn-strikeout:hover, #btn-longkick:hover { background: rgba(255, 102, 0, 0.2); }
+        #btn-strikeout.active, #btn-longkick.active { background: #ff6600; color: #fff; box-shadow: 0 0 20px rgba(255, 102, 0, 0.8); border-color: #ff6600; }
 
         #btn-reset { background: rgba(255,255,255,0.15); justify-content: center; margin-top: 5px; color: #fff; border-color: rgba(255,255,255,0.2);}
         #btn-reset:active { background: #fff; color: #000; }
+
+        .status-panel.game-mode-ui {
+            min-width: unset; 
+            padding: 10px;
+        }
+        .status-panel.game-mode-ui #loading,
+        .status-panel.game-mode-ui #progress-bar,
+        .status-panel.game-mode-ui #current-anim,
+        .status-panel.game-mode-ui .effect-controls > div,
+        .status-panel.game-mode-ui .effect-controls .effect-btn:not(.game-btn) {
+            display: none !important;
+        }
 
         #cutin-video-container {
             position: absolute; top: 0; left: 0; width: 100vw; height: 100vh;
@@ -95,7 +106,6 @@
         }
         #cutin-video { width: 100%; height: 100%; object-fit: contain; }
 
-        /* ★ ゲーム中専用のモード切り替えタブ */
         #game-ui-tabs {
             position: absolute; top: 20px; left: 50%; transform: translateX(-50%);
             display: flex; gap: 10px; z-index: 2000; transition: opacity 0.3s ease;
@@ -222,6 +232,7 @@
     </div>
 
     <div class="controls" id="btn-container"></div>
+    
     <div id="game-toast"></div>
 
     <script async src="https://unpkg.com/es-module-shims@1.6.3/dist/es-module-shims.js"></script>
@@ -306,7 +317,7 @@
         const DEFAULT_CAMERA_POS = new THREE.Vector3(0, 6, 22);
         const DEFAULT_TARGET_POS = new THREE.Vector3(0, 6, 0);
 
-        let currentMode = 'OFF'; // 'OFF', 'STRIKEOUT', 'LONGKICK'
+        let currentMode = 'OFF'; 
         let soccerBall = null;
         let goalGroup = null; 
         let targetPanels = []; 
@@ -334,6 +345,22 @@
         let cameraShakeTime = 0; 
         let particles = []; 
         let trails = []; 
+
+        // ==========================================
+        // ★ UIオートハイド用変数と関数
+        // ==========================================
+        let uiShowTimeout = null;
+        let uiHideTimeout = null;
+
+        // UIを隠すタイマーを開始する関数（グローバルに登録）
+        window.startHideTimer = function() {
+            clearTimeout(uiHideTimeout);
+            uiHideTimeout = setTimeout(() => {
+                if (currentMode === 'OFF') {
+                    document.querySelectorAll('.controls, .status-panel').forEach(el => el.classList.add('ui-hidden'));
+                }
+            }, 2000); // 2秒放置で消える
+        };
 
         function updateScoreUI() {
             const scoreEl = document.getElementById('game-score');
@@ -794,7 +821,6 @@
             createParticles(soccerBall.position, 15, 0x00ff00);
         }
 
-        // ★ 各モードの初期化とシームレスな切り替え
         function startGameLogic(mode) {
             currentMode = mode;
             const mainStatusPanel = document.getElementById('main-status-panel');
@@ -805,7 +831,6 @@
             const exitBtn = document.getElementById('game-exit-container');
             const uiTabs = document.getElementById('game-ui-tabs');
 
-            // タブの見た目更新
             document.getElementById('tab-strikeout').classList.toggle('active', mode === 'STRIKEOUT');
             document.getElementById('tab-longkick').classList.toggle('active', mode === 'LONGKICK');
 
@@ -814,7 +839,6 @@
             
             soccerBall.visible = true;
 
-            // 変数の初期化
             if (ballResetTimer) clearTimeout(ballResetTimer);
             if (kickFailSafeTimer) clearTimeout(kickFailSafeTimer);
             resetBall();
@@ -840,13 +864,12 @@
             toast.classList.add('show');
             scoreUI.classList.remove('ui-hidden');
             exitBtn.classList.remove('ui-hidden'); 
-            uiTabs.classList.remove('ui-hidden'); // タブ表示
+            uiTabs.classList.remove('ui-hidden'); 
             
             mainStatusPanel.classList.add('ui-hidden'); 
             rightBtnContainer.classList.add('ui-hidden');
         }
 
-        // ★ ゲームの完全終了
         function stopGame() {
             currentMode = 'OFF';
             const btnSoccer = document.getElementById('btn-soccer-mode');
@@ -877,53 +900,58 @@
             
             resetBall(); 
             switchAnim('HAPPY', false, true); 
+            
+            if (window.startHideTimer) window.startHideTimer();
+        }
+
+        function handleGameBtnClick(selectedMode) {
+            const btn = document.getElementById('btn-soccer-mode');
+            
+            if (currentMode === 'OFF') {
+                const cutinContainer = document.getElementById('cutin-video-container');
+                const cutinVideo = document.getElementById('cutin-video');
+                
+                cutinContainer.style.display = 'flex';
+                setTimeout(() => { cutinContainer.style.opacity = '1'; }, 50);
+
+                let wasBgmPlaying = isBgmActive && !activeBgm.paused;
+                if (wasBgmPlaying) activeBgm.pause();
+
+                cutinVideo.currentTime = 0;
+                cutinVideo.play().catch(e => {
+                    console.error("動画再生エラー:", e);
+                    cutinContainer.style.opacity = '0';
+                    setTimeout(() => { cutinContainer.style.display = 'none'; }, 300);
+                    if (wasBgmPlaying) activeBgm.play();
+                    btn.classList.add('active'); btn.querySelector('.status').innerText = 'ON';
+                    startGameLogic(selectedMode);
+                });
+
+                cutinVideo.onended = () => {
+                    cutinContainer.style.opacity = '0';
+                    setTimeout(() => { cutinContainer.style.display = 'none'; }, 300);
+                    if (wasBgmPlaying) activeBgm.play();
+                    btn.classList.add('active'); btn.querySelector('.status').innerText = 'ON';
+                    startGameLogic(selectedMode);
+                };
+
+                cutinContainer.onclick = () => {
+                    cutinVideo.pause();
+                    cutinContainer.style.opacity = '0';
+                    setTimeout(() => { cutinContainer.style.display = 'none'; }, 300);
+                    if (wasBgmPlaying) activeBgm.play();
+                    btn.classList.add('active'); btn.querySelector('.status').innerText = 'ON';
+                    startGameLogic(selectedMode);
+                };
+            }
         }
 
         function setupButtons() {
             const btnSoccer = document.getElementById('btn-soccer-mode');
-            
-            // ★ SOCCER MODEボタン（動画再生 → STRIKEOUTで開始）
             btnSoccer.addEventListener('click', () => {
-                if (currentMode === 'OFF') {
-                    const cutinContainer = document.getElementById('cutin-video-container');
-                    const cutinVideo = document.getElementById('cutin-video');
-                    
-                    cutinContainer.style.display = 'flex';
-                    setTimeout(() => { cutinContainer.style.opacity = '1'; }, 50);
-
-                    let wasBgmPlaying = isBgmActive && !activeBgm.paused;
-                    if (wasBgmPlaying) activeBgm.pause();
-
-                    cutinVideo.currentTime = 0;
-                    cutinVideo.play().catch(e => {
-                        console.error("動画再生エラー:", e);
-                        cutinContainer.style.opacity = '0';
-                        setTimeout(() => { cutinContainer.style.display = 'none'; }, 300);
-                        if (wasBgmPlaying) activeBgm.play();
-                        btnSoccer.classList.add('active'); btnSoccer.querySelector('.status').innerText = 'ON';
-                        startGameLogic('STRIKEOUT'); // デフォルトはSTRIKEOUT
-                    });
-
-                    cutinVideo.onended = () => {
-                        cutinContainer.style.opacity = '0';
-                        setTimeout(() => { cutinContainer.style.display = 'none'; }, 300);
-                        if (wasBgmPlaying) activeBgm.play();
-                        btnSoccer.classList.add('active'); btnSoccer.querySelector('.status').innerText = 'ON';
-                        startGameLogic('STRIKEOUT');
-                    };
-
-                    cutinContainer.onclick = () => {
-                        cutinVideo.pause();
-                        cutinContainer.style.opacity = '0';
-                        setTimeout(() => { cutinContainer.style.display = 'none'; }, 300);
-                        if (wasBgmPlaying) activeBgm.play();
-                        btnSoccer.classList.add('active'); btnSoccer.querySelector('.status').innerText = 'ON';
-                        startGameLogic('STRIKEOUT');
-                    };
-                }
+                if (currentMode === 'OFF') handleGameBtnClick('STRIKEOUT');
             });
 
-            // ★ ゲーム中専用の切り替えタブ
             document.getElementById('tab-strikeout').addEventListener('click', () => {
                 if (currentMode !== 'STRIKEOUT') startGameLogic('STRIKEOUT');
             });
@@ -1026,27 +1054,49 @@
             });
         }
 
+        // ==========================================
+        // ★ オートハイド制御ロジック（ディレイ対応版）
+        // ==========================================
         function setupUIAutoHide() {
-            let uiTimeout;
-            const uiElements = document.querySelectorAll('.controls'); 
-
-            function hideUI() {
+            function triggerUIInteraction() {
                 if (currentMode !== 'OFF') return; 
-                uiElements.forEach(el => el.classList.add('ui-hidden'));
-            }
 
-            function showUI() {
-                if (currentMode !== 'OFF') return; 
-                uiElements.forEach(el => el.classList.remove('ui-hidden'));
-                clearTimeout(uiTimeout);
-                uiTimeout = setTimeout(hideUI, 3000); 
+                const controlsEl = document.querySelector('.controls');
+                if (!controlsEl) return;
+                
+                const isHidden = controlsEl.classList.contains('ui-hidden');
+
+                if (isHidden) {
+                    // ★ 隠れている場合は1秒後に表示
+                    if (!uiShowTimeout) {
+                        uiShowTimeout = setTimeout(() => {
+                            if (currentMode === 'OFF') {
+                                document.querySelectorAll('.controls, .status-panel').forEach(el => el.classList.remove('ui-hidden'));
+                                window.startHideTimer();
+                            }
+                            uiShowTimeout = null;
+                        }, 1000);
+                    }
+                } else {
+                    // ★ 表示されている場合は消えるまでのタイマーをリセット
+                    window.startHideTimer();
+                }
             }
 
             ['mousemove', 'touchstart', 'touchmove', 'click', 'keydown'].forEach(eventType => {
-                window.addEventListener(eventType, showUI);
+                window.addEventListener(eventType, triggerUIInteraction);
             });
 
-            showUI();
+            // UI自体に触れている間は消さないようにする（タイマー停止）
+            document.querySelectorAll('.controls, .status-panel').forEach(el => {
+                el.addEventListener('mouseenter', () => clearTimeout(uiHideTimeout));
+                el.addEventListener('mouseleave', () => window.startHideTimer());
+                el.addEventListener('touchstart', () => clearTimeout(uiHideTimeout));
+                el.addEventListener('touchend', () => window.startHideTimer());
+            });
+
+            // 初期化時
+            window.startHideTimer();
         }
 
         window.switchAnim = function(name, isFromAuto = false, muteSound = false) {
