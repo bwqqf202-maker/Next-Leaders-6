@@ -3,237 +3,282 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>10年後のプロダクト - リッチデモ</title>
+    <title>Pi×coLabo - 魔法のデジタルスポーツ</title>
     <style>
-        body { margin: 0; overflow: hidden; background: #000; font-family: sans-serif; }
-        
-        .status-panel, .controls {
-            transition: opacity 0.5s ease, visibility 0.5s ease, min-width 0.3s;
+        /* ==========================================
+           全体・共通スタイル
+        ========================================== */
+        body { 
+            margin: 0; overflow: hidden; background: #000; 
+            font-family: 'Hiragino Maru Gothic ProN', 'Rounded Mplus 1c', 'Helvetica Neue', Arial, sans-serif; 
+            color: #333; user-select: none;
+        }
+
+        #game-canvas {
+            position: absolute; top: 0; left: 0; width: 100vw; height: 100vh; z-index: 1;
+        }
+
+        .fullscreen-layer {
+            position: absolute; top: 0; left: 0; width: 100vw; height: 100vh;
         }
         .ui-hidden {
-            opacity: 0 !important;
-            visibility: hidden !important;
-            pointer-events: none !important;
+            opacity: 0 !important; visibility: hidden !important; pointer-events: none !important;
+        }
+        .fade-layer {
+            transition: opacity 0.4s ease, visibility 0.4s ease;
         }
 
-        .status-panel {
-            position: absolute; top: 20px; left: 20px;
-            background: rgba(0,0,0,0.85); color: white;
-            padding: 15px; border-radius: 12px; z-index: 1000;
-            border-left: 4px solid #007bff; min-width: 200px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.5);
-            max-height: 80vh; overflow-y: auto;
+        /* ==========================================
+           1. スタートオーバーレイ
+        ========================================== */
+        #start-overlay {
+            z-index: 9999; background: #fff;
+            display: flex; flex-direction: column; justify-content: center; align-items: center;
+        }
+        .start-btn {
+            background: linear-gradient(135deg, #00d8ff, #00ff66);
+            color: white; font-size: 2rem; font-weight: bold; padding: 20px 50px;
+            border-radius: 50px; cursor: pointer; box-shadow: 0 10px 30px rgba(0,216,255,0.4);
+            animation: pulse 1.5s infinite alternate;
+        }
+        @keyframes pulse { from { transform: scale(1); } to { transform: scale(1.05); } }
+
+        /* ==========================================
+           2. Pi×coLabo ポータルメニュー
+        ========================================== */
+        #portal-screen {
+            z-index: 5000; display: none; flex-direction: column; align-items: center; justify-content: center;
+            background: linear-gradient(135deg, #e0c3fc 0%, #8ec5fc 100%);
         }
         
-        .controls {
-            position: absolute; top: 50%; right: 20px; transform: translateY(-50%);
-            display: flex; flex-direction: column; gap: 12px;
-            width: 160px; max-height: 90vh; z-index: 1000;
-            overflow-y: auto; padding-right: 5px;
-            touch-action: pan-y; 
+        .portal-bg-orbs {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: -1;
+            background-image: 
+                radial-gradient(circle at 20% 30%, rgba(255, 255, 255, 0.4) 0%, transparent 20%),
+                radial-gradient(circle at 80% 70%, rgba(255, 255, 255, 0.4) 0%, transparent 20%),
+                radial-gradient(circle at 50% 50%, rgba(255, 255, 255, 0.3) 0%, transparent 30%);
+            animation: floatOrbs 15s infinite alternate ease-in-out;
         }
-        .controls::-webkit-scrollbar { width: 4px; height: 4px; }
-        .controls::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.4); border-radius: 4px; }
+        @keyframes floatOrbs { 0% { transform: scale(1) translateY(0px); } 100% { transform: scale(1.1) translateY(-20px); } }
 
-        button {
-            padding: 15px 10px; font-size: 14px; font-weight: bold;
-            cursor: pointer; border: none; border-radius: 8px;
-            background: rgba(255,255,255,0.1); color: white; 
-            backdrop-filter: blur(8px); transition: 0.3s;
-            border: 1px solid rgba(255,255,255,0.2);
-            text-transform: uppercase; letter-spacing: 1px;
-            flex-shrink: 0; 
-            word-wrap: break-word;
+        .portal-header { text-align: center; margin-bottom: 30px; animation: slideDown 0.8s cubic-bezier(0.2, 0.8, 0.2, 1) both; }
+        .sony-badge {
+            display: inline-block; background: rgba(255, 255, 255, 0.9); color: #0088aa;
+            padding: 6px 20px; border-radius: 20px; font-size: 0.85rem; font-weight: bold;
+            letter-spacing: 1px; margin-bottom: 10px; box-shadow: 0 4px 10px rgba(0,0,0,0.05);
         }
-        button:hover { background: rgba(0, 123, 255, 0.4); border-color: #007bff; }
-        button.active { background: #007bff; color: white; border-color: #007bff; box-shadow: 0 0 20px rgba(0,123,255,0.6); }
-        
-        button.auto-btn { border-color: #ffaa00; color: #ffaa00; margin-bottom: 5px; }
-        button.auto-btn:hover { background: rgba(255, 170, 0, 0.2); }
-        button.auto-btn.active { background: rgba(255, 170, 0, 0.5); color: white; box-shadow: 0 0 20px rgba(255, 170, 0, 0.6); }
-        button.playing-in-auto { background: rgba(255,255,255,0.25); border-left: 4px solid #ffaa00; }
-
-        #progress-bar { width: 0%; height: 4px; background: #007bff; margin-top: 8px; transition: width 0.3s; }
-
-        .effect-controls {
-            margin-top: 15px; padding-top: 12px;
-            border-top: 1px solid rgba(255,255,255,0.2);
-            display: flex; gap: 8px; flex-direction: column;
+        .portal-header h1 {
+            font-size: 4.5rem; margin: 0; letter-spacing: 4px; color: #fff;
+            text-shadow: 0 4px 15px rgba(0,0,0,0.15); font-weight: 800;
         }
-        .effect-btn {
-            padding: 10px 8px; font-size: 11px; border-radius: 6px;
-            display: flex; justify-content: space-between; align-items: center;
+        .concept-text {
+            font-size: 1.5rem; color: #fff; margin-top: 10px; font-weight: bold;
+            letter-spacing: 2px; text-shadow: 0 2px 4px rgba(0,0,0,0.1);
         }
-        .effect-btn span.status { font-weight: normal; color: #888; }
-        .effect-btn.active span.status { color: #fff; font-weight: bold; }
-        
-        #btn-bgm { border-color: #ffd700; color: #ffd700; }
-        #btn-bgm:hover { background: rgba(255, 215, 0, 0.2); }
-        #btn-bgm.active { background: #ffd700; color: #000; box-shadow: 0 0 15px rgba(255, 215, 0, 0.6); border-color: #ffd700; }
-
-        #btn-mic { border-color: #00e676; color: #00e676; margin-bottom: 5px; }
-        #btn-mic:hover { background: rgba(0, 230, 118, 0.2); }
-        #btn-mic.active { background: #00e676; color: #000; box-shadow: 0 0 15px rgba(0, 230, 118, 0.6); border-color: #00e676; }
-        #mic-level-bar { width: 0%; height: 4px; background: #00e676; margin-top: 4px; transition: width 0.1s; }
-
-        #btn-cyber { border-color: #00ffff; color: #00ffff; }
-        #btn-cyber:hover { background: rgba(0, 255, 255, 0.2); }
-        #btn-cyber.active { background: #00ffff; color: #000; box-shadow: 0 0 15px rgba(0, 255, 255, 0.6); border-color: #00ffff; }
-
-        #btn-strikeout, #btn-longkick { border-color: #ff6600; color: #ff6600; margin-top: 4px; border-width: 2px; }
-        #btn-strikeout:hover, #btn-longkick:hover { background: rgba(255, 102, 0, 0.2); }
-        #btn-strikeout.active, #btn-longkick.active { background: #ff6600; color: #fff; box-shadow: 0 0 20px rgba(255, 102, 0, 0.8); border-color: #ff6600; }
-
-        #btn-reset { background: rgba(255,255,255,0.15); justify-content: center; margin-top: 5px; color: #fff; border-color: rgba(255,255,255,0.2);}
-        #btn-reset:active { background: #fff; color: #000; }
-
-        .status-panel.game-mode-ui {
-            min-width: unset; 
-            padding: 10px;
+        .tap-msg {
+            font-size: 0.9rem; color: #fff; background: rgba(0,0,0,0.2); padding: 4px 12px; border-radius: 12px;
+            animation: blink 1.5s infinite alternate; margin-top: 10px; display: inline-block;
         }
-        .status-panel.game-mode-ui #loading,
-        .status-panel.game-mode-ui #progress-bar,
-        .status-panel.game-mode-ui #current-anim,
-        .status-panel.game-mode-ui .effect-controls > div,
-        .status-panel.game-mode-ui .effect-controls .effect-btn:not(.game-btn) {
-            display: none !important;
+        @keyframes blink { from { opacity: 0.5; } to { opacity: 1; } }
+        @keyframes slideDown { from { opacity: 0; transform: translateY(-30px); } to { opacity: 1; transform: translateY(0); } }
+
+        .portal-grid {
+            display: grid; grid-template-columns: repeat(4, 1fr); grid-template-rows: repeat(3, 1fr);
+            gap: 16px; width: 90%; max-width: 1000px;
         }
 
+        .portal-panel {
+            background: rgba(255, 255, 255, 0.65); backdrop-filter: blur(15px); border: 2px solid rgba(255,255,255,0.8);
+            border-radius: 24px; display: flex; flex-direction: column; justify-content: center; align-items: center;
+            cursor: pointer; padding: 20px 10px; text-align: center; transition: 0.3s;
+            box-shadow: 0 8px 25px rgba(31,38,135,0.05); position: relative; overflow: hidden;
+        }
+        .portal-panel:active { transform: translateY(4px); }
+        .portal-panel .icon { font-size: 3rem; margin-bottom: 8px; filter: drop-shadow(0 4px 4px rgba(0,0,0,0.1)); }
+        .portal-panel .title { font-size: 1.2rem; font-weight: bold; color: #444; }
+
+        .portal-panel.main-game {
+            grid-column: 2 / 4; grid-row: 1 / 3; background: #ffffff; border: 4px solid #00d8ff;
+            box-shadow: 0 10px 30px rgba(0, 216, 255, 0.2);
+        }
+        .portal-panel.main-game:hover { transform: scale(1.03); box-shadow: 0 15px 40px rgba(0, 216, 255, 0.4); }
+        .portal-panel.main-game .icon { font-size: 6rem; margin-bottom: 15px; }
+        .portal-panel.main-game .title { font-size: 2.5rem; color: #0088aa; }
+        .portal-panel.main-game .desc { 
+            font-size: 1.1rem; color: #fff; margin-top: 10px; background: #ff6b6b; 
+            padding: 8px 25px; border-radius: 20px; font-weight: bold; box-shadow: 0 4px 0 #d94545;
+        }
+
+        .portal-panel.locked { background: rgba(240,240,240,0.5); filter: grayscale(100%); cursor: not-allowed; }
+        .portal-panel.locked .status { position: absolute; top: 12px; right: 12px; font-size: 0.8rem; color: #888; background: #ddd; padding: 4px 10px; border-radius: 10px; font-weight: bold;}
+
+        #portal-toast {
+            position: absolute; top: 12%; left: 50%; transform: translateX(-50%);
+            background: rgba(255, 255, 255, 0.95); color: #333; padding: 15px 30px; border-radius: 30px;
+            font-weight: bold; font-size: 16px; pointer-events: none; z-index: 6000;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.15); border: 3px solid #00d8ff;
+            text-align: center; line-height: 1.5; opacity: 0; transition: opacity 0.3s ease; display: none;
+        }
+
+        /* ==========================================
+           3. 動画カットイン
+        ========================================== */
         #cutin-video-container {
-            position: absolute; top: 0; left: 0; width: 100vw; height: 100vh;
-            background: #000; z-index: 3000; display: none; 
-            justify-content: center; align-items: center; opacity: 0; transition: opacity 0.3s ease;
+            z-index: 7000; background: #000; display: none; 
+            justify-content: center; align-items: center; opacity: 0; transition: opacity 0.4s ease;
         }
-        #cutin-video { width: 100%; height: 100%; object-fit: contain; }
+        #cutin-video { height: 100vh; width: auto; max-width: 100vw; object-fit: contain; }
+        .skip-text { position: absolute; bottom: 30px; right: 30px; color: rgba(255,255,255,0.7); font-size: 16px; font-weight: bold; background: rgba(0,0,0,0.5); padding: 10px 20px; border-radius: 20px; pointer-events: none;}
 
-        #game-ui-tabs {
-            position: absolute; top: 20px; left: 50%; transform: translateX(-50%);
-            display: flex; gap: 10px; z-index: 2000; transition: opacity 0.3s ease;
+        /* ==========================================
+           4. ゲーム中UI (★ F11全画面対策で配置を調整)
+        ========================================== */
+        #game-ui-container {
+            z-index: 3000; pointer-events: none; 
         }
-        .game-tab {
-            background: rgba(0, 0, 0, 0.7); color: #888;
-            padding: 10px 20px; font-size: 14px; font-weight: bold; border-radius: 8px;
-            border: 2px solid #555; cursor: pointer; transition: 0.3s;
+        #game-ui-container > * { pointer-events: auto; } 
+
+        #game-left-controls {
+            position: absolute; top: 50px; left: 30px; z-index: 2000;
+            display: flex; flex-direction: column; gap: 12px;
         }
-        .game-tab.active {
-            background: rgba(255, 102, 0, 0.8); color: #fff; border-color: #ff6600;
-            box-shadow: 0 0 15px rgba(255, 102, 0, 0.6);
+        #btn-exit-game, #btn-retry-game {
+            background: rgba(200, 0, 50, 0.6); border: 2px solid #ff4444; color: white;
+            padding: 12px 24px; font-size: 14px; font-weight: bold; border-radius: 30px; backdrop-filter: blur(8px); cursor: pointer; transition: 0.3s;
         }
+        #btn-exit-game:hover { background: rgba(255, 50, 50, 1); box-shadow: 0 0 20px rgba(255, 50, 50, 0.6); }
+        
+        #btn-retry-game { background: rgba(0, 150, 255, 0.6); border-color: #00d8ff; }
+        #btn-retry-game:hover { background: rgba(0, 200, 255, 1); box-shadow: 0 0 20px rgba(0, 216, 255, 0.6); }
+
+        #game-ui-tabs { position: absolute; top: 50px; left: 50%; transform: translateX(-50%); display: flex; gap: 10px; z-index: 2000; }
+        .game-tab { background: rgba(0, 0, 0, 0.6); color: #ccc; padding: 12px 25px; font-size: 16px; font-weight: bold; border-radius: 30px; border: 2px solid #555; cursor: pointer; transition: 0.3s; backdrop-filter: blur(5px);}
+        .game-tab.active { background: rgba(0, 255, 102, 0.9); color: #000; border-color: #00ff66; box-shadow: 0 0 20px rgba(0, 255, 102, 0.5); }
 
         #game-score {
-            position: absolute; top: 75px; left: 50%; transform: translateX(-50%);
-            background: rgba(0, 30, 0, 0.85); color: #00ff00;
-            padding: 10px 20px; border-radius: 12px; font-size: 16px; font-weight: bold;
-            border: 2px solid #00ff00; z-index: 2000;
-            box-shadow: 0 0 15px rgba(0, 255, 0, 0.6);
-            transition: opacity 0.3s ease; white-space: nowrap; letter-spacing: 2px;
+            position: absolute; top: 110px; left: 50%; transform: translateX(-50%);
+            background: rgba(0, 20, 10, 0.85); color: #00ff66; backdrop-filter: blur(5px);
+            padding: 10px 30px; border-radius: 20px; font-size: 18px; font-weight: bold;
+            border: 2px solid #00ff66; box-shadow: 0 0 15px rgba(0, 255, 102, 0.3); letter-spacing: 2px; z-index: 2000;
+            white-space: nowrap; 
         }
 
-        #leaderboard {
-            position: absolute; top: 50%; right: 20px; transform: translateY(-50%);
-            background: rgba(0, 30, 0, 0.85); color: #00ff00;
-            padding: 15px; border-radius: 12px; border: 2px solid #00ff00;
-            z-index: 2000; box-shadow: 0 0 15px rgba(0, 255, 0, 0.6);
-            display: flex; flex-direction: column; gap: 8px; min-width: 160px;
-            transition: opacity 0.3s, transform 0.3s, box-shadow 0.3s, border-color 0.3s, color 0.3s;
+        #game-leaderboard {
+            position: absolute; top: 50%; right: 30px; transform: translateY(-50%);
+            background: rgba(0, 20, 10, 0.85); color: #00ff66; backdrop-filter: blur(5px);
+            padding: 20px; border-radius: 16px; border: 2px solid #00ff66; z-index: 2000;
+            box-shadow: 0 0 15px rgba(0, 255, 102, 0.3); display: flex; flex-direction: column; gap: 10px; min-width: 190px;
+            transition: 0.3s;
         }
-        #leaderboard h3 {
-            margin: 0 0 10px 0; font-size: 16px; text-align: center;
-            border-bottom: 1px solid #00ff00; padding-bottom: 5px;
-        }
-        .record-item { display: flex; justify-content: space-between; font-size: 14px; font-weight: bold; }
-
-        #game-exit-container {
-            position: absolute; top: 20px; left: 20px; 
-            z-index: 2000; transition: opacity 0.3s ease;
-        }
-        #btn-exit-game {
-            background: rgba(255, 0, 0, 0.7); border-color: #ff4444; color: white;
-            padding: 12px 24px; font-size: 14px; font-weight: bold; border-radius: 8px;
-            box-shadow: 0 0 15px rgba(255, 0, 0, 0.5); border: 2px solid; cursor: pointer;
-            backdrop-filter: blur(8px);
-        }
-        #btn-exit-game:hover { background: rgba(255, 0, 0, 0.9); box-shadow: 0 0 25px rgba(255, 0, 0, 0.8); }
-
-        @media (max-width: 768px) {
-            .status-panel {
-                top: 10px; left: 10px; right: 10px; padding: 12px; min-width: unset; max-height: 45vh; 
-            }
-            .effect-controls { flex-direction: row; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
-            .effect-btn { flex: 1 1 calc(50% - 6px); padding: 10px 8px; }
-            #btn-mic, #btn-soccer-mode { flex: 1 1 100%; padding: 12px; font-size: 13px; }
-            #btn-reset { flex: 1 1 100%; }
-            .controls {
-                top: auto; bottom: 20px; left: 0; right: 0; transform: none;
-                flex-direction: row; width: 100%; max-height: unset; padding: 0 15px;
-                box-sizing: border-box; overflow-x: auto; overflow-y: hidden;
-                touch-action: pan-x; -webkit-overflow-scrolling: touch; align-items: center;
-            }
-            .controls::-webkit-scrollbar { display: none; }
-            .controls button { padding: 12px 24px; border-radius: 25px; white-space: nowrap; font-size: 13px; }
-            
-            #game-ui-tabs { top: 15px; }
-            .game-tab { padding: 8px 12px; font-size: 12px; }
-            #game-score { top: 65px; font-size: 13px; padding: 8px 15px; }
-            #leaderboard { top: auto; bottom: 100px; right: 15px; transform: none; }
-            #game-exit-container { top: 10px; left: 10px; }
-            #btn-exit-game { padding: 8px 16px; font-size: 12px; }
-        }
+        #game-leaderboard h3 { margin: 0 0 10px 0; font-size: 16px; text-align: center; border-bottom: 2px solid #00ff66; padding-bottom: 5px; }
+        .record-item { display: flex; justify-content: space-between; font-size: 16px; font-weight: bold; }
 
         #game-toast {
             position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
-            background: rgba(255, 102, 0, 0.9); color: white;
-            padding: 15px 30px; border-radius: 30px; font-weight: bold; font-size: 18px;
-            pointer-events: none; opacity: 0; transition: opacity 0.5s; z-index: 2000;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.5); text-align: center; line-height: 1.4;
+            background: rgba(0, 216, 255, 0.9); color: #000; padding: 20px 40px; border-radius: 40px; font-weight: bold; font-size: 20px;
+            pointer-events: none; z-index: 2000; box-shadow: 0 10px 30px rgba(0,216,255,0.4); text-align: center; line-height: 1.5;
+            opacity: 0; transition: opacity 0.4s; display: none;
         }
-        #game-toast.show { opacity: 1; }
+
+        @media (max-width: 768px) {
+            .portal-header h1 { font-size: 3rem; }
+            .concept-text { font-size: 1rem; padding: 0 10px; }
+            .portal-grid { grid-template-columns: repeat(2, 1fr); grid-template-rows: auto; }
+            .portal-panel.main-game { grid-column: 1 / -1; grid-row: 1; padding: 30px 0; }
+            .portal-panel.main-game .icon { font-size: 5rem; }
+            .portal-panel.main-game .title { font-size: 2rem; }
+            
+            #portal-toast { width: 85%; font-size: 14px; top: 15%; padding: 12px 20px; }
+            
+            #game-ui-tabs { width: 90%; justify-content: center; top: 20px;}
+            .game-tab { padding: 10px 15px; font-size: 14px; }
+            #game-score { top: 75px; font-size: 14px; padding: 8px 15px; }
+            #game-leaderboard { top: auto; bottom: 80px; right: 15px; transform: none; min-width: 150px; padding: 15px;}
+            #game-left-controls { top: auto; bottom: 20px; left: 50%; transform: translateX(-50%); flex-direction: row; width: 95%; justify-content: center; gap: 8px;}
+            #btn-exit-game, #btn-retry-game { padding: 12px 15px; font-size: 12px; white-space: nowrap;}
+        }
     </style>
 </head>
 <body>
 
-    <div id="cutin-video-container">
+    <canvas id="game-canvas"></canvas>
+
+    <div id="start-overlay" class="fullscreen-layer">
+        <div class="start-btn" onclick="playButtonSound(); startApp()">タップして はじめる</div>
+    </div>
+
+    <div id="portal-screen" class="fullscreen-layer">
+        <div class="portal-bg-orbs"></div>
+        <header class="portal-header">
+            <div class="sony-badge">dToF SENSOR TECHNOLOGY</div>
+            <h1>Pi×coLabo</h1>
+            <div class="concept-text">からだをうごかして たのしもう</div>
+            <div class="tap-msg" id="bgm-msg">※ 画面をタップするとBGMが流れます</div>
+        </header>
+
+        <div class="portal-grid">
+            <div class="portal-panel main-game" onclick="playButtonSound(); startSoccer()">
+                <div class="icon">⚽</div>
+                <div class="title">サッカーであそぶ</div>
+                <div class="desc">まとあて ＆ とおくへとばす</div>
+            </div>
+
+            <div class="portal-panel locked" onclick="playButtonSound(); showLockedMsg('ピアノ')">
+                <div class="status">DEV</div><div class="icon">🎹</div><div class="title">ピアノ</div>
+            </div>
+            <div class="portal-panel locked" onclick="playButtonSound(); showLockedMsg('おえかき')">
+                <div class="status">DEV</div><div class="icon">🎨</div><div class="title">おえかき</div>
+            </div>
+            <div class="portal-panel locked" onclick="playButtonSound(); showLockedMsg('ダンス')">
+                <div class="status">DEV</div><div class="icon">💃</div><div class="title">ダンス</div>
+            </div>
+            <div class="portal-panel locked" onclick="playButtonSound(); showLockedMsg('たいこ')">
+                <div class="status">DEV</div><div class="icon">🥁</div><div class="title">たいこ</div>
+            </div>
+            <div class="portal-panel locked" onclick="playButtonSound(); showLockedMsg('ゴルフ')">
+                <div class="status">DEV</div><div class="icon">⛳</div><div class="title">ゴルフ</div>
+            </div>
+            <div class="portal-panel locked" onclick="playButtonSound(); showLockedMsg('たいそう')">
+                <div class="status">DEV</div><div class="icon">🤸</div><div class="title">たいそう</div>
+            </div>
+            <div class="portal-panel locked" onclick="playButtonSound(); showLockedMsg('ハンドボール')">
+                <div class="status">DEV</div><div class="icon">🤾</div><div class="title">ハンドボール</div>
+            </div>
+            <div class="portal-panel locked" onclick="playButtonSound(); showLockedMsg('やきゅう')">
+                <div class="status">DEV</div><div class="icon">⚾</div><div class="title">やきゅう</div>
+            </div>
+        </div>
+        
+        <div id="portal-toast"></div>
+    </div>
+
+    <div id="cutin-video-container" class="fullscreen-layer">
         <video id="cutin-video" playsinline preload="auto">
             <source src="./soccer_movie.mp4" type="video/mp4">
         </video>
+        <div class="skip-text">タップで スキップ ➡</div>
     </div>
 
-    <div id="game-ui-tabs" class="ui-hidden">
-        <button id="tab-strikeout" class="game-tab active">🎯 STRUCK OUT</button>
-        <button id="tab-longkick" class="game-tab">🚀 LONG KICK</button>
-    </div>
-    <div id="game-score" class="ui-hidden">🎯 TARGET: 9 &nbsp;|&nbsp; ⚽ KICKS: 0</div>
-    <div id="leaderboard" class="ui-hidden">
-        <h3>🏆 TOP 5 RECORDS</h3>
-        <div id="record-list"></div>
-    </div>
-    <div id="game-exit-container" class="ui-hidden">
-        <button id="btn-exit-game">🛑 終了する</button>
-    </div>
-
-    <div class="status-panel" id="main-status-panel">
-        <div id="loading" style="font-weight:bold;">Model: Loading...</div>
-        <div id="progress-bar"></div>
-        <div id="current-anim" style="font-size: 12px; color: #007bff; margin-top: 8px; margin-bottom: 5px;">Waiting for file...</div>
-        
-        <div class="effect-controls">
-            <button id="btn-mic" class="effect-btn">🎤 MIC: REAL SOUND <span class="status">OFF</span></button>
-            <div id="mic-level-bar"></div>
-
-            <button id="btn-soccer-mode" class="effect-btn">⚽ SOCCER MODE <span class="status">OFF</span></button>
-
-            <div style="font-size: 10px; color: #aaa; letter-spacing: 1px; margin-top: 10px; flex-basis: 100%;">VISUAL & AUDIO</div>
-            <button id="btn-bgm" class="effect-btn">🎵 BGM <span class="status">OFF</span></button>
-            <button id="btn-hd" class="effect-btn active">HD MODE <span class="status">ON</span></button>
-            <button id="btn-cyber" class="effect-btn active">CYBER SPACE <span class="status">ON</span></button>
-            <button id="btn-mirror" class="effect-btn">MIRROR FLOOR <span class="status">OFF</span></button>
-            <button id="btn-reset" class="effect-btn">🔄 RESET</button>
+    <div id="game-ui-container" class="fullscreen-layer ui-hidden">
+        <div id="game-left-controls">
+            <button id="btn-exit-game" onclick="playBackButtonSound(); exitGame()">🛑 メニューにもどる</button>
+            <button id="btn-retry-game" onclick="playButtonSound(); retryGame()">🔄 やりなおす</button>
         </div>
-    </div>
 
-    <div class="controls" id="btn-container"></div>
-    
-    <div id="game-toast"></div>
+        <div id="game-ui-tabs">
+            <button id="tab-strikeout" class="game-tab" onclick="playButtonSound(); setMode('STRIKEOUT')">🎯 まとあて</button>
+            <button id="tab-longkick" class="game-tab active" onclick="playButtonSound(); setMode('LONGKICK')">💨 とおくへとばす</button>
+        </div>
+        
+        <div id="game-score">🎯 のこり: 9まい &nbsp;|&nbsp; ⚽ けったかず: 0かい</div>
+        
+        <div id="game-leaderboard">
+            <h3 id="leaderboard-title">🏆 ランキング</h3>
+            <div id="record-list"></div>
+        </div>
+        
+        <div id="game-toast"></div>
+    </div>
 
     <script async src="https://unpkg.com/es-module-shims@1.6.3/dist/es-module-shims.js"></script>
     <script type="importmap">
@@ -249,594 +294,188 @@
         import * as THREE from 'three';
         import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
         import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
-        import { Reflector } from 'three/addons/objects/Reflector.js';
 
-        let scene, camera, renderer, mixer, controls, actions = {};
-        const clock = new THREE.Clock();
+        // ========================================================
+        // ★ クロスフェード対応 BGMの設定
+        // ========================================================
+        const TARGET_BGM_VOL = 0.2;
+        const TARGET_GAME_BGM_VOL = 0.15;
+        const BGM_CROSSFADE_SEC = 2.5; 
         
-        let mirrorFloor;
-        let isMirrorActive = false;
-        let isHDActive = true; 
-        let isCyberActive = true; 
+        let isPortalBgmPlaying = false;
         
-        let cyberGroup;        
-        let longKickEnvGroup;  
-        let cyberParticles;
+        let bgm1 = new Audio('./audio/BGM1.mp3');
+        let bgm2 = new Audio('./audio/BGM1.mp3');
+        let activeBgm = bgm1;
+        let nextBgm = bgm2;
+        
+        let audioGameBGM = new Audio('./audio/BGM2.mp3'); 
+        audioGameBGM.loop = true; 
 
-        let targetSmileValue = 0.0;
-        let currentSmileValue = 0.0;
-        let blinkTimer = Math.random() * 3 + 2; 
-        let isBlinking = false;
-        let isBlinkClosing = false;
-        let currentBlinkValue = 0.0;
-        const BLINK_SPEED = 15.0; 
-        let morphMeshes = [];
-        let currentPlayAnim = 'HAPPY'; 
-        
-        let activeAction = null; 
-        let characterModel = null;
-        let targetCharacterX = 0; 
-        let targetCharacterRotationY = 0; 
+        bgm1.onerror = () => { console.warn("BGM1.mp3が見つかりません。"); };
 
         const audioSoccer1 = new Audio('./audio/soccer1.mp3');
         const audioSoccer2 = new Audio('./audio/soccer2.mp3');
         const audioSoccer3 = new Audio('./audio/soccer3.mp3'); 
         const audioSoccer4 = new Audio('./audio/soccer4.mp3'); 
         const audioSoccer5 = new Audio('./audio/soccer5.mp3'); 
+        const audioSoccer6 = new Audio('./audio/soccer6.mp3'); 
+        const audioSoccer7 = new Audio('./audio/soccer7.mp3'); 
 
         const audioCheer1 = new Audio('./audio/cheer1.mp3'); 
         const audioCheer2 = new Audio('./audio/cheer2.mp3'); 
         const audioCheer3 = new Audio('./audio/cheer3.mp3'); 
         const audioCheer4 = new Audio('./audio/cheer4.mp3'); 
-        const audioHappy = new Audio('./audio/happy.mp3');   
         
-        const audioBgm1 = new Audio('./audio/BGM_.mp3');
-        const audioBgm2 = new Audio('./audio/BGM_.mp3');
-        let activeBgm = audioBgm1;
-        let nextBgm = audioBgm2;
-        const BGM_MAX_VOL = 0.05; 
-        const BGM_CROSSFADE_TIME = 3.0; 
-        let isBgmActive = false;
+        const audioButton = new Audio('./audio/button.mp3');
+        const audioBackButton = new Audio('./audio/backbutton.mp3');
+
+        window.playButtonSound = function() {
+            audioButton.currentTime = 0;
+            audioButton.play().catch(e => {});
+        };
+
+        window.playBackButtonSound = function() {
+            audioBackButton.currentTime = 0;
+            audioBackButton.play().catch(e => {});
+        };
+
+        // --- グローバル変数 ---
+        let scene, camera, renderer, mixer, controls, actions = {};
+        const clock = new THREE.Clock();
         
-        let audioTimerSoccer = null;
-        let audioTimerClap1 = null;
-        let audioTimerClap2 = null; 
-        let audioTimerHappy = null;
-        let audioTimerReturn = null; 
-        let idleTimer = null;
-
-        let audioContext, analyser, microphone, dataArray;
-        let isMicActive = false;
-        let lastReactionTime = 0; 
-
-        let isAutoMode = false;
-        let autoTimer = null;
-        let currentAnimIndex = 0;
-        let animSequence = []; 
-
-        const DEFAULT_CAMERA_POS = new THREE.Vector3(0, 6, 22);
-        const DEFAULT_TARGET_POS = new THREE.Vector3(0, 6, 0);
+        let cyberGroup, longKickEnvGroup;
+        let characterModel = null;
+        let targetCharacterX = 0, targetCharacterRotationY = 0; 
+        let morphMeshes = [];
+        let currentPlayAnim = 'HAPPY'; 
+        let activeAction = null; 
+        let blinkTimer = 2, isBlinking = false, isBlinkClosing = false, currentBlinkValue = 0;
+        const BLINK_SPEED = 15.0; 
 
         let currentMode = 'OFF'; 
-        let soccerBall = null;
-        let goalGroup = null; 
-        let targetPanels = []; 
-        let isBallKicked = false;
-        let canBreakPanels = true; 
-        let isCameraTracking = false; 
+        let soccerBall = null, goalGroup = null, targetPanels = []; 
+        let isBallKicked = false, canBreakPanels = true, isCameraTracking = false; 
+        let hasBounced = false; 
         
-        let consecutiveMissCount = 0;
-        let hasHitTargetThisKick = false;
-        let missJudged = false;
+        let consecutiveMissCount = 0, hasHitTargetThisKick = false, missJudged = false;
+        let kickCount = 0, panelsRemaining = 9, currentDistance = 0, recordDistance = 0;
+        
+        let topRecordsLongKick = []; 
+        let topRecordsStrikeout = []; 
 
-        let kickCount = 0;
-        let panelsRemaining = 9;
-        let currentDistance = 0;
-        let recordDistance = 0;
-        let topRecords = []; 
-
-        let ballVelocity = new THREE.Vector3(0, 0, 0);
+        let ballVelocity = new THREE.Vector3();
         let raycaster = new THREE.Raycaster();
         let mouse = new THREE.Vector2();
         
-        let ballResetTimer = null;
-        let kickFailSafeTimer = null; 
-        
+        let ballResetTimer = null, kickFailSafeTimer = null;
+        let audioTimerSoccer = null, audioTimerClap1 = null, audioTimerClap2 = null, idleTimer = null;
         let cameraShakeTime = 0; 
-        let particles = []; 
-        let trails = []; 
+        let particles = [], trails = []; 
+        
+        let longGridMatRef = null, particlesMatRef = null;
+        let speedRings = [];
+        let lastPassedDist = 0;
+        const currentColorTarget = new THREE.Color(0x00ff66);
 
-        // ==========================================
-        // ★ UIオートハイド用変数と関数
-        // ==========================================
-        let uiShowTimeout = null;
-        let uiHideTimeout = null;
+        const dynamicColors = [
+            { dist: 0, color: new THREE.Color(0x00ff66) },    // 緑
+            { dist: 500, color: new THREE.Color(0x00d8ff) },  // シアン
+            { dist: 1000, color: new THREE.Color(0x0044ff) }, // 青
+            { dist: 1500, color: new THREE.Color(0xaa00ff) }, // 紫
+            { dist: 2000, color: new THREE.Color(0xff00aa) }, // ピンク
+            { dist: 2500, color: new THREE.Color(0xffaa00) }, // オレンジ
+            { dist: 3000, color: new THREE.Color(0xff2222) }  // 赤
+        ];
 
-        // UIを隠すタイマーを開始する関数（グローバルに登録）
-        window.startHideTimer = function() {
-            clearTimeout(uiHideTimeout);
-            uiHideTimeout = setTimeout(() => {
-                if (currentMode === 'OFF') {
-                    document.querySelectorAll('.controls, .status-panel').forEach(el => el.classList.add('ui-hidden'));
-                }
-            }, 2000); // 2秒放置で消える
+        // ★ カメラの初期位置をウィンドウサイズに応じて設定（スマホなら遠くに引く）
+        const DEFAULT_TARGET_POS = new THREE.Vector3(0, 6, 0);
+        let DEFAULT_CAMERA_POS = new THREE.Vector3(0, window.innerWidth <= 768 ? 8 : 6, window.innerWidth <= 768 ? 35 : 22);
+
+        // ========================================================
+        // ★ UI操作系
+        // ========================================================
+        window.startApp = function() {
+            document.getElementById('start-overlay').style.display = 'none';
+            document.getElementById('portal-screen').style.display = 'flex';
         };
 
-        function updateScoreUI() {
-            const scoreEl = document.getElementById('game-score');
-            if (currentMode === 'STRIKEOUT') {
-                scoreEl.innerHTML = `🎯 TARGET: ${panelsRemaining} &nbsp;|&nbsp; ⚽ KICKS: ${kickCount}`;
-            } else if (currentMode === 'LONGKICK') {
-                scoreEl.innerHTML = `🚀 DIST: ${currentDistance.toFixed(1)}m &nbsp;|&nbsp; 🏆 BEST: ${recordDistance.toFixed(1)}m`;
+        function startBGM() {
+            if (currentMode === 'OFF' && !isPortalBgmPlaying) {
+                isPortalBgmPlaying = true;
+                activeBgm.volume = 0;
+                activeBgm.play().catch(e => console.log("BGM待機中"));
+                const msg = document.getElementById('bgm-msg');
+                if(msg) msg.style.display = 'none';
             }
         }
+        document.addEventListener('click', startBGM, { once: true });
+        document.addEventListener('touchstart', startBGM, { once: true });
 
-        function updateLeaderboard(newRecord) {
-            if (newRecord > 0) {
-                topRecords.push(newRecord);
-                topRecords.sort((a, b) => b - a); 
-                topRecords = topRecords.slice(0, 5); 
-            }
-            const list = document.getElementById('record-list');
-            list.innerHTML = '';
-            for(let i=0; i<5; i++) {
-                let dist = topRecords[i] ? topRecords[i].toFixed(1) + ' m' : '--- m';
-                list.innerHTML += `<div class="record-item"><span>${i+1}.</span><span>${dist}</span></div>`;
-            }
+        function pauseBGM() {
+            isPortalBgmPlaying = false;
+            activeBgm.pause();
+            nextBgm.pause();
+        }
 
-            if(newRecord > 0 && newRecord === topRecords[0]) {
-                audioSoccer5.currentTime = 0;
-                audioSoccer5.play().catch(e => console.log(e));
+        window.showLockedMsg = function(name) {
+            const toast = document.getElementById('portal-toast');
+            toast.innerHTML = `【${name}】は じゅんびちゅうだよ！<br>まずは「サッカー」であそんでみてね！`; 
+            toast.style.display = 'block';
+            setTimeout(() => toast.style.opacity = '1', 10);
+            
+            if(window.portalToastTimer) clearTimeout(window.portalToastTimer);
+            if(window.portalToastHideTimer) clearTimeout(window.portalToastHideTimer);
 
-                const lb = document.getElementById('leaderboard');
-                const baseTransform = window.innerWidth <= 768 ? 'none' : 'translateY(-50%)';
-                lb.style.transform = baseTransform + ' scale(1.1)';
-                lb.style.boxShadow = '0 0 30px rgba(255, 215, 0, 1)';
-                lb.style.borderColor = '#ffd700';
-                lb.style.color = '#ffd700';
+            window.portalToastTimer = setTimeout(() => { 
+                toast.style.opacity = '0'; 
+                window.portalToastHideTimer = setTimeout(() => toast.style.display = 'none', 400); 
+            }, 3000); 
+        }
+
+        window.startSoccer = function() {
+            if (currentMode !== 'OFF') return;
+            pauseBGM(); 
+            
+            document.getElementById('portal-screen').style.opacity = '0';
+            setTimeout(() => { document.getElementById('portal-screen').style.display = 'none'; }, 400);
+
+            const videoContainer = document.getElementById('cutin-video-container');
+            const video = document.getElementById('cutin-video');
+
+            videoContainer.style.display = 'flex';
+            void videoContainer.offsetWidth; 
+            videoContainer.style.opacity = '1';
+
+            video.currentTime = 0;
+            const playPromise = video.play();
+            if (playPromise !== undefined) playPromise.catch(error => { finishVideo(); });
+
+            video.onended = finishVideo;
+            videoContainer.onclick = finishVideo;
+            setTimeout(() => { if (videoContainer.style.opacity === '1') finishVideo(); }, 10000);
+
+            function finishVideo() {
+                video.pause();
+                videoContainer.style.opacity = '0';
                 setTimeout(() => {
-                    lb.style.transform = baseTransform + ' scale(1)';
-                    lb.style.boxShadow = '0 0 15px rgba(0, 255, 0, 0.6)';
-                    lb.style.borderColor = '#00ff00';
-                    lb.style.color = '#00ff00';
-                }, 1500);
+                    videoContainer.style.display = 'none';
+                    document.getElementById('game-ui-container').classList.remove('ui-hidden');
+                    window.setMode('LONGKICK');
+                    audioGameBGM.volume = TARGET_GAME_BGM_VOL;
+                    audioGameBGM.play().catch(e=>{});
+                }, 400); 
             }
-        }
+        };
 
-        function createNumberTexture(number) {
-            const canvas = document.createElement('canvas');
-            canvas.width = 256; canvas.height = 256;
-            const ctx = canvas.getContext('2d');
-            ctx.fillStyle = 'rgba(0, 200, 255, 0.15)'; ctx.fillRect(0, 0, 256, 256);
-            ctx.strokeStyle = '#00ffff'; ctx.lineWidth = 15; ctx.strokeRect(0, 0, 256, 256);
-            ctx.font = 'bold 150px sans-serif'; ctx.fillStyle = '#ffffff';
-            ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-            ctx.shadowColor = '#00ffff'; ctx.shadowBlur = 20;
-            ctx.fillText(number, 128, 138); 
-            return new THREE.CanvasTexture(canvas);
-        }
-
-        function triggerSoccerSound() {
-            if (audioTimerSoccer) clearTimeout(audioTimerSoccer);
-            audioTimerSoccer = setTimeout(() => {
-                if (currentPlayAnim !== 'SOCCER') return; 
-                const isRare = Math.random() < 0.1; 
-                if (isRare) { audioSoccer2.currentTime = 0; audioSoccer2.play().catch(e=>{}); } 
-                else { audioSoccer1.currentTime = 0; audioSoccer1.play().catch(e=>{}); }
-            }, 800); 
-        }
-
-        function triggerClapSound() {
-            if (audioTimerClap1) clearTimeout(audioTimerClap1);
-            if (audioTimerClap2) clearTimeout(audioTimerClap2);
-            if (audioTimerReturn) clearTimeout(audioTimerReturn);
-            const isPatternA = Math.random() < 0.5;
-            const firstCheer = isPatternA ? audioCheer1 : audioCheer3;
-            const secondCheer = isPatternA ? audioCheer2 : audioCheer4;
-            
-            audioTimerClap1 = setTimeout(() => {
-                if (currentPlayAnim !== 'CLAP') return;
-                firstCheer.currentTime = 0; firstCheer.play().catch(e=>{});
-            }, 400); 
-            audioTimerClap2 = setTimeout(() => {
-                if (currentPlayAnim !== 'CLAP') return;
-                secondCheer.currentTime = 0; secondCheer.play().catch(e=>{});
-            }, isPatternA ? 2400 : 1200); 
-            
-            audioTimerReturn = setTimeout(() => {
-                if (currentPlayAnim === 'CLAP') switchAnim('HAPPY', false, true); 
-            }, isPatternA ? 9000 : 7500);
-        }
-
-        function triggerHappySound() {
-            if (audioTimerHappy) clearTimeout(audioTimerHappy);
-            audioTimerHappy = setTimeout(() => {
-                if (currentPlayAnim !== 'HAPPY') return;
-                audioHappy.currentTime = 0; audioHappy.play().catch(e=>{});
-            }, 300); 
-        }
-
-        init();
-
-        function init() {
-            scene = new THREE.Scene();
-            camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 4000); 
-            camera.position.copy(DEFAULT_CAMERA_POS);
-
-            renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
-            renderer.setSize(window.innerWidth, window.innerHeight);
-            renderer.setPixelRatio(window.devicePixelRatio);
-            renderer.outputEncoding = THREE.sRGBEncoding;
-            renderer.toneMapping = THREE.ACESFilmicToneMapping;
-            document.body.appendChild(renderer.domElement);
-
-            scene.add(new THREE.AmbientLight(0xffffff, 0.5));
-            const sunLight = new THREE.DirectionalLight(0xffffff, 1.2);
-            sunLight.position.set(5, 10, 7.5);
-            scene.add(sunLight);
-
-            cyberGroup = new THREE.Group();
-            cyberGroup.visible = true; 
-            scene.add(cyberGroup);
-
-            const grid = new THREE.GridHelper(600, 300, 0x00ff00, 0x004400); 
-            grid.position.y = 0.02; 
-            cyberGroup.add(grid);
-
-            const particlesGeo = new THREE.BufferGeometry();
-            const particlesCount = 1500;
-            const posArray = new Float32Array(particlesCount * 3);
-            for(let i = 0; i < particlesCount * 3; i++) {
-                posArray[i] = (Math.random() - 0.5) * 120; 
-                if(i%3 === 1) posArray[i] = Math.random() * 40; 
-                if(i%3 === 2) posArray[i] = (Math.random() - 0.5) * 200; 
-            }
-            particlesGeo.setAttribute('position', new THREE.BufferAttribute(posArray, 3));
-            const particlesMat = new THREE.PointsMaterial({ size: 0.15, color: 0x00ff00, transparent: true, opacity: 0.8, blending: THREE.AdditiveBlending });
-            cyberParticles = new THREE.Points(particlesGeo, particlesMat);
-            cyberGroup.add(cyberParticles);
-
-            longKickEnvGroup = new THREE.Group();
-            longKickEnvGroup.visible = false; 
-            scene.add(longKickEnvGroup);
-
-            const longGrid = new THREE.GridHelper(3000, 1500, 0x00ff00, 0x004400); 
-            longGrid.position.set(0, 0.015, -1500); 
-            longKickEnvGroup.add(longGrid);
-
-            const bGeo = new THREE.BoxGeometry(1, 1, 1);
-            const bMat = new THREE.MeshBasicMaterial({ color: 0x00ccaa, wireframe: true, transparent: true, opacity: 0.2 });
-            for (let i = 0; i < 150; i++) {
-                const b = new THREE.Mesh(bGeo, bMat);
-                const w = 10 + Math.random() * 40;
-                const h = 20 + Math.random() * 150; 
-                const d = 10 + Math.random() * 40;
-                b.scale.set(w, h, d);
-                const side = Math.random() > 0.5 ? 1 : -1;
-                const xPos = side * (60 + Math.random() * 200);
-                const zPos = -Math.random() * 3000;
-                b.position.set(xPos, h / 2, zPos);
-                longKickEnvGroup.add(b);
-            }
-
-            const pillarGeo = new THREE.BoxGeometry(2, 40, 2);
-            const pillarMat = new THREE.MeshBasicMaterial({ color: 0x00ff00, wireframe: true, transparent: true, opacity: 0.5 });
-            const topGeo = new THREE.BoxGeometry(80, 2, 2);
-            for (let i = 1; i <= 30; i++) { 
-                const zPos = -i * 100;
-                const pL = new THREE.Mesh(pillarGeo, pillarMat); pL.position.set(-40, 20, zPos); longKickEnvGroup.add(pL);
-                const pR = new THREE.Mesh(pillarGeo, pillarMat); pR.position.set(40, 20, zPos); longKickEnvGroup.add(pR);
-                const pT = new THREE.Mesh(topGeo, pillarMat); pT.position.set(0, 40, zPos); longKickEnvGroup.add(pT);
-            }
-
-            mirrorFloor = new Reflector( new THREE.PlaneGeometry( 3000, 3000 ), { 
-                clipBias: 0.003, textureWidth: window.innerWidth * window.devicePixelRatio, textureHeight: window.innerHeight * window.devicePixelRatio, color: 0x444444
-            });
-            mirrorFloor.rotation.x = -Math.PI / 2;
-            mirrorFloor.position.set(0, 0.01, -1495); 
-            mirrorFloor.visible = false;
-            scene.add(mirrorFloor);
-
-            controls = new OrbitControls(camera, renderer.domElement);
-            controls.enableDamping = true;
-            controls.target.copy(DEFAULT_TARGET_POS);
-
-            const loader = new GLTFLoader();
-            loader.load('./model/final.glb', 
-                (gltf) => {
-                    try {
-                        const model = gltf.scene;
-                        const scaleGroup = new THREE.Group();
-                        scaleGroup.add(model);
-                        scaleGroup.scale.set(8, 8, 8); 
-
-                        model.traverse((object) => {
-                            if (object.isMesh) {
-                                object.castShadow = true;
-                                object.receiveShadow = true;
-                                if (object.morphTargetDictionary) {
-                                    morphMeshes.push(object);
-                                }
-                            }
-                        });
-
-                        characterModel = scaleGroup;
-                        scene.add(scaleGroup);
-                        mixer = new THREE.AnimationMixer(model);
-
-                        mixer.addEventListener('loop', (e) => {
-                            if (e.action === actions['SOCCER'] && currentPlayAnim === 'SOCCER') {
-                                triggerSoccerSound();
-                            }
-                        });
-
-                        if (gltf.animations && gltf.animations.length > 0) {
-                            gltf.animations.forEach((clip) => {
-                                let cleanName = clip.name.replace(/mixamorig:|Armature\|/gi, '').replace(/\.com/g, '').toUpperCase().trim();
-                                if (cleanName === 'IDLE') cleanName = 'IDOL';
-                                if (cleanName.includes('TRIPO') || cleanName.includes('MESH') || cleanName.includes('NODE')) return; 
-                                actions[cleanName] = mixer.clipAction(clip);
-                            });
-
-                            const container = document.getElementById('btn-container');
-                            if (Object.keys(actions).length > 0) {
-                                const autoBtn = document.createElement('button');
-                                autoBtn.innerHTML = "⭐ AUTO";
-                                autoBtn.onclick = () => switchAnim("AUTO");
-                                autoBtn.id = "btn-AUTO";
-                                autoBtn.className = "auto-btn";
-                                container.appendChild(autoBtn);
-
-                                const customOrder = ['HAPPY', 'IDOL', 'CLAP', 'SOCCER']; 
-                                
-                                customOrder.forEach(name => {
-                                    if (actions[name]) {
-                                        animSequence.push(name);
-                                        const btn = document.createElement('button');
-                                        btn.innerText = name;
-                                        btn.onclick = () => switchAnim(name);
-                                        btn.id = "btn-" + name;
-                                        container.appendChild(btn);
-                                    }
-                                });
-
-                                Object.keys(actions).forEach(name => {
-                                    if (!customOrder.includes(name)) {
-                                        animSequence.push(name);
-                                        const btn = document.createElement('button');
-                                        btn.innerText = name;
-                                        btn.onclick = () => switchAnim(name);
-                                        btn.id = "btn-" + name;
-                                        container.appendChild(btn);
-                                    }
-                                });
-                            }
-                        }
-
-                        document.getElementById('loading').innerText = "Model: Online";
-                        document.getElementById('progress-bar').style.width = "100%";
-
-                        switchAnim('HAPPY', false, true);
-                        updateLeaderboard(0); 
-
-                        setTimeout(() => {
-                            if (!isMicActive) document.getElementById('btn-mic').click();
-                            if (!isBgmActive) document.getElementById('btn-bgm').click();
-                        }, 800);
-
-                    } catch (error) {
-                        console.error("エラー:", error);
-                    }
-                }
-            );
-
-            setupGameMode(); 
-            setupButtons();
-            setupUIAutoHide(); 
-            window.addEventListener('resize', onWindowResize);
-            window.addEventListener('pointerdown', onPointerDown);
-            animate();
-
-            const startAudio = () => {
-                if (isBgmActive && activeBgm.paused) {
-                    activeBgm.volume = 0; 
-                    activeBgm.play().catch(e => console.log("BGM再生エラー:", e));
-                }
-                window.removeEventListener('click', startAudio);
-                window.removeEventListener('touchstart', startAudio);
-            };
-            window.addEventListener('click', startAudio);
-            window.addEventListener('touchstart', startAudio);
-        }
-
-        function setupGameMode() {
-            if (!soccerBall) {
-                const coreGeo = new THREE.IcosahedronGeometry(0.7, 2);
-                const coreMat = new THREE.MeshPhongMaterial({ 
-                    color: 0x00ff00, emissive: 0x004400, 
-                    transparent: true, opacity: 0.6 
-                });
-                soccerBall = new THREE.Mesh(coreGeo, coreMat);
-                const wireGeo = new THREE.IcosahedronGeometry(0.8, 1);
-                const wireMat = new THREE.MeshBasicMaterial({ color: 0x00ff00, wireframe: true });
-                const wireMesh = new THREE.Mesh(wireGeo, wireMat);
-                soccerBall.add(wireMesh);
-                soccerBall.castShadow = true;
-                soccerBall.visible = false;
-                scene.add(soccerBall);
-            }
-            
-            if (!goalGroup) {
-                goalGroup = new THREE.Group();
-                scene.add(goalGroup);
-
-                const poleMat = new THREE.MeshBasicMaterial({ color: 0x00ff00 });
-                const netMat = new THREE.MeshBasicMaterial({ color: 0x00ff00, wireframe: true, transparent: true, opacity: 0.2 });
-
-                const fpL = new THREE.Mesh(new THREE.CylinderGeometry(0.3, 0.3, 12), poleMat); fpL.position.set(-12, 6, -40); goalGroup.add(fpL);
-                const fpR = new THREE.Mesh(new THREE.CylinderGeometry(0.3, 0.3, 12), poleMat); fpR.position.set(12, 6, -40); goalGroup.add(fpR);
-                const bpL = new THREE.Mesh(new THREE.CylinderGeometry(0.3, 0.3, 12), poleMat); bpL.position.set(-12, 6, -48); goalGroup.add(bpL);
-                const bpR = new THREE.Mesh(new THREE.CylinderGeometry(0.3, 0.3, 12), poleMat); bpR.position.set(12, 6, -48); goalGroup.add(bpR);
-                const cbF = new THREE.Mesh(new THREE.CylinderGeometry(0.3, 0.3, 24), poleMat); cbF.rotation.z = Math.PI / 2; cbF.position.set(0, 12, -40); goalGroup.add(cbF);
-                const cbB = new THREE.Mesh(new THREE.CylinderGeometry(0.3, 0.3, 24), poleMat); cbB.rotation.z = Math.PI / 2; cbB.position.set(0, 12, -48); goalGroup.add(cbB);
-                const sbTL = new THREE.Mesh(new THREE.CylinderGeometry(0.3, 0.3, 8), poleMat); sbTL.rotation.x = Math.PI / 2; sbTL.position.set(-12, 12, -44); goalGroup.add(sbTL);
-                const sbTR = new THREE.Mesh(new THREE.CylinderGeometry(0.3, 0.3, 8), poleMat); sbTR.rotation.x = Math.PI / 2; sbTR.position.set(12, 12, -44); goalGroup.add(sbTR);
-                const sbBL = new THREE.Mesh(new THREE.CylinderGeometry(0.3, 0.3, 8), poleMat); sbBL.rotation.x = Math.PI / 2; sbBL.position.set(-12, 0.3, -44); goalGroup.add(sbBL);
-                const sbBR = new THREE.Mesh(new THREE.CylinderGeometry(0.3, 0.3, 8), poleMat); sbBR.rotation.x = Math.PI / 2; sbBR.position.set(12, 0.3, -44); goalGroup.add(sbBR);
-                const bbB = new THREE.Mesh(new THREE.CylinderGeometry(0.3, 0.3, 24), poleMat); bbB.rotation.z = Math.PI / 2; bbB.position.set(0, 0.3, -48); goalGroup.add(bbB);
-
-                const backNet = new THREE.Mesh(new THREE.PlaneGeometry(24, 12, 24, 12), netMat); backNet.position.set(0, 6, -48); goalGroup.add(backNet);
-                const leftNet = new THREE.Mesh(new THREE.PlaneGeometry(8, 12, 8, 12), netMat); leftNet.rotation.y = Math.PI / 2; leftNet.position.set(-12, 6, -44); goalGroup.add(leftNet);
-                const rightNet = new THREE.Mesh(new THREE.PlaneGeometry(8, 12, 8, 12), netMat); rightNet.rotation.y = -Math.PI / 2; rightNet.position.set(12, 6, -44); goalGroup.add(rightNet);
-                const topNet = new THREE.Mesh(new THREE.PlaneGeometry(24, 8, 24, 8), netMat); topNet.rotation.x = Math.PI / 2; topNet.position.set(0, 12, -44); goalGroup.add(topNet);
-
-                const panelW = 7.6; const panelH = 3.8;
-                const xs = [-8, 0, 8]; const ys = [2.2, 6.2, 10.2];
-                for(let i=0; i<3; i++){
-                    for(let j=0; j<3; j++){
-                        const num = (2 - i) * 3 + j + 1; 
-                        const tex = createNumberTexture(num);
-                        const pMat = new THREE.MeshBasicMaterial({ map: tex, transparent: true, opacity: 0.9, side: THREE.DoubleSide });
-                        const pMesh = new THREE.Mesh(new THREE.PlaneGeometry(panelW, panelH), pMat);
-                        pMesh.position.set(xs[j], ys[i], -39.5); 
-                        goalGroup.add(pMesh);
-                        targetPanels.push({
-                            mesh: pMesh, active: true, number: num,
-                            bounds: { minX: xs[j] - panelW/2, maxX: xs[j] + panelW/2, minY: ys[i] - panelH/2, maxY: ys[i] + panelH/2 }
-                        });
-                    }
-                }
-                goalGroup.visible = false;
-            }
-        }
-
-        function resetBall() {
-            if (!soccerBall) return;
-            isBallKicked = false;
-            isCameraTracking = false; 
-
-            camera.position.copy(DEFAULT_CAMERA_POS);
-            controls.target.copy(DEFAULT_TARGET_POS);
-            controls.update();
-            
-            soccerBall.position.set(0, 0.8, 5); 
-            soccerBall.rotation.set(0, 0, 0);
-            ballVelocity.set(0, 0, 0);
-            
-            if (ballResetTimer) { clearTimeout(ballResetTimer); ballResetTimer = null; }
-            if (kickFailSafeTimer) { clearTimeout(kickFailSafeTimer); kickFailSafeTimer = null; }
-            
-            if (currentMode === 'LONGKICK') {
-                currentDistance = 0;
-                updateScoreUI();
-            }
-        }
-
-        function createShatterParticles(pos, count, colorHex) {
-            const geo = new THREE.ConeGeometry(0.3, 0.6, 3);
-            const mat = new THREE.MeshBasicMaterial({ color: colorHex, transparent: true, opacity: 1, side: THREE.DoubleSide });
-            for (let i = 0; i < count; i++) {
-                const mesh = new THREE.Mesh(geo, mat);
-                mesh.position.copy(pos);
-                mesh.position.x += (Math.random() - 0.5) * 4;
-                mesh.position.y += (Math.random() - 0.5) * 2;
-                mesh.velocity = new THREE.Vector3((Math.random() - 0.5) * 0.8, (Math.random() - 0.2) * 1.5, (Math.random() - 0.5) * 1.0);
-                mesh.life = 1.0;
-                scene.add(mesh); particles.push(mesh);
-            }
-        }
-
-        function onPointerDown(event) {
-            if (event.target.tagName === 'BUTTON' || event.target.tagName === 'SPAN') return;
-            if (currentMode === 'OFF' || !soccerBall || !soccerBall.visible || isBallKicked) return;
-
-            mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
-            mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
-
-            raycaster.setFromCamera(mouse, camera);
-            const intersects = raycaster.intersectObject(soccerBall, true);
-
-            if (intersects.length > 0) {
-                const ballCenter = new THREE.Vector3();
-                soccerBall.getWorldPosition(ballCenter);
-                const hitOffsetX = intersects[0].point.x - ballCenter.x;
-                const hitOffsetY = intersects[0].point.y - ballCenter.y;
-                kickBall(hitOffsetX, hitOffsetY);
-            }
-        }
-
-        function kickBall(hitOffsetX, hitOffsetY) {
-            isBallKicked = true;
-            canBreakPanels = true; 
-            
-            hasHitTargetThisKick = false;
-            missJudged = false;
-            
-            cameraShakeTime = 0.15; 
-            kickCount++;
-            ballVelocity._clapped = false; 
-            
-            if (ballResetTimer) clearTimeout(ballResetTimer);
-            if (kickFailSafeTimer) clearTimeout(kickFailSafeTimer);
-
-            if (currentMode === 'STRIKEOUT') {
-                let vx = -hitOffsetX * 1.5; 
-                let vy = 0.8 - hitOffsetY * 2.0; 
-                vy = Math.max(-0.2, Math.min(vy, 2.5)); 
-                let vz = -1.8 - Math.random() * 0.4;
-                ballVelocity.set(vx, vy, vz);
-                
-                ballResetTimer = setTimeout(() => {
-                    if(currentMode === 'STRIKEOUT') {
-                        resetBall();
-                        document.getElementById('game-toast').classList.add('show'); 
-                    }
-                }, 2500); 
-
-            } else if (currentMode === 'LONGKICK') {
-                isCameraTracking = true; 
-                
-                let vx = -hitOffsetX * 1.0; 
-                let powerBonus = (hitOffsetY < 0) ? Math.abs(hitOffsetY) * 3.5 : 0; 
-                let vy = 1.0 - hitOffsetY * 4.0; 
-                vy = Math.max(0.5, Math.min(vy, 4.0)); 
-                
-                let vz = -3.0 - powerBonus - (1.0 - Math.abs(hitOffsetX)) * 2.0;
-                ballVelocity.set(vx, vy, vz);
-                
-                kickFailSafeTimer = setTimeout(() => {
-                    if(currentMode === 'LONGKICK') {
-                        updateLeaderboard(currentDistance);
-                        resetBall();
-                        document.getElementById('game-toast').classList.add('show'); 
-                    }
-                }, 20000); 
-            }
-            
-            audioSoccer1.currentTime = 0;
-            audioSoccer1.play().catch(e => console.log(e));
-
-            document.getElementById('game-toast').classList.remove('show');
-            updateScoreUI();
-            createParticles(soccerBall.position, 15, 0x00ff00);
-        }
-
-        function startGameLogic(mode) {
+        window.setMode = function(mode) {
             currentMode = mode;
-            const mainStatusPanel = document.getElementById('main-status-panel');
-            const rightBtnContainer = document.getElementById('btn-container');
-            const toast = document.getElementById('game-toast');
-            const scoreUI = document.getElementById('game-score');
-            const leaderboard = document.getElementById('leaderboard');
-            const exitBtn = document.getElementById('game-exit-container');
-            const uiTabs = document.getElementById('game-ui-tabs');
-
             document.getElementById('tab-strikeout').classList.toggle('active', mode === 'STRIKEOUT');
             document.getElementById('tab-longkick').classList.toggle('active', mode === 'LONGKICK');
-
-            targetCharacterX = -11.0; 
-            targetCharacterRotationY = 0.4; 
             
+            // ★ スマホ画面の場合はキャラが見切れないように横の移動幅を抑える
+            targetCharacterX = window.innerWidth <= 768 ? -3.5 : -6.0; 
+            targetCharacterRotationY = 0.4; 
             soccerBall.visible = true;
 
             if (ballResetTimer) clearTimeout(ballResetTimer);
@@ -844,372 +483,501 @@
             resetBall();
 
             if (mode === 'STRIKEOUT') {
-                goalGroup.visible = true;
-                longKickEnvGroup.visible = false; 
-                leaderboard.classList.add('ui-hidden'); 
+                goalGroup.visible = true; longKickEnvGroup.visible = false; 
                 consecutiveMissCount = 0; 
-                toast.innerHTML = "👆 パネルを狙ってボールをタップ！<br><span style='font-size:14px; font-weight:normal;'>(上下左右で軌道をコントロール)</span>";
-                updateScoreUI();
+                showToast("👆 パネルをねらって ボールをタッチ！");
             } else if (mode === 'LONGKICK') {
-                goalGroup.visible = false;
-                longKickEnvGroup.visible = isCyberActive; 
-                leaderboard.classList.remove('ui-hidden'); 
-                currentDistance = 0;
-                kickCount = 0;
-                toast.innerHTML = "👆 ボールの下側を狙ってフルスイング！<br><span style='font-size:14px; font-weight:normal;'>(飛距離の限界に挑戦しよう)</span>";
-                updateScoreUI();
+                goalGroup.visible = false; longKickEnvGroup.visible = true; 
+                currentDistance = 0; kickCount = 0;
+                showToast("💨 ボールのしたをたたいて とおくへとばそう！");
             }
+            updateLeaderboard(); 
+            updateScoreUI();
+            switchAnim('HAPPY');
+        };
 
-            switchAnim('IDOL', false, true);
-            toast.classList.add('show');
-            scoreUI.classList.remove('ui-hidden');
-            exitBtn.classList.remove('ui-hidden'); 
-            uiTabs.classList.remove('ui-hidden'); 
-            
-            mainStatusPanel.classList.add('ui-hidden'); 
-            rightBtnContainer.classList.add('ui-hidden');
-        }
+        window.retryGame = function() {
+            if (currentMode === 'STRIKEOUT') {
+                targetPanels.forEach(panel => { panel.active = true; panel.mesh.visible = true; });
+                panelsRemaining = 9; kickCount = 0; consecutiveMissCount = 0;
+            } else if (currentMode === 'LONGKICK') {
+                currentDistance = 0; kickCount = 0;
+            }
+            if (ballResetTimer) clearTimeout(ballResetTimer);
+            if (kickFailSafeTimer) clearTimeout(kickFailSafeTimer);
+            resetBall();
+            updateScoreUI();
+            showToast("🔄 やりなおします！");
+        };
 
-        function stopGame() {
+        window.exitGame = function() {
             currentMode = 'OFF';
-            const btnSoccer = document.getElementById('btn-soccer-mode');
-            const mainStatusPanel = document.getElementById('main-status-panel');
-            const rightBtnContainer = document.getElementById('btn-container');
-            const scoreUI = document.getElementById('game-score');
-            const leaderboard = document.getElementById('leaderboard');
-            const exitBtn = document.getElementById('game-exit-container');
-            const uiTabs = document.getElementById('game-ui-tabs');
-
-            btnSoccer.classList.remove('active'); btnSoccer.querySelector('.status').innerText = 'OFF';
-
-            targetCharacterX = 0; 
-            targetCharacterRotationY = 0;
-
+            targetCharacterX = 0; targetCharacterRotationY = 0;
             if (soccerBall) soccerBall.visible = false;
             if (goalGroup) goalGroup.visible = false;
             if (longKickEnvGroup) longKickEnvGroup.visible = false; 
 
-            document.getElementById('game-toast').classList.remove('show');
-            scoreUI.classList.add('ui-hidden');
-            leaderboard.classList.add('ui-hidden');
-            exitBtn.classList.add('ui-hidden');
-            uiTabs.classList.add('ui-hidden');
+            document.getElementById('game-ui-container').classList.add('ui-hidden');
+            document.getElementById('game-toast').style.display = 'none';
             
-            mainStatusPanel.classList.remove('ui-hidden'); 
-            rightBtnContainer.classList.remove('ui-hidden');
+            document.getElementById('portal-screen').style.display = 'flex';
+            setTimeout(() => { document.getElementById('portal-screen').style.opacity = '1'; }, 50);
             
-            resetBall(); 
-            switchAnim('HAPPY', false, true); 
+            audioGameBGM.pause();
+            setTimeout(() => { startBGM(); }, 800);
             
-            if (window.startHideTimer) window.startHideTimer();
-        }
-
-        function handleGameBtnClick(selectedMode) {
-            const btn = document.getElementById('btn-soccer-mode');
-            
-            if (currentMode === 'OFF') {
-                const cutinContainer = document.getElementById('cutin-video-container');
-                const cutinVideo = document.getElementById('cutin-video');
-                
-                cutinContainer.style.display = 'flex';
-                setTimeout(() => { cutinContainer.style.opacity = '1'; }, 50);
-
-                let wasBgmPlaying = isBgmActive && !activeBgm.paused;
-                if (wasBgmPlaying) activeBgm.pause();
-
-                cutinVideo.currentTime = 0;
-                cutinVideo.play().catch(e => {
-                    console.error("動画再生エラー:", e);
-                    cutinContainer.style.opacity = '0';
-                    setTimeout(() => { cutinContainer.style.display = 'none'; }, 300);
-                    if (wasBgmPlaying) activeBgm.play();
-                    btn.classList.add('active'); btn.querySelector('.status').innerText = 'ON';
-                    startGameLogic(selectedMode);
-                });
-
-                cutinVideo.onended = () => {
-                    cutinContainer.style.opacity = '0';
-                    setTimeout(() => { cutinContainer.style.display = 'none'; }, 300);
-                    if (wasBgmPlaying) activeBgm.play();
-                    btn.classList.add('active'); btn.querySelector('.status').innerText = 'ON';
-                    startGameLogic(selectedMode);
-                };
-
-                cutinContainer.onclick = () => {
-                    cutinVideo.pause();
-                    cutinContainer.style.opacity = '0';
-                    setTimeout(() => { cutinContainer.style.display = 'none'; }, 300);
-                    if (wasBgmPlaying) activeBgm.play();
-                    btn.classList.add('active'); btn.querySelector('.status').innerText = 'ON';
-                    startGameLogic(selectedMode);
-                };
-            }
-        }
-
-        function setupButtons() {
-            const btnSoccer = document.getElementById('btn-soccer-mode');
-            btnSoccer.addEventListener('click', () => {
-                if (currentMode === 'OFF') handleGameBtnClick('STRIKEOUT');
-            });
-
-            document.getElementById('tab-strikeout').addEventListener('click', () => {
-                if (currentMode !== 'STRIKEOUT') startGameLogic('STRIKEOUT');
-            });
-            document.getElementById('tab-longkick').addEventListener('click', () => {
-                if (currentMode !== 'LONGKICK') startGameLogic('LONGKICK');
-            });
-            
-            document.getElementById('btn-exit-game').addEventListener('click', stopGame);
-
-            const btnBgm = document.getElementById('btn-bgm');
-            btnBgm.addEventListener('click', () => {
-                isBgmActive = !isBgmActive;
-                if (isBgmActive) {
-                    activeBgm.volume = 0; 
-                    activeBgm.play().catch(e => console.log("BGMエラー:", e));
-                    btnBgm.classList.add('active');
-                    btnBgm.querySelector('.status').innerText = 'ON';
-                } else {
-                    activeBgm.pause();
-                    nextBgm.pause();
-                    btnBgm.classList.remove('active');
-                    btnBgm.querySelector('.status').innerText = 'OFF';
-                }
-            });
-
-            const btnMic = document.getElementById('btn-mic');
-            btnMic.addEventListener('click', async () => {
-                if (!isMicActive) {
-                    try {
-                        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-                        audioContext = new (window.AudioContext || window.webkitAudioContext)();
-                        analyser = audioContext.createAnalyser();
-                        microphone = audioContext.createMediaStreamSource(stream);
-                        microphone.connect(analyser);
-                        analyser.fftSize = 256;
-                        dataArray = new Uint8Array(analyser.frequencyBinCount);
-                        
-                        isMicActive = true;
-                        btnMic.classList.add('active');
-                        btnMic.querySelector('.status').innerText = 'ON';
-                    } catch (err) {
-                        console.error("Mic error:", err);
-                        alert("マイクの使用が許可されませんでした。");
-                    }
-                } else {
-                    isMicActive = false;
-                    btnMic.classList.remove('active');
-                    btnMic.querySelector('.status').innerText = 'OFF';
-                    document.getElementById('mic-level-bar').style.width = "0%";
-                }
-            });
-
-            const btnCyber = document.getElementById('btn-cyber');
-            btnCyber.addEventListener('click', () => {
-                isCyberActive = !isCyberActive;
-                cyberGroup.visible = isCyberActive; 
-                if (currentMode === 'LONGKICK') {
-                    longKickEnvGroup.visible = isCyberActive;
-                }
-                
-                if (isCyberActive) {
-                    document.body.style.background = "#000";
-                } else {
-                    document.body.style.background = "radial-gradient(circle, #333333 0%, #0a0a0a 100%)";
-                }
-
-                btnCyber.classList.toggle('active', isCyberActive);
-                btnCyber.querySelector('.status').innerText = isCyberActive ? 'ON' : 'OFF';
-            });
-
-            const btnHd = document.getElementById('btn-hd');
-            btnHd.addEventListener('click', () => {
-                isHDActive = !isHDActive;
-                const newRatio = isHDActive ? window.devicePixelRatio : Math.min(window.devicePixelRatio, 1.2);
-                renderer.setPixelRatio(newRatio);
-                btnHd.classList.toggle('active', isHDActive);
-                btnHd.querySelector('.status').innerText = isHDActive ? 'ON' : 'OFF';
-            });
-
-            const btnMirror = document.getElementById('btn-mirror');
-            btnMirror.addEventListener('click', () => {
-                isMirrorActive = !isMirrorActive;
-                mirrorFloor.visible = isMirrorActive;
-                btnMirror.classList.toggle('active', isMirrorActive);
-                btnMirror.querySelector('.status').innerText = isMirrorActive ? 'ON' : 'OFF';
-            });
-
-            const btnReset = document.getElementById('btn-reset');
-            btnReset.addEventListener('click', () => {
-                camera.position.copy(DEFAULT_CAMERA_POS);
-                controls.target.copy(DEFAULT_TARGET_POS);
-                controls.update();
-
-                if (isMirrorActive) btnMirror.click();
-                if (!isCyberActive) btnCyber.click(); 
-                if (!isHDActive) btnHd.click(); 
-                if (currentMode !== 'OFF') stopGame(); 
-
-                switchAnim('HAPPY', false, true);
-            });
-        }
-
-        // ==========================================
-        // ★ オートハイド制御ロジック（ディレイ対応版）
-        // ==========================================
-        function setupUIAutoHide() {
-            function triggerUIInteraction() {
-                if (currentMode !== 'OFF') return; 
-
-                const controlsEl = document.querySelector('.controls');
-                if (!controlsEl) return;
-                
-                const isHidden = controlsEl.classList.contains('ui-hidden');
-
-                if (isHidden) {
-                    // ★ 隠れている場合は1秒後に表示
-                    if (!uiShowTimeout) {
-                        uiShowTimeout = setTimeout(() => {
-                            if (currentMode === 'OFF') {
-                                document.querySelectorAll('.controls, .status-panel').forEach(el => el.classList.remove('ui-hidden'));
-                                window.startHideTimer();
-                            }
-                            uiShowTimeout = null;
-                        }, 1000);
-                    }
-                } else {
-                    // ★ 表示されている場合は消えるまでのタイマーをリセット
-                    window.startHideTimer();
-                }
-            }
-
-            ['mousemove', 'touchstart', 'touchmove', 'click', 'keydown'].forEach(eventType => {
-                window.addEventListener(eventType, triggerUIInteraction);
-            });
-
-            // UI自体に触れている間は消さないようにする（タイマー停止）
-            document.querySelectorAll('.controls, .status-panel').forEach(el => {
-                el.addEventListener('mouseenter', () => clearTimeout(uiHideTimeout));
-                el.addEventListener('mouseleave', () => window.startHideTimer());
-                el.addEventListener('touchstart', () => clearTimeout(uiHideTimeout));
-                el.addEventListener('touchend', () => window.startHideTimer());
-            });
-
-            // 初期化時
-            window.startHideTimer();
-        }
-
-        window.switchAnim = function(name, isFromAuto = false, muteSound = false) {
-            if (!actions[name] && name !== 'AUTO') return;
-
-            if (name === 'AUTO') {
-                isAutoMode = true;
-                if (autoTimer) clearTimeout(autoTimer);
-                switchAnim(animSequence[0], true);
-                return;
-            }
-
-            if (!isFromAuto) {
-                isAutoMode = false;
-                if (autoTimer) clearTimeout(autoTimer);
-                const idx = animSequence.indexOf(name);
-                if (idx !== -1) currentAnimIndex = idx;
-            }
-
-            currentPlayAnim = name;
-
-            lastReactionTime = clock.getElapsedTime();
-            if (name === 'CLAP') {
-                lastReactionTime += 10.0; 
-            }
-
-            if (audioTimerSoccer) clearTimeout(audioTimerSoccer);
-            if (audioTimerClap1) clearTimeout(audioTimerClap1);
-            if (audioTimerClap2) clearTimeout(audioTimerClap2);
-            if (audioTimerHappy) clearTimeout(audioTimerHappy);
-            if (audioTimerReturn) clearTimeout(audioTimerReturn);
-            if (idleTimer) clearTimeout(idleTimer); 
-
-            if (name === 'HAPPY') {
-                idleTimer = setTimeout(() => {
-                    if (currentPlayAnim === 'HAPPY') {
-                        switchAnim('DANCE', false, true); 
-                    }
-                }, 15000); 
-            } else if (name === 'DANCE') {
-                idleTimer = setTimeout(() => {
-                    if (currentPlayAnim === 'DANCE') {
-                        switchAnim('HAPPY', false, true); 
-                    }
-                }, 8000);
-            }
-
-            if (!muteSound) {
-                if (name === 'SOCCER') {
-                    triggerSoccerSound();
-                } else if (name === 'CLAP') {
-                    triggerClapSound(); 
-                } else if (name === 'HAPPY') {
-                    triggerHappySound();
-                }
-            }
-
-            const nextAction = actions[name];
-            
-            if (activeAction && activeAction !== nextAction) {
-                nextAction.reset();
-                nextAction.play();
-                activeAction.crossFadeTo(nextAction, 0.4, true);
-            } else {
-                nextAction.reset().play();
-            }
-            activeAction = nextAction;
-
-            document.querySelectorAll('#btn-container button').forEach(b => {
-                b.classList.remove('active'); b.classList.remove('playing-in-auto');
-            });
-
-            if (isAutoMode) {
-                document.getElementById('btn-AUTO').classList.add('active');
-                const playingBtn = document.getElementById("btn-" + name);
-                if(playingBtn) playingBtn.classList.add('playing-in-auto');
-                document.getElementById('current-anim').innerText = "Mode: AUTO (" + name + ")";
-                
-                autoTimer = setTimeout(() => {
-                    currentAnimIndex = (currentAnimIndex + 1) % animSequence.length;
-                    switchAnim(animSequence[currentAnimIndex], true);
-                }, 6000); 
-            } else {
-                const activeBtn = document.getElementById("btn-" + name);
-                if(activeBtn) activeBtn.classList.add('active');
-                document.getElementById('current-anim').innerText = "Mode: MANUAL (" + name + ")";
-            }
+            resetBall(); switchAnim('HAPPY'); 
         };
 
-        function onWindowResize() {
-            camera.aspect = window.innerWidth / window.innerHeight;
-            camera.updateProjectionMatrix();
+        function showToast(html) {
+            const toast = document.getElementById('game-toast');
+            toast.innerHTML = html; 
+            toast.style.display = 'block';
+            setTimeout(() => toast.style.opacity = '1', 10);
+            setTimeout(() => { 
+                toast.style.opacity = '0'; 
+                setTimeout(() => toast.style.display = 'none', 400); 
+            }, 3000);
+        }
+
+        // ========================================================
+        // ★ ゲーム内UI・スコア・ランキング更新
+        // ========================================================
+        function updateScoreUI() {
+            const scoreEl = document.getElementById('game-score');
+            if (currentMode === 'STRIKEOUT') {
+                scoreEl.innerHTML = `🎯 のこり: ${panelsRemaining}まい &nbsp;|&nbsp; ⚽ けったかず: ${kickCount}かい`;
+            } else if (currentMode === 'LONGKICK') {
+                scoreEl.innerHTML = `💨 きょり: ${currentDistance.toFixed(1)}m &nbsp;|&nbsp; 🏆 いちばん: ${recordDistance.toFixed(1)}m`;
+            }
+        }
+
+        function updateLeaderboard() {
+            const list = document.getElementById('record-list');
+            const title = document.getElementById('leaderboard-title');
+            list.innerHTML = '';
+            
+            if (currentMode === 'LONGKICK') {
+                title.innerText = '🏆 とんだきょり ランキング';
+                for(let i=0; i<5; i++) {
+                    let dist = topRecordsLongKick[i] ? topRecordsLongKick[i].toFixed(1) + ' m' : '--- m';
+                    list.innerHTML += `<div class="record-item"><span>${i+1}.</span><span>${dist}</span></div>`;
+                }
+            } else {
+                title.innerText = '🏆 けったかず ランキング';
+                for(let i=0; i<5; i++) {
+                    let kicks = topRecordsStrikeout[i] ? topRecordsStrikeout[i] + ' かい' : '---';
+                    list.innerHTML += `<div class="record-item"><span>${i+1}.</span><span>${kicks}</span></div>`;
+                }
+            }
+        }
+
+        function addRecord(val) {
+            let isNewRecord = false;
+            if (currentMode === 'LONGKICK') {
+                if (val > 0) {
+                    topRecordsLongKick.push(val);
+                    topRecordsLongKick.sort((a, b) => b - a); 
+                    topRecordsLongKick = topRecordsLongKick.slice(0, 5); 
+                    if (val === topRecordsLongKick[0]) isNewRecord = true;
+                }
+            } else if (currentMode === 'STRIKEOUT') {
+                if (val > 0) {
+                    topRecordsStrikeout.push(val);
+                    topRecordsStrikeout.sort((a, b) => a - b); 
+                    topRecordsStrikeout = topRecordsStrikeout.slice(0, 5);
+                    if (val === topRecordsStrikeout[0]) isNewRecord = true;
+                }
+            }
+            updateLeaderboard();
+            if (isNewRecord) {
+                audioSoccer5.currentTime = 0; audioSoccer5.play().catch(e=>{});
+                const lb = document.getElementById('game-leaderboard');
+                lb.style.transform = window.innerWidth <= 768 ? 'scale(1.1)' : 'translateY(-50%) scale(1.1)';
+                lb.style.boxShadow = '0 0 30px rgba(255, 215, 0, 1)'; lb.style.borderColor = '#ffd700'; lb.style.color = '#ffd700';
+                setTimeout(() => {
+                    lb.style.transform = window.innerWidth <= 768 ? 'scale(1)' : 'translateY(-50%) scale(1)';
+                    lb.style.boxShadow = '0 0 15px rgba(0, 255, 102, 0.3)'; lb.style.borderColor = '#00ff66'; lb.style.color = '#00ff66';
+                }, 1500);
+            }
+        }
+
+        function createNumberTexture(number) {
+            const canvas = document.createElement('canvas'); canvas.width = 256; canvas.height = 256;
+            const ctx = canvas.getContext('2d');
+            ctx.fillStyle = 'rgba(0, 255, 102, 0.15)'; ctx.fillRect(0, 0, 256, 256);
+            ctx.strokeStyle = '#00ff66'; ctx.lineWidth = 15; ctx.strokeRect(0, 0, 256, 256);
+            ctx.font = 'bold 150px sans-serif'; ctx.fillStyle = '#ffffff';
+            ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+            ctx.shadowColor = '#00ff66'; ctx.shadowBlur = 20;
+            ctx.fillText(number, 128, 138); 
+            return new THREE.CanvasTexture(canvas);
+        }
+
+        function createDistanceSignTexture(distStr) {
+            const canvas = document.createElement('canvas'); canvas.width = 512; canvas.height = 256;
+            const ctx = canvas.getContext('2d');
+            ctx.fillStyle = 'rgba(10, 15, 30, 0.4)'; ctx.fillRect(0, 0, 512, 256);
+            ctx.strokeStyle = 'rgba(255, 255, 255, 0.5)'; ctx.lineWidth = 8; ctx.strokeRect(0, 0, 512, 256);
+            ctx.font = 'bold 100px sans-serif'; ctx.fillStyle = 'rgba(255, 255, 255, 0.8)';
+            ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+            ctx.shadowColor = 'rgba(255, 255, 255, 0.5)'; ctx.shadowBlur = 10;
+            ctx.fillText(distStr, 256, 128); 
+            return new THREE.CanvasTexture(canvas);
+        }
+
+        // ========================================================
+        // ★ アニメーションと音声
+        // ========================================================
+        function triggerSoccerSound() {
+            if (audioTimerSoccer) clearTimeout(audioTimerSoccer);
+            audioTimerSoccer = setTimeout(() => {
+                if (currentPlayAnim !== 'SOCCER') return; 
+                Math.random() < 0.1 ? (audioSoccer2.currentTime=0, audioSoccer2.play().catch(e=>{})) : (audioSoccer1.currentTime=0, audioSoccer1.play().catch(e=>{}));
+            }, 800); 
+        }
+
+        function triggerClapSound() {
+            if (audioTimerClap1) clearTimeout(audioTimerClap1);
+            if (audioTimerClap2) clearTimeout(audioTimerClap2);
+            const isPatternA = Math.random() < 0.5;
+            const firstCheer = isPatternA ? audioCheer1 : audioCheer3;
+            const secondCheer = isPatternA ? audioCheer2 : audioCheer4;
+            
+            audioTimerClap1 = setTimeout(() => { if (currentPlayAnim === 'CLAP') { firstCheer.currentTime = 0; firstCheer.play().catch(e=>{}); } }, 400); 
+            audioTimerClap2 = setTimeout(() => { if (currentPlayAnim === 'CLAP') { secondCheer.currentTime = 0; secondCheer.play().catch(e=>{}); } }, isPatternA ? 2400 : 1200); 
+            setTimeout(() => { if (currentPlayAnim === 'CLAP') switchAnim('HAPPY'); }, isPatternA ? 9000 : 7500);
+        }
+
+        window.switchAnim = function(name) {
+            if (!actions[name]) return;
+            currentPlayAnim = name;
+            
+            if (idleTimer) clearTimeout(idleTimer); 
+            if (name === 'HAPPY') idleTimer = setTimeout(() => switchAnim('DANCE'), 15000); 
+            else if (name === 'DANCE') idleTimer = setTimeout(() => switchAnim('HAPPY'), 8000);
+
+            if (name === 'SOCCER') triggerSoccerSound();
+            else if (name === 'CLAP') triggerClapSound(); 
+
+            const nextAction = actions[name];
+            if (activeAction && activeAction !== nextAction) {
+                nextAction.reset().play(); activeAction.crossFadeTo(nextAction, 0.4, true);
+            } else { nextAction.reset().play(); }
+            activeAction = nextAction;
+        };
+
+        function manageBGM(delta) {
+            if (!isPortalBgmPlaying) return;
+
+            if (activeBgm.duration && activeBgm.currentTime >= activeBgm.duration - BGM_CROSSFADE_SEC) {
+                if (nextBgm.paused) {
+                    nextBgm.currentTime = 0;
+                    nextBgm.play().catch(e=>{});
+                }
+                let ratio = (activeBgm.duration - activeBgm.currentTime) / BGM_CROSSFADE_SEC;
+                ratio = Math.max(0, Math.min(1, ratio));
+                activeBgm.volume = TARGET_BGM_VOL * ratio;
+                nextBgm.volume = TARGET_BGM_VOL * (1 - ratio);
+
+                if (activeBgm.currentTime >= activeBgm.duration - 0.1) {
+                    activeBgm.pause();
+                    activeBgm.currentTime = 0;
+                    let temp = activeBgm;
+                    activeBgm = nextBgm;
+                    nextBgm = temp;
+                    activeBgm.volume = TARGET_BGM_VOL;
+                }
+            } else {
+                if (activeBgm.volume < TARGET_BGM_VOL) {
+                    activeBgm.volume = Math.min(TARGET_BGM_VOL, activeBgm.volume + delta * 0.5);
+                }
+            }
+        }
+
+        // ========================================================
+        // ★ Three.js 描画・セットアップ
+        // ========================================================
+        init();
+
+        function init() {
+            scene = new THREE.Scene();
+            camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 8000); 
+            camera.position.copy(DEFAULT_CAMERA_POS);
+
+            const canvas = document.getElementById('game-canvas');
+            renderer = new THREE.WebGLRenderer({ canvas: canvas, antialias: true, alpha: true });
             renderer.setSize(window.innerWidth, window.innerHeight);
+            renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+            renderer.setClearColor(0x000000, 1); 
+            renderer.outputEncoding = THREE.sRGBEncoding; 
+            renderer.toneMapping = THREE.ACESFilmicToneMapping;
+
+            scene.add(new THREE.AmbientLight(0xffffff, 0.5));
+            const sunLight = new THREE.DirectionalLight(0xffffff, 1.2);
+            sunLight.position.set(5, 10, 7.5); sunLight.castShadow = true; scene.add(sunLight);
+
+            const floor = new THREE.Mesh(
+                new THREE.PlaneGeometry(2000, 2000),
+                new THREE.ShadowMaterial({ opacity: 0.4 })
+            );
+            floor.rotation.x = -Math.PI / 2;
+            floor.receiveShadow = true;
+            scene.add(floor);
+
+            cyberGroup = new THREE.Group(); scene.add(cyberGroup);
+            const grid = new THREE.GridHelper(600, 150, 0x00d8ff, 0x004488); grid.position.y = 0.01; cyberGroup.add(grid);
+
+            const particlesGeo = new THREE.BufferGeometry();
+            const posArray = new Float32Array(1500 * 3);
+            for(let i = 0; i < 4500; i+=3) {
+                posArray[i] = (Math.random() - 0.5) * 120; 
+                posArray[i+1] = Math.random() * 40; 
+                posArray[i+2] = (Math.random() - 0.5) * 200; 
+            }
+            particlesGeo.setAttribute('position', new THREE.BufferAttribute(posArray, 3));
+            const particlesMat = new THREE.PointsMaterial({ size: 0.2, color: 0x00ff66, transparent: true, opacity: 0.8, blending: THREE.AdditiveBlending });
+            scene.add(new THREE.Points(particlesGeo, particlesMat));
+
+            particlesMatRef = particlesMat;
+
+            longKickEnvGroup = new THREE.Group(); longKickEnvGroup.visible = false; scene.add(longKickEnvGroup);
+            const longGrid = new THREE.GridHelper(8000, 800, 0x00ff66, 0x002211); longGrid.position.set(0, 0.015, -4000); longKickEnvGroup.add(longGrid);
+            longGridMatRef = longGrid.material;
+
+            const bGeo = new THREE.BoxGeometry(1, 1, 1);
+            const bMat = new THREE.MeshBasicMaterial({ color: 0x00d8ff, wireframe: true, transparent: true, opacity: 0.2 });
+            for (let i = 0; i < 300; i++) {
+                const b = new THREE.Mesh(bGeo, bMat);
+                const w = 10 + Math.random() * 40, h = 20 + Math.random() * 150, d = 10 + Math.random() * 40;
+                b.scale.set(w, h, d);
+                const side = Math.random() > 0.5 ? 1 : -1;
+                b.position.set(side * (60 + Math.random() * 300), h / 2, -Math.random() * 8000);
+                longKickEnvGroup.add(b);
+            }
+            const pillarGeo = new THREE.BoxGeometry(2, 40, 2);
+            const pillarMat = new THREE.MeshBasicMaterial({ color: 0x00ff66, wireframe: true, transparent: true, opacity: 0.5 });
+            const topGeo = new THREE.BoxGeometry(80, 2, 2);
+            for (let i = 1; i <= 80; i++) { 
+                const zPos = -i * 100;
+                const pL = new THREE.Mesh(pillarGeo, pillarMat); pL.position.set(-40, 20, zPos); longKickEnvGroup.add(pL);
+                const pR = new THREE.Mesh(pillarGeo, pillarMat); pR.position.set(40, 20, zPos); longKickEnvGroup.add(pR);
+                const pT = new THREE.Mesh(topGeo, pillarMat); pT.position.set(0, 40, zPos); longKickEnvGroup.add(pT);
+            }
+
+            const signGeo = new THREE.PlaneGeometry(16, 8);
+            for (let d = 500; d <= 3500; d += 500) {
+                const zPos = 5 - (d / 2.5);
+                const tex = createDistanceSignTexture(d + "m");
+                const mat = new THREE.MeshBasicMaterial({ map: tex, transparent: true, opacity: 0.6, side: THREE.DoubleSide, depthWrite: false });
+                
+                const signL = new THREE.Mesh(signGeo, mat);
+                signL.position.set(-25, 4, zPos);
+                signL.rotation.y = Math.PI / 6;
+                longKickEnvGroup.add(signL);
+
+                const signR = new THREE.Mesh(signGeo, mat);
+                signR.position.set(25, 4, zPos);
+                signR.rotation.y = -Math.PI / 6;
+                longKickEnvGroup.add(signR);
+            }
+
+            controls = new OrbitControls(camera, renderer.domElement);
+            controls.enableDamping = true; controls.target.copy(DEFAULT_TARGET_POS);
+
+            const loader = new GLTFLoader();
+            loader.load('./model/final.glb', (gltf) => {
+                const model = gltf.scene;
+                const scaleGroup = new THREE.Group(); scaleGroup.add(model); scaleGroup.scale.set(8, 8, 8); 
+                model.traverse((o) => { 
+                    if (o.isMesh) {
+                        o.castShadow = true; o.receiveShadow = true;
+                        if(o.morphTargetDictionary) morphMeshes.push(o); 
+                    }
+                });
+                characterModel = scaleGroup; scene.add(scaleGroup);
+                
+                mixer = new THREE.AnimationMixer(model);
+                mixer.addEventListener('loop', (e) => { 
+                    if (e.action === actions['SOCCER'] && currentPlayAnim === 'SOCCER') triggerSoccerSound();
+                });
+                
+                gltf.animations.forEach((clip) => {
+                    let cleanName = clip.name.replace(/mixamorig:|Armature\|/gi, '').replace(/\.com/g, '').toUpperCase().trim();
+                    if (cleanName === 'IDLE') cleanName = 'IDOL';
+                    if (!cleanName.includes('TRIPO') && !cleanName.includes('MESH') && !cleanName.includes('NODE')) {
+                        actions[cleanName] = mixer.clipAction(clip);
+                    }
+                });
+
+                switchAnim('HAPPY');
+            });
+
+            setupGameObjects(); 
+            
+            // ★ リサイズイベントでスマホ時のカメラ位置を自動調整する
+            window.addEventListener('resize', () => {
+                camera.aspect = window.innerWidth / window.innerHeight; camera.updateProjectionMatrix();
+                renderer.setSize(window.innerWidth, window.innerHeight);
+                
+                if (window.innerWidth <= 768) {
+                    DEFAULT_CAMERA_POS.set(0, 8, 35);
+                } else {
+                    DEFAULT_CAMERA_POS.set(0, 6, 22);
+                }
+            });
+            
+            window.addEventListener('pointerdown', onPointerDown);
+            animate();
+        }
+
+        function setupGameObjects() {
+            const coreGeo = new THREE.IcosahedronGeometry(0.7, 2);
+            const coreMat = new THREE.MeshPhongMaterial({ color: 0x00ff66, emissive: 0x004422, transparent: true, opacity: 0.8 });
+            soccerBall = new THREE.Mesh(coreGeo, coreMat);
+            const wireMesh = new THREE.Mesh(new THREE.IcosahedronGeometry(0.8, 1), new THREE.MeshBasicMaterial({ color: 0x00ff66, wireframe: true }));
+            soccerBall.add(wireMesh); soccerBall.visible = false; soccerBall.castShadow = true; scene.add(soccerBall);
+            
+            goalGroup = new THREE.Group(); scene.add(goalGroup);
+            const poleMat = new THREE.MeshBasicMaterial({ color: 0x00ff66 });
+            const netMat = new THREE.MeshBasicMaterial({ color: 0x00ff66, wireframe: true, transparent: true, opacity: 0.2 });
+
+            const fpL = new THREE.Mesh(new THREE.CylinderGeometry(0.3, 0.3, 12), poleMat); fpL.position.set(-12, 6, -40); goalGroup.add(fpL);
+            const fpR = new THREE.Mesh(new THREE.CylinderGeometry(0.3, 0.3, 12), poleMat); fpR.position.set(12, 6, -40); goalGroup.add(fpR);
+            const bpL = new THREE.Mesh(new THREE.CylinderGeometry(0.3, 0.3, 12), poleMat); bpL.position.set(-12, 6, -48); goalGroup.add(bpL);
+            const bpR = new THREE.Mesh(new THREE.CylinderGeometry(0.3, 0.3, 12), poleMat); bpR.position.set(12, 6, -48); goalGroup.add(bpR);
+            const cbF = new THREE.Mesh(new THREE.CylinderGeometry(0.3, 0.3, 24), poleMat); cbF.rotation.z = Math.PI / 2; cbF.position.set(0, 12, -40); goalGroup.add(cbF);
+            const cbB = new THREE.Mesh(new THREE.CylinderGeometry(0.3, 0.3, 24), poleMat); cbB.rotation.z = Math.PI / 2; cbB.position.set(0, 12, -48); goalGroup.add(cbB);
+            const sbTL = new THREE.Mesh(new THREE.CylinderGeometry(0.3, 0.3, 8), poleMat); sbTL.rotation.x = Math.PI / 2; sbTL.position.set(-12, 12, -44); goalGroup.add(sbTL);
+            const sbTR = new THREE.Mesh(new THREE.CylinderGeometry(0.3, 0.3, 8), poleMat); sbTR.rotation.x = Math.PI / 2; sbTR.position.set(12, 12, -44); goalGroup.add(sbTR);
+            const sbBL = new THREE.Mesh(new THREE.CylinderGeometry(0.3, 0.3, 8), poleMat); sbBL.rotation.x = Math.PI / 2; sbBL.position.set(-12, 0.3, -44); goalGroup.add(sbBL);
+            const sbBR = new THREE.Mesh(new THREE.CylinderGeometry(0.3, 0.3, 8), poleMat); sbBR.rotation.x = Math.PI / 2; sbBR.position.set(12, 0.3, -44); goalGroup.add(sbBR);
+            const bbB = new THREE.Mesh(new THREE.CylinderGeometry(0.3, 0.3, 24), poleMat); bbB.rotation.z = Math.PI / 2; bbB.position.set(0, 0.3, -48); goalGroup.add(bbB);
+
+            const backNet = new THREE.Mesh(new THREE.PlaneGeometry(24, 12, 24, 12), netMat); backNet.position.set(0, 6, -48); goalGroup.add(backNet);
+            const leftNet = new THREE.Mesh(new THREE.PlaneGeometry(8, 12, 8, 12), netMat); leftNet.rotation.y = Math.PI / 2; leftNet.position.set(-12, 6, -44); goalGroup.add(leftNet);
+            const rightNet = new THREE.Mesh(new THREE.PlaneGeometry(8, 12, 8, 12), netMat); rightNet.rotation.y = -Math.PI / 2; rightNet.position.set(12, 6, -44); goalGroup.add(rightNet);
+            const topNet = new THREE.Mesh(new THREE.PlaneGeometry(24, 8, 24, 8), netMat); topNet.rotation.x = Math.PI / 2; topNet.position.set(0, 12, -44); goalGroup.add(topNet);
+
+            const panelW = 7.6; const panelH = 3.8;
+            const xs = [-8, 0, 8]; const ys = [2.2, 6.2, 10.2];
+            for(let i=0; i<3; i++){
+                for(let j=0; j<3; j++){
+                    const num = (2 - i) * 3 + j + 1; 
+                    const pMat = new THREE.MeshBasicMaterial({ map: createNumberTexture(num), transparent: true, opacity: 0.9, side: THREE.DoubleSide });
+                    const pMesh = new THREE.Mesh(new THREE.PlaneGeometry(panelW, panelH), pMat);
+                    pMesh.position.set(xs[j], ys[i], -39.5); goalGroup.add(pMesh);
+                    targetPanels.push({ mesh: pMesh, active: true, bounds: { minX: xs[j] - panelW/2, maxX: xs[j] + panelW/2, minY: ys[i] - panelH/2, maxY: ys[i] + panelH/2 } });
+                }
+            }
+            goalGroup.visible = false;
+        }
+
+        function clearEffects() {
+            particles.forEach(p => { scene.remove(p); p.material.dispose(); p.geometry.dispose(); }); particles = [];
+            trails.forEach(t => { scene.remove(t); t.material.dispose(); t.geometry.dispose(); }); trails = [];
+            speedRings.forEach(r => { scene.remove(r); r.material.dispose(); r.geometry.dispose(); }); speedRings = [];
+        }
+
+        function createSpeedEffect(pos, color) {
+            const geo = new THREE.RingGeometry(2, 3, 32);
+            const mat = new THREE.MeshBasicMaterial({ color: color, transparent: true, opacity: 0.7, side: THREE.DoubleSide });
+            const ring = new THREE.Mesh(geo, mat);
+            ring.position.copy(pos);
+            ring.rotation.x = Math.PI / 2; 
+            scene.add(ring);
+            speedRings.push(ring);
+        }
+
+        function resetBall() {
+            if (!soccerBall) return;
+            isBallKicked = false; isCameraTracking = false; hasBounced = false; lastPassedDist = 0;
+            camera.position.copy(DEFAULT_CAMERA_POS); controls.target.copy(DEFAULT_TARGET_POS); controls.update();
+            soccerBall.position.set(0, 0.8, 5); soccerBall.rotation.set(0, 0, 0); ballVelocity.set(0, 0, 0);
+            if (ballResetTimer) { clearTimeout(ballResetTimer); ballResetTimer = null; }
+            if (kickFailSafeTimer) { clearTimeout(kickFailSafeTimer); kickFailSafeTimer = null; }
+            clearEffects(); 
+        }
+
+        function createShatterParticles(pos, colorHex) {
+            const geo = new THREE.ConeGeometry(0.2, 0.4, 3);
+            const mat = new THREE.MeshBasicMaterial({ color: colorHex, transparent: true, side: THREE.DoubleSide });
+            for (let i = 0; i < 15; i++) {
+                const mesh = new THREE.Mesh(geo, mat);
+                mesh.position.copy(pos); mesh.position.x += (Math.random() - 0.5)*4; mesh.position.y += (Math.random() - 0.5)*2;
+                mesh.velocity = new THREE.Vector3((Math.random() - 0.5)*0.8, (Math.random() - 0.2)*1.5, (Math.random() - 0.5)*1.0);
+                mesh.life = 1.0; scene.add(mesh); particles.push(mesh);
+            }
+        }
+
+        function onPointerDown(event) {
+            if (event.target.tagName === 'BUTTON' || event.target.tagName === 'SPAN') return;
+            if (currentMode === 'OFF' || !soccerBall || !soccerBall.visible || isBallKicked) return;
+            mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
+            mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
+            raycaster.setFromCamera(mouse, camera);
+            const intersects = raycaster.intersectObject(soccerBall, true);
+            if (intersects.length > 0) {
+                const ballCenter = new THREE.Vector3(); soccerBall.getWorldPosition(ballCenter);
+                kickBall(intersects[0].point.x - ballCenter.x, intersects[0].point.y - ballCenter.y);
+            }
+        }
+
+        function kickBall(hitOffsetX, hitOffsetY) {
+            isBallKicked = true; canBreakPanels = true; hasHitTargetThisKick = false; missJudged = false;
+            cameraShakeTime = 0.15; kickCount++; ballVelocity._clapped = false; 
+            
+            if (ballResetTimer) clearTimeout(ballResetTimer);
+            if (kickFailSafeTimer) clearTimeout(kickFailSafeTimer);
+
+            if (currentMode === 'STRIKEOUT') {
+                let vy = Math.max(-0.2, Math.min(0.8 - hitOffsetY * 2.0, 2.5)); 
+                ballVelocity.set(-hitOffsetX * 1.5, vy, -1.8 - Math.random() * 0.4);
+                ballResetTimer = setTimeout(() => { if(currentMode === 'STRIKEOUT') resetBall(); }, 2500); 
+
+            } else if (currentMode === 'LONGKICK') {
+                currentDistance = 0; hasBounced = false; isCameraTracking = true; lastPassedDist = 0;
+                let vy = Math.max(0.5, Math.min(1.0 - hitOffsetY * 4.0, 4.0)); 
+                let powerBonus = (hitOffsetY < 0) ? Math.abs(hitOffsetY) * 3.5 : 0; 
+                ballVelocity.set(-hitOffsetX * 1.0, vy, -3.0 - powerBonus - (1.0 - Math.abs(hitOffsetX)) * 2.0);
+                kickFailSafeTimer = setTimeout(() => { if(currentMode === 'LONGKICK' && !hasBounced) { addRecord(currentDistance); resetBall(); } }, 20000); 
+            }
+            
+            audioSoccer1.currentTime = 0; audioSoccer1.play().catch(e=>{});
+            updateScoreUI();
         }
 
         function animate() {
             requestAnimationFrame(animate);
-            const delta = clock.getDelta();
-            const time = clock.getElapsedTime(); 
-            
+            const delta = clock.getDelta(); const time = clock.getElapsedTime(); 
             if (mixer) mixer.update(delta);
             
+            manageBGM(delta);
+
+            if (currentMode === 'LONGKICK') {
+                let tColor = dynamicColors[dynamicColors.length - 1].color;
+                for (let i = 0; i < dynamicColors.length - 1; i++) {
+                    if (currentDistance >= dynamicColors[i].dist && currentDistance < dynamicColors[i+1].dist) {
+                        let t = (currentDistance - dynamicColors[i].dist) / (dynamicColors[i+1].dist - dynamicColors[i].dist);
+                        currentColorTarget.copy(dynamicColors[i].color).lerp(dynamicColors[i+1].color, t);
+                        break;
+                    }
+                }
+                if (currentDistance >= dynamicColors[dynamicColors.length - 1].dist) {
+                    currentColorTarget.copy(dynamicColors[dynamicColors.length - 1].color);
+                }
+            } else {
+                currentColorTarget.setHex(0x00ff66);
+            }
+
+            if (longGridMatRef) longGridMatRef.color.lerp(currentColorTarget, 0.05);
+            if (particlesMatRef) particlesMatRef.color.lerp(currentColorTarget, 0.05);
+
             if (isCameraTracking && soccerBall) {
-                const targetCamPos = new THREE.Vector3(
-                    soccerBall.position.x * 0.3, 
-                    Math.max(8, soccerBall.position.y + 5), 
-                    Math.min(22, soccerBall.position.z + 30)
-                );
-                camera.position.lerp(targetCamPos, 0.08); 
-                controls.target.lerp(soccerBall.position, 0.1);
-            } else if (currentMode !== 'OFF') {
-                camera.position.lerp(DEFAULT_CAMERA_POS, 0.05);
-                controls.target.lerp(DEFAULT_TARGET_POS, 0.1);
+                const targetCamPos = new THREE.Vector3(soccerBall.position.x * 0.3, Math.max(8, soccerBall.position.y + 5), Math.min(22, soccerBall.position.z + 30));
+                camera.position.lerp(targetCamPos, 0.08); controls.target.lerp(soccerBall.position, 0.1);
+            } else {
+                camera.position.lerp(DEFAULT_CAMERA_POS, 0.05); controls.target.lerp(DEFAULT_TARGET_POS, 0.1);
             }
             controls.update();
             
@@ -1218,128 +986,56 @@
                 characterModel.rotation.y = THREE.MathUtils.lerp(characterModel.rotation.y, targetCharacterRotationY, delta * 4.0);
             }
 
-            if (isMicActive && analyser) {
-                analyser.getByteFrequencyData(dataArray);
-                let sum = 0;
-                for(let i = 0; i < dataArray.length; i++) {
-                    sum += dataArray[i];
-                }
-                let averageVolume = sum / dataArray.length; 
-                document.getElementById('mic-level-bar').style.width = Math.min(averageVolume, 100) + "%";
-
-                if (averageVolume > 100 && (time - lastReactionTime > 2.0)) {
-                    isAutoMode = false; 
-                    if (autoTimer) clearTimeout(autoTimer);
-                    switchAnim('CLAP'); 
-                }
-            }
-
-            if (isBgmActive && activeBgm) {
-                if (activeBgm.duration && activeBgm.currentTime >= activeBgm.duration - BGM_CROSSFADE_TIME) {
-                    if (nextBgm.paused) {
-                        nextBgm.currentTime = 0;
-                        nextBgm.play().catch(e=>console.log(e)); 
-                    }
-                    let ratio = (activeBgm.duration - activeBgm.currentTime) / BGM_CROSSFADE_TIME;
-                    ratio = Math.max(0, Math.min(1, ratio)); 
-                    activeBgm.volume = BGM_MAX_VOL * ratio;
-                    nextBgm.volume = BGM_MAX_VOL * (1 - ratio);
-
-                    if (activeBgm.currentTime >= activeBgm.duration - 0.1) {
-                        activeBgm.pause();
-                        activeBgm.currentTime = 0;
-                        let temp = activeBgm;
-                        activeBgm = nextBgm;
-                        nextBgm = temp;
-                        activeBgm.volume = BGM_MAX_VOL;
-                    }
-                } else {
-                    if (activeBgm.volume < BGM_MAX_VOL) {
-                        activeBgm.volume = Math.min(BGM_MAX_VOL, activeBgm.volume + (BGM_MAX_VOL / 2.0) * delta); 
-                    }
-                }
-            }
-
             if (cameraShakeTime > 0) {
                 cameraShakeTime -= delta;
-                camera.position.x += (Math.random() - 0.5) * 0.5;
-                camera.position.y += (Math.random() - 0.5) * 0.5;
-            }
-
-            if (isCyberActive && cyberParticles) {
-                cyberParticles.rotation.y = time * 0.05; 
+                camera.position.x += (Math.random() - 0.5) * 0.5; camera.position.y += (Math.random() - 0.5) * 0.5;
             }
 
             if (currentMode !== 'OFF' && soccerBall && isBallKicked) {
-                soccerBall.position.add(ballVelocity);
-                ballVelocity.y -= 0.015; 
-
-                if (soccerBall.position.y <= 0.8) {
-                    soccerBall.position.y = 0.8;
-                    ballVelocity.y *= -0.6; 
-                    ballVelocity.x *= 0.85; 
-                    ballVelocity.z *= 0.85;
-                } else {
-                    ballVelocity.x *= 0.995;
-                    ballVelocity.z *= 0.995;
-                }
-
-                soccerBall.rotation.x -= ballVelocity.z * 0.5;
-                soccerBall.rotation.z += ballVelocity.x * 0.5;
-
-                if (ballVelocity.lengthSq() > 0.02 && Math.random() > 0.3) {
-                    const trailGeo = new THREE.IcosahedronGeometry(0.8, 0); 
-                    const trailMat = new THREE.MeshBasicMaterial({ color: 0x00ff00, transparent: true, opacity: 0.5, wireframe: true });
-                    const trailMesh = new THREE.Mesh(trailGeo, trailMat);
-                    trailMesh.position.copy(soccerBall.position);
-                    trailMesh.rotation.copy(soccerBall.rotation);
-                    scene.add(trailMesh);
-                    trails.push(trailMesh);
-                }
-
+                
                 if (currentMode === 'STRIKEOUT') {
+                    soccerBall.position.add(ballVelocity); ballVelocity.y -= 0.015; 
+                    if (soccerBall.position.y <= 0.8) {
+                        soccerBall.position.y = 0.8; ballVelocity.y *= -0.6; ballVelocity.x *= 0.85; ballVelocity.z *= 0.85;
+                    } else { ballVelocity.x *= 0.995; ballVelocity.z *= 0.995; }
+                    soccerBall.rotation.x -= ballVelocity.z * 0.5; soccerBall.rotation.z += ballVelocity.x * 0.5;
+
                     let hitCountThisFrame = 0;
                     if (canBreakPanels && soccerBall.position.z < -38 && soccerBall.position.z > -42 && ballVelocity.z < 0) {
                         const br = 0.8; 
                         targetPanels.forEach(p => {
-                            if (p.active) {
-                                if (soccerBall.position.x + br > p.bounds.minX && soccerBall.position.x - br < p.bounds.maxX &&
-                                    soccerBall.position.y + br > p.bounds.minY && soccerBall.position.y - br < p.bounds.maxY) {
-                                    
-                                    p.active = false;
-                                    p.mesh.visible = false; 
-                                    createShatterParticles(p.mesh.position, 30, 0x00ffff); 
-                                    hitCountThisFrame++;
-                                }
+                            if (p.active && soccerBall.position.x + 0.8 > p.bounds.minX && soccerBall.position.x - 0.8 < p.bounds.maxX &&
+                                soccerBall.position.y + 0.8 > p.bounds.minY && soccerBall.position.y - 0.8 < p.bounds.maxY) {
+                                p.active = false; p.mesh.visible = false; 
+                                createShatterParticles(p.mesh.position, 0x00ff66); hitCountThisFrame++;
                             }
                         });
 
                         if (hitCountThisFrame > 0) {
-                            canBreakPanels = false; 
-                            hasHitTargetThisKick = true; 
-                            consecutiveMissCount = 0;    
-
-                            audioSoccer2.currentTime = 0; 
-                            audioSoccer2.play(); 
+                            canBreakPanels = false; hasHitTargetThisKick = true; consecutiveMissCount = 0;    
                             switchAnim('CLAP'); 
+                            panelsRemaining -= hitCountThisFrame; updateScoreUI(); ballVelocity.multiplyScalar(0.8);
                             
-                            panelsRemaining -= hitCountThisFrame;
-                            updateScoreUI();
-                            ballVelocity.multiplyScalar(0.8);
-
                             if (panelsRemaining <= 0) {
+                                addRecord(kickCount); 
+                                showToast(`🎉 パーフェクト！ (${kickCount}かい)`);
+                                
+                                audioSoccer6.currentTime = 0; 
+                                audioSoccer6.play().catch(e=>{});
+                                audioSoccer6.onended = () => {
+                                    audioSoccer7.currentTime = 0;
+                                    audioSoccer7.play().catch(e=>{});
+                                };
+
                                 setTimeout(() => {
                                     if(currentMode === 'STRIKEOUT'){
-                                        targetPanels.forEach(panel => {
-                                            panel.active = true;
-                                            panel.mesh.visible = true;
-                                        });
-                                        panelsRemaining = 9;
-                                        kickCount = 0;
-                                        consecutiveMissCount = 0;
-                                        updateScoreUI();
+                                        targetPanels.forEach(panel => { panel.active = true; panel.mesh.visible = true; });
+                                        panelsRemaining = 9; kickCount = 0; consecutiveMissCount = 0; updateScoreUI();
                                     }
-                                }, 3000);
+                                }, 5000); 
+                            } else {
+                                audioSoccer2.currentTime = 0; 
+                                audioSoccer2.play().catch(e=>{}); 
                             }
                         }
                     }
@@ -1348,130 +1044,103 @@
                         missJudged = true;
                         if (!hasHitTargetThisKick) {
                             consecutiveMissCount++;
-                            if (consecutiveMissCount >= 3) {
-                                audioSoccer4.currentTime = 0;
-                                audioSoccer4.play().catch(e => console.log(e));
-                                consecutiveMissCount = 0; 
-                            } else {
-                                audioSoccer3.currentTime = 0;
-                                audioSoccer3.play().catch(e => console.log(e));
-                            }
+                            if (consecutiveMissCount >= 3) { audioSoccer4.currentTime = 0; audioSoccer4.play().catch(e=>{}); consecutiveMissCount = 0; } 
+                            else { audioSoccer3.currentTime = 0; audioSoccer3.play().catch(e=>{}); }
                         }
                     }
 
-                    let insideGoalX = soccerBall.position.x > -12 && soccerBall.position.x < 12;
-                    let insideGoalY = soccerBall.position.y < 12;
                     if (soccerBall.position.z < -40 && soccerBall.position.z >= -49) {
-                        if (insideGoalX && insideGoalY) {
+                        if (soccerBall.position.x > -12 && soccerBall.position.x < 12 && soccerBall.position.y < 12) {
                             ballVelocity.multiplyScalar(0.92); 
-                            if (soccerBall.position.z <= -48 + 0.8) {
-                                soccerBall.position.z = -47.2; ballVelocity.z *= -0.3;
-                            }
-                            if (soccerBall.position.x < -12 + 0.8) {
-                                soccerBall.position.x = -11.2; ballVelocity.x *= -0.3;
-                            } else if (soccerBall.position.x > 12 - 0.8) {
-                                soccerBall.position.x = 11.2; ballVelocity.x *= -0.3;
-                            }
-                            if (soccerBall.position.y > 12 - 0.8) {
-                                soccerBall.position.y = 11.2; ballVelocity.y *= -0.3;
-                            }
-                        } else {
-                            ballVelocity.x *= 0.99; ballVelocity.z *= 0.99;
-                        }
+                            if (soccerBall.position.z <= -48 + 0.8) { soccerBall.position.z = -47.2; ballVelocity.z *= -0.3; }
+                            if (soccerBall.position.x < -12 + 0.8) { soccerBall.position.x = -11.2; ballVelocity.x *= -0.3; } 
+                            else if (soccerBall.position.x > 12 - 0.8) { soccerBall.position.x = 11.2; ballVelocity.x *= -0.3; }
+                            if (soccerBall.position.y > 12 - 0.8) { soccerBall.position.y = 11.2; ballVelocity.y *= -0.3; }
+                        } else { ballVelocity.x *= 0.99; ballVelocity.z *= 0.99; }
                     }
 
                 } else if (currentMode === 'LONGKICK') {
-                    let dist = Math.abs(soccerBall.position.z - 5) * 2.5; 
-                    currentDistance = Math.max(currentDistance, dist);
-                    
-                    if (currentDistance > recordDistance) recordDistance = currentDistance;
-                    updateScoreUI();
+                    if (!hasBounced) {
+                        soccerBall.position.add(ballVelocity); ballVelocity.y -= 0.015; 
+                        
+                        let dist = Math.abs(soccerBall.position.z - 5) * 2.5; 
+                        currentDistance = Math.max(currentDistance, dist);
+                        updateScoreUI();
 
-                    if (currentDistance > 150 && !ballVelocity._clapped) {
-                        ballVelocity._clapped = true;
-                        switchAnim('CLAP');
-                        audioSoccer2.currentTime = 0;
-                        audioSoccer2.play();
-                    }
-
-                    if (soccerBall.position.y <= 0.85 && ballVelocity.lengthSq() < 0.1) {
-                        if (kickFailSafeTimer) {
-                            clearTimeout(kickFailSafeTimer);
-                            kickFailSafeTimer = null;
-                            updateLeaderboard(currentDistance); 
-                            
-                            ballResetTimer = setTimeout(() => {
-                                if(currentMode === 'LONGKICK') {
-                                    resetBall();
-                                    document.getElementById('game-toast').classList.add('show'); 
-                                }
-                            }, 2000); 
+                        let checkDist = Math.floor(currentDistance / 500) * 500;
+                        if (checkDist > lastPassedDist && checkDist > 0) {
+                            lastPassedDist = checkDist;
+                            createSpeedEffect(soccerBall.position, currentColorTarget);
                         }
+
+                        if (soccerBall.position.y <= 0.8) {
+                            soccerBall.position.y = 0.8; 
+                            hasBounced = true;
+                            ballVelocity.set(0, 0, 0); 
+                            
+                            if (currentDistance > recordDistance) recordDistance = currentDistance;
+                            updateScoreUI();
+                            addRecord(currentDistance);
+
+                            createSpeedEffect(soccerBall.position, currentColorTarget);
+                            createShatterParticles(soccerBall.position, 0xffd700); 
+                            createShatterParticles(soccerBall.position, currentColorTarget.getHex()); 
+
+                            audioSoccer2.currentTime = 0; audioSoccer2.play();
+                            switchAnim('CLAP'); 
+                            
+                            showToast(`✨ ${currentDistance.toFixed(1)}m とんだ！`);
+
+                            if (kickFailSafeTimer) { clearTimeout(kickFailSafeTimer); kickFailSafeTimer = null; }
+                            ballResetTimer = setTimeout(() => { if(currentMode === 'LONGKICK') resetBall(); }, 3500); 
+                        } else {
+                            ballVelocity.x *= 0.995; ballVelocity.z *= 0.995; 
+                        }
+                        soccerBall.rotation.x -= ballVelocity.z * 0.5; soccerBall.rotation.z += ballVelocity.x * 0.5;
                     }
+                }
+
+                if (ballVelocity.lengthSq() > 0.02 && Math.random() > 0.3 && !hasBounced) {
+                    const trailMat = new THREE.MeshBasicMaterial({ color: currentColorTarget.getHex(), transparent: true, opacity: 0.5, wireframe: true });
+                    const trailMesh = new THREE.Mesh(new THREE.IcosahedronGeometry(0.8, 0), trailMat);
+                    trailMesh.position.copy(soccerBall.position); trailMesh.rotation.copy(soccerBall.rotation);
+                    scene.add(trailMesh); trails.push(trailMesh);
                 }
             }
 
             for (let i = particles.length - 1; i >= 0; i--) {
-                let p = particles[i];
-                p.position.add(p.velocity);
-                p.velocity.y -= 0.05; 
-                p.life -= delta * 1.5;
-                p.material.opacity = p.life;
-                p.rotation.x += 0.2; p.rotation.y += 0.2;
-                if (p.life <= 0) { scene.remove(p); particles.splice(i, 1); }
+                let p = particles[i]; p.position.add(p.velocity); p.velocity.y -= 0.05; p.life -= delta * 1.5; p.material.opacity = p.life;
+                p.rotation.x += 0.2; p.rotation.y += 0.2; 
+                if (p.life <= 0) { scene.remove(p); p.material.dispose(); p.geometry.dispose(); particles.splice(i, 1); }
             }
             for (let i = trails.length - 1; i >= 0; i--) {
-                let t = trails[i];
-                t.scale.multiplyScalar(0.85); 
-                t.material.opacity -= delta * 3;
-                if (t.material.opacity <= 0) { scene.remove(t); trails.splice(i, 1); }
+                let t = trails[i]; t.scale.multiplyScalar(0.85); t.material.opacity -= delta * 3;
+                if (t.material.opacity <= 0) { scene.remove(t); t.material.dispose(); t.geometry.dispose(); trails.splice(i, 1); }
+            }
+            for (let i = speedRings.length - 1; i >= 0; i--) {
+                let r = speedRings[i]; r.scale.addScalar(delta * 40); r.material.opacity -= delta * 1.0;
+                if (r.material.opacity <= 0) { scene.remove(r); r.material.dispose(); r.geometry.dispose(); speedRings.splice(i, 1); }
             }
 
             if (morphMeshes.length > 0) {
-                let autoSmileValue = 0.0;
-                
-                if (currentPlayAnim === 'CLAP') {
-                    autoSmileValue = 1.0;
-                } else if (currentPlayAnim === 'HAPPY') {
-                    autoSmileValue = 0.5 + Math.sin(time * 1.5) * 0.4;
-                } else if (currentPlayAnim === 'IDOL') {
-                    autoSmileValue = 0.3 + Math.sin(time * 2.0) * 0.2;
-                } else {
-                    autoSmileValue = 0.2;
-                }
-                
-                targetSmileValue = autoSmileValue;
-                
-                if(typeof currentSmileValue === 'undefined') currentSmileValue = 0;
-                currentSmileValue = THREE.MathUtils.lerp(currentSmileValue, targetSmileValue, 8 * delta);
+                let autoSmileValue = currentPlayAnim === 'CLAP' ? 1.0 : currentPlayAnim === 'HAPPY' ? 0.5 + Math.sin(time * 1.5) * 0.4 : 0.2;
+                let currentSmileValue = morphMeshes[0].morphTargetInfluences[morphMeshes[0].morphTargetDictionary['Smile']] || 0;
+                currentSmileValue = THREE.MathUtils.lerp(currentSmileValue, autoSmileValue, 8 * delta);
 
                 if (!isBlinking) {
-                    blinkTimer -= delta;
-                    if (blinkTimer <= 0) { isBlinking = true; isBlinkClosing = true; }
+                    blinkTimer -= delta; if (blinkTimer <= 0) { isBlinking = true; isBlinkClosing = true; }
                 } else {
-                    if (isBlinkClosing) {
-                        currentBlinkValue += BLINK_SPEED * delta;
-                        if (currentBlinkValue >= 1.0) { currentBlinkValue = 1.0; isBlinkClosing = false; }
-                    } else {
-                        currentBlinkValue -= BLINK_SPEED * delta;
-                        if (currentBlinkValue <= 0.0) {
-                            currentBlinkValue = 0.0; isBlinking = false;
-                            blinkTimer = Math.random() * 3 + 2; 
-                        }
-                    }
+                    if (isBlinkClosing) { currentBlinkValue += BLINK_SPEED * delta; if (currentBlinkValue >= 1.0) { currentBlinkValue = 1.0; isBlinkClosing = false; } } 
+                    else { currentBlinkValue -= BLINK_SPEED * delta; if (currentBlinkValue <= 0.0) { currentBlinkValue = 0.0; isBlinking = false; blinkTimer = Math.random() * 3 + 2; } }
                 }
-
                 morphMeshes.forEach(mesh => {
-                    if(mesh.morphTargetDictionary && mesh.morphTargetInfluences) {
-                        const smileIndex = mesh.morphTargetDictionary['Smile'];
-                        if (smileIndex !== undefined) mesh.morphTargetInfluences[smileIndex] = currentSmileValue;
-                        
+                    if(mesh.morphTargetDictionary) {
+                        if (mesh.morphTargetDictionary['Smile'] !== undefined) mesh.morphTargetInfluences[mesh.morphTargetDictionary['Smile']] = currentSmileValue;
                         let blinkIndex = mesh.morphTargetDictionary['Blink'] || mesh.morphTargetDictionary['Close'];
                         if (blinkIndex !== undefined) mesh.morphTargetInfluences[blinkIndex] = currentBlinkValue;
                     }
                 });
             }
-
             renderer.render(scene, camera);
         }
     </script>
