@@ -131,7 +131,7 @@
         .skip-text { position: absolute; bottom: 30px; right: 30px; color: rgba(255,255,255,0.7); font-size: 16px; font-weight: bold; background: rgba(0,0,0,0.5); padding: 10px 20px; border-radius: 20px; pointer-events: none;}
 
         /* ==========================================
-           4. ゲーム中UI (★ F11全画面対策で配置を調整)
+           4. ゲーム中UI
         ========================================== */
         #game-ui-container {
             z-index: 3000; pointer-events: none; 
@@ -190,7 +190,7 @@
             
             #portal-toast { width: 85%; font-size: 14px; top: 15%; padding: 12px 20px; }
             
-            #game-ui-tabs { width: 90%; justify-content: center; top: 20px;}
+            #game-ui-tabs { width: 90%; justify-content: center; top: 15px;}
             .game-tab { padding: 10px 15px; font-size: 14px; }
             #game-score { top: 75px; font-size: 14px; padding: 8px 15px; }
             #game-leaderboard { top: auto; bottom: 80px; right: 15px; transform: none; min-width: 150px; padding: 15px;}
@@ -298,8 +298,8 @@
         // ========================================================
         // ★ クロスフェード対応 BGMの設定
         // ========================================================
-        const TARGET_BGM_VOL = 0.2;
-        const TARGET_GAME_BGM_VOL = 0.15;
+        const TARGET_BGM_VOL = 0.1;       
+        const TARGET_GAME_BGM_VOL = 0.08; 
         const BGM_CROSSFADE_SEC = 2.5; 
         
         let isPortalBgmPlaying = false;
@@ -311,9 +311,11 @@
         
         let audioGameBGM = new Audio('./audio/BGM2.mp3'); 
         audioGameBGM.loop = true; 
+        audioGameBGM.volume = TARGET_GAME_BGM_VOL;
 
         bgm1.onerror = () => { console.warn("BGM1.mp3が見つかりません。"); };
 
+        // --- 効果音 ---
         const audioSoccer1 = new Audio('./audio/soccer1.mp3');
         const audioSoccer2 = new Audio('./audio/soccer2.mp3');
         const audioSoccer3 = new Audio('./audio/soccer3.mp3'); 
@@ -326,9 +328,16 @@
         const audioCheer2 = new Audio('./audio/cheer2.mp3'); 
         const audioCheer3 = new Audio('./audio/cheer3.mp3'); 
         const audioCheer4 = new Audio('./audio/cheer4.mp3'); 
+        const audioCheer5 = new Audio('./audio/cheer5.mp3'); 
         
         const audioButton = new Audio('./audio/button.mp3');
         const audioBackButton = new Audio('./audio/backbutton.mp3');
+
+        // ★ チュートリアル用の掛け声・ボイス
+        const audioReady1 = new Audio('./audio/ready1.mp3');     
+        const audioReady2 = new Audio('./audio/ready2.mp3');     
+        const audioReady3 = new Audio('./audio/ready3.mp3');     
+        const audioKickVoice = new Audio('./audio/kick_voice.mp3'); 
 
         window.playButtonSound = function() {
             audioButton.currentTime = 0;
@@ -352,6 +361,9 @@
         let activeAction = null; 
         let blinkTimer = 2, isBlinking = false, isBlinkClosing = false, currentBlinkValue = 0;
         const BLINK_SPEED = 15.0; 
+        
+        let soccerAnimCount = 0; 
+        let currentAudioChain = 0; 
 
         let currentMode = 'OFF'; 
         let soccerBall = null, goalGroup = null, targetPanels = []; 
@@ -379,18 +391,17 @@
         const currentColorTarget = new THREE.Color(0x00ff66);
 
         const dynamicColors = [
-            { dist: 0, color: new THREE.Color(0x00ff66) },    // 緑
-            { dist: 500, color: new THREE.Color(0x00d8ff) },  // シアン
-            { dist: 1000, color: new THREE.Color(0x0044ff) }, // 青
-            { dist: 1500, color: new THREE.Color(0xaa00ff) }, // 紫
-            { dist: 2000, color: new THREE.Color(0xff00aa) }, // ピンク
-            { dist: 2500, color: new THREE.Color(0xffaa00) }, // オレンジ
-            { dist: 3000, color: new THREE.Color(0xff2222) }  // 赤
+            { dist: 0, color: new THREE.Color(0x00ff66) },    
+            { dist: 500, color: new THREE.Color(0x00d8ff) },  
+            { dist: 1000, color: new THREE.Color(0x0044ff) }, 
+            { dist: 1500, color: new THREE.Color(0xaa00ff) }, 
+            { dist: 2000, color: new THREE.Color(0xff00aa) }, 
+            { dist: 2500, color: new THREE.Color(0xffaa00) }, 
+            { dist: 3000, color: new THREE.Color(0xff2222) }  
         ];
 
-        // ★ カメラの初期位置をウィンドウサイズに応じて設定（スマホなら遠くに引く）
-        const DEFAULT_TARGET_POS = new THREE.Vector3(0, 6, 0);
         let DEFAULT_CAMERA_POS = new THREE.Vector3(0, window.innerWidth <= 768 ? 8 : 6, window.innerWidth <= 768 ? 35 : 22);
+        const DEFAULT_TARGET_POS = new THREE.Vector3(0, 6, 0);
 
         // ========================================================
         // ★ UI操作系
@@ -416,6 +427,13 @@
             isPortalBgmPlaying = false;
             activeBgm.pause();
             nextBgm.pause();
+        }
+
+        function stopReadyVoices() {
+            currentAudioChain++; 
+            audioReady1.pause(); 
+            audioReady2.pause(); 
+            audioReady3.pause(); 
         }
 
         window.showLockedMsg = function(name) {
@@ -473,7 +491,6 @@
             document.getElementById('tab-strikeout').classList.toggle('active', mode === 'STRIKEOUT');
             document.getElementById('tab-longkick').classList.toggle('active', mode === 'LONGKICK');
             
-            // ★ スマホ画面の場合はキャラが見切れないように横の移動幅を抑える
             targetCharacterX = window.innerWidth <= 768 ? -3.5 : -6.0; 
             targetCharacterRotationY = 0.4; 
             soccerBall.visible = true;
@@ -493,7 +510,29 @@
             }
             updateLeaderboard(); 
             updateScoreUI();
+            
             switchAnim('HAPPY');
+
+            stopReadyVoices();
+            let myChain = currentAudioChain;
+
+            audioReady1.currentTime = 0;
+            audioReady1.play().catch(e=>{});
+            audioReady1.onended = () => {
+                if(currentMode === 'OFF' || myChain !== currentAudioChain) return;
+                audioReady2.currentTime = 0;
+                audioReady2.play().catch(e=>{});
+                audioReady2.onended = () => {
+                    if(currentMode === 'OFF' || myChain !== currentAudioChain) return;
+                    audioReady3.currentTime = 0;
+                    audioReady3.play().catch(e=>{});
+                    audioReady3.onended = () => {
+                        if(currentMode === 'OFF' || myChain !== currentAudioChain) return;
+                        soccerAnimCount = 0;
+                        switchAnim('SOCCER'); 
+                    };
+                };
+            };
         };
 
         window.retryGame = function() {
@@ -523,6 +562,7 @@
             document.getElementById('portal-screen').style.display = 'flex';
             setTimeout(() => { document.getElementById('portal-screen').style.opacity = '1'; }, 50);
             
+            stopReadyVoices(); 
             audioGameBGM.pause();
             setTimeout(() => { startBGM(); }, 800);
             
@@ -633,23 +673,60 @@
             if (audioTimerSoccer) clearTimeout(audioTimerSoccer);
             audioTimerSoccer = setTimeout(() => {
                 if (currentPlayAnim !== 'SOCCER') return; 
-                Math.random() < 0.1 ? (audioSoccer2.currentTime=0, audioSoccer2.play().catch(e=>{})) : (audioSoccer1.currentTime=0, audioSoccer1.play().catch(e=>{}));
+                soccerAnimCount++;
+                
+                if (soccerAnimCount % 2 === 0) {
+                    audioKickVoice.currentTime = 0;
+                    audioKickVoice.play().catch(e=>{});
+                }
             }, 800); 
         }
 
+        // ★ 歓声を完全に3つのパターンからランダムで選ぶ
         function triggerClapSound() {
             if (audioTimerClap1) clearTimeout(audioTimerClap1);
             if (audioTimerClap2) clearTimeout(audioTimerClap2);
-            const isPatternA = Math.random() < 0.5;
-            const firstCheer = isPatternA ? audioCheer1 : audioCheer3;
-            const secondCheer = isPatternA ? audioCheer2 : audioCheer4;
             
-            audioTimerClap1 = setTimeout(() => { if (currentPlayAnim === 'CLAP') { firstCheer.currentTime = 0; firstCheer.play().catch(e=>{}); } }, 400); 
-            audioTimerClap2 = setTimeout(() => { if (currentPlayAnim === 'CLAP') { secondCheer.currentTime = 0; secondCheer.play().catch(e=>{}); } }, isPatternA ? 2400 : 1200); 
-            setTimeout(() => { if (currentPlayAnim === 'CLAP') switchAnim('HAPPY'); }, isPatternA ? 9000 : 7500);
+            const pattern = Math.floor(Math.random() * 3); // 0, 1, 2 のいずれか
+            let firstCheer = null;
+            let secondCheer = null;
+
+            if (pattern === 0) {
+                // パターン0: 1 と 2 の組み合わせ
+                firstCheer = audioCheer1;
+                secondCheer = audioCheer2;
+            } else if (pattern === 1) {
+                // パターン1: 3 と 4 の組み合わせ
+                firstCheer = audioCheer3;
+                secondCheer = audioCheer4;
+            } else {
+                // パターン2: 5 単独
+                firstCheer = audioCheer5;
+                secondCheer = null; 
+            }
+            
+            // 1つ目の歓声を再生
+            audioTimerClap1 = setTimeout(() => { 
+                if (currentPlayAnim === 'CLAP') { 
+                    firstCheer.currentTime = 0; 
+                    firstCheer.play().catch(e=>{}); 
+                } 
+            }, 400); 
+            
+            // 2つ目がある場合は、少し遅れて再生して重ねる
+            if (secondCheer) {
+                audioTimerClap2 = setTimeout(() => { 
+                    if (currentPlayAnim === 'CLAP') { 
+                        secondCheer.currentTime = 0; 
+                        secondCheer.play().catch(e=>{}); 
+                    } 
+                }, 1200); // 1.2秒後に再生
+            }
+            
+            setTimeout(() => { if (currentPlayAnim === 'CLAP') switchAnim('HAPPY'); }, 6000);
         }
 
-        window.switchAnim = function(name) {
+        window.switchAnim = function(name, muteAudio = false) {
             if (!actions[name]) return;
             currentPlayAnim = name;
             
@@ -657,8 +734,10 @@
             if (name === 'HAPPY') idleTimer = setTimeout(() => switchAnim('DANCE'), 15000); 
             else if (name === 'DANCE') idleTimer = setTimeout(() => switchAnim('HAPPY'), 8000);
 
-            if (name === 'SOCCER') triggerSoccerSound();
-            else if (name === 'CLAP') triggerClapSound(); 
+            if (!muteAudio) {
+                if (name === 'SOCCER') triggerSoccerSound();
+                else if (name === 'CLAP') triggerClapSound(); 
+            }
 
             const nextAction = actions[name];
             if (activeAction && activeAction !== nextAction) {
@@ -806,7 +885,9 @@
                     let cleanName = clip.name.replace(/mixamorig:|Armature\|/gi, '').replace(/\.com/g, '').toUpperCase().trim();
                     if (cleanName === 'IDLE') cleanName = 'IDOL';
                     if (!cleanName.includes('TRIPO') && !cleanName.includes('MESH') && !cleanName.includes('NODE')) {
-                        actions[cleanName] = mixer.clipAction(clip);
+                        let action = mixer.clipAction(clip);
+                        action.setLoop(THREE.LoopRepeat);
+                        actions[cleanName] = action;
                     }
                 });
 
@@ -815,9 +896,9 @@
 
             setupGameObjects(); 
             
-            // ★ リサイズイベントでスマホ時のカメラ位置を自動調整する
             window.addEventListener('resize', () => {
-                camera.aspect = window.innerWidth / window.innerHeight; camera.updateProjectionMatrix();
+                camera.aspect = window.innerWidth / window.innerHeight; 
+                camera.updateProjectionMatrix();
                 renderer.setSize(window.innerWidth, window.innerHeight);
                 
                 if (window.innerWidth <= 768) {
@@ -826,7 +907,6 @@
                     DEFAULT_CAMERA_POS.set(0, 6, 22);
                 }
             });
-            
             window.addEventListener('pointerdown', onPointerDown);
             animate();
         }
@@ -924,6 +1004,9 @@
         }
 
         function kickBall(hitOffsetX, hitOffsetY) {
+            stopReadyVoices();
+            if (currentPlayAnim === 'SOCCER') switchAnim('HAPPY');
+
             isBallKicked = true; canBreakPanels = true; hasHitTargetThisKick = false; missJudged = false;
             cameraShakeTime = 0.15; kickCount++; ballVelocity._clapped = false; 
             
@@ -1013,10 +1096,11 @@
 
                         if (hitCountThisFrame > 0) {
                             canBreakPanels = false; hasHitTargetThisKick = true; consecutiveMissCount = 0;    
-                            switchAnim('CLAP'); 
                             panelsRemaining -= hitCountThisFrame; updateScoreUI(); ballVelocity.multiplyScalar(0.8);
                             
                             if (panelsRemaining <= 0) {
+                                switchAnim('CLAP', true); 
+                                
                                 addRecord(kickCount); 
                                 showToast(`🎉 パーフェクト！ (${kickCount}かい)`);
                                 
@@ -1034,6 +1118,7 @@
                                     }
                                 }, 5000); 
                             } else {
+                                switchAnim('CLAP'); 
                                 audioSoccer2.currentTime = 0; 
                                 audioSoccer2.play().catch(e=>{}); 
                             }
