@@ -3,7 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Pi×coLabo - 魔法のデジタルスポーツ</title>
+    <title>Pi×coLab - 魔法のデジタルスポーツ</title>
+
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js" crossorigin="anonymous" defer></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/drawing_utils/drawing_utils.js" crossorigin="anonymous" defer></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/pose/pose.js" crossorigin="anonymous" defer></script>
+
     <style>
         /* ==========================================
            全体・共通スタイル
@@ -32,19 +37,21 @@
            1. スタートオーバーレイ
         ========================================== */
         #start-overlay {
-            z-index: 9999; background: #fff;
+            z-index: 99999; background: #fff;
             display: flex; flex-direction: column; justify-content: center; align-items: center;
+            cursor: pointer;
         }
         .start-btn {
             background: linear-gradient(135deg, #00d8ff, #00ff66);
             color: white; font-size: 2rem; font-weight: bold; padding: 20px 50px;
             border-radius: 50px; cursor: pointer; box-shadow: 0 10px 30px rgba(0,216,255,0.4);
             animation: pulse 1.5s infinite alternate;
+            pointer-events: auto;
         }
         @keyframes pulse { from { transform: scale(1); } to { transform: scale(1.05); } }
 
         /* ==========================================
-           2. Pi×coLabo ポータルメニュー
+           2. Pi×coLab ポータルメニュー
         ========================================== */
         #portal-screen {
             z-index: 5000; display: none; flex-direction: column; align-items: center; justify-content: center;
@@ -147,9 +154,35 @@
             padding: 12px 24px; font-size: 14px; font-weight: bold; border-radius: 30px; backdrop-filter: blur(8px); cursor: pointer; transition: 0.3s;
         }
         #btn-exit-game:hover { background: rgba(255, 50, 50, 1); box-shadow: 0 0 20px rgba(255, 50, 50, 0.6); }
-        
         #btn-retry-game { background: rgba(0, 150, 255, 0.6); border-color: #00d8ff; }
         #btn-retry-game:hover { background: rgba(0, 200, 255, 1); box-shadow: 0 0 20px rgba(0, 216, 255, 0.6); }
+
+        #input-toggle-container {
+            position: absolute; top: 150px; left: 30px; z-index: 2000;
+            display: flex; flex-direction: column; gap: 10px;
+        }
+        .input-toggle-btn {
+            background: rgba(40, 40, 40, 0.8); color: #888; border: 2px solid #555;
+            padding: 10px 20px; font-size: 14px; font-weight: bold; border-radius: 20px; cursor: pointer; transition: 0.3s; backdrop-filter: blur(5px);
+        }
+        .input-toggle-btn.active {
+            background: rgba(0, 255, 102, 0.9); color: #000; border-color: #00ff66; box-shadow: 0 0 15px rgba(0, 255, 102, 0.4);
+        }
+
+        #camera-preview {
+            position: absolute; bottom: 20px; right: 20px; width: 240px; height: 180px;
+            background: #000; border: 3px solid #00ff66; border-radius: 16px; object-fit: cover;
+            transform: scaleX(-1); z-index: 2500; display: none; box-shadow: 0 0 20px rgba(0,255,102,0.3);
+        }
+        #skeleton-canvas {
+            position: absolute; bottom: 20px; right: 20px; width: 240px; height: 180px;
+            border-radius: 16px; transform: scaleX(-1); z-index: 2501; display: none; pointer-events: none;
+        }
+        
+        #camera-status {
+            position: absolute; bottom: 210px; right: 20px; color: #fff; background: rgba(255, 50, 50, 0.9);
+            padding: 5px 15px; border-radius: 10px; font-weight: bold; font-size: 12px; z-index: 2500; display: none;
+        }
 
         #game-ui-tabs { position: absolute; top: 50px; left: 50%; transform: translateX(-50%); display: flex; gap: 10px; z-index: 2000; }
         .game-tab { background: rgba(0, 0, 0, 0.6); color: #ccc; padding: 12px 25px; font-size: 16px; font-weight: bold; border-radius: 30px; border: 2px solid #555; cursor: pointer; transition: 0.3s; backdrop-filter: blur(5px);}
@@ -188,18 +221,21 @@
             .portal-panel.main-game .icon { font-size: 5rem; }
             .portal-panel.main-game .title { font-size: 2rem; }
             
-            #portal-toast { width: 85%; font-size: 14px; top: 15%; padding: 12px 20px; }
-            
-            #game-ui-tabs { width: 90%; justify-content: center; top: 15px;}
+            #input-toggle-container { top: 110px; left: 15px; flex-direction: row; gap: 5px; }
+            .input-toggle-btn { padding: 8px 12px; font-size: 12px; }
+            #game-ui-tabs { width: 90%; justify-content: center; top: 20px;}
             .game-tab { padding: 10px 15px; font-size: 14px; }
             #game-score { top: 75px; font-size: 14px; padding: 8px 15px; }
             #game-leaderboard { top: auto; bottom: 80px; right: 15px; transform: none; min-width: 150px; padding: 15px;}
             #game-left-controls { top: auto; bottom: 20px; left: 50%; transform: translateX(-50%); flex-direction: row; width: 95%; justify-content: center; gap: 8px;}
             #btn-exit-game, #btn-retry-game { padding: 12px 15px; font-size: 12px; white-space: nowrap;}
+            
+            #camera-preview, #skeleton-canvas { width: 120px; height: 90px; bottom: 80px; right: auto; left: 15px; border-width: 2px;}
+            #camera-status { bottom: 180px; right: auto; left: 15px; font-size: 10px;}
         }
     </style>
 </head>
-<body>
+<body onclick="startBGM()">
 
     <canvas id="game-canvas"></canvas>
 
@@ -211,7 +247,7 @@
         <div class="portal-bg-orbs"></div>
         <header class="portal-header">
             <div class="sony-badge">dToF SENSOR TECHNOLOGY</div>
-            <h1>Pi×coLabo</h1>
+            <h1>Pi×coLab</h1>
             <div class="concept-text">からだをうごかして たのしもう</div>
             <div class="tap-msg" id="bgm-msg">※ 画面をタップするとBGMが流れます</div>
         </header>
@@ -265,6 +301,11 @@
             <button id="btn-retry-game" onclick="playButtonSound(); retryGame()">🔄 やりなおす</button>
         </div>
 
+        <div id="input-toggle-container">
+            <button id="btn-input-touch" class="input-toggle-btn active" onclick="playButtonSound(); setInputMode('TOUCH')">👆 タッチ</button>
+            <button id="btn-input-camera" class="input-toggle-btn" onclick="playButtonSound(); setInputMode('CAMERA')">📷 カメラ</button>
+        </div>
+
         <div id="game-ui-tabs">
             <button id="tab-strikeout" class="game-tab" onclick="playButtonSound(); setMode('STRIKEOUT')">🎯 まとあて</button>
             <button id="tab-longkick" class="game-tab active" onclick="playButtonSound(); setMode('LONGKICK')">💨 とおくへとばす</button>
@@ -278,9 +319,12 @@
         </div>
         
         <div id="game-toast"></div>
+
+        <video id="camera-preview" autoplay playsinline></video>
+        <canvas id="skeleton-canvas"></canvas>
+        <div id="camera-status">カメラ準備中...</div>
     </div>
 
-    <script async src="https://unpkg.com/es-module-shims@1.6.3/dist/es-module-shims.js"></script>
     <script type="importmap">
     {
         "imports": {
@@ -404,24 +448,37 @@
         const DEFAULT_TARGET_POS = new THREE.Vector3(0, 6, 0);
 
         // ========================================================
+        // ★ MediaPipe 関連
+        // ========================================================
+        let currentInputMode = 'TOUCH'; 
+        let poseDetector = null;
+        let cameraManager = null;
+        let isPoseLoaded = false;
+        let prevFootData = { time: 0, rightY: 0, leftY: 0 };
+        const KICK_THRESHOLD = 0.003; 
+
+        const skeletonCanvas = document.getElementById('skeleton-canvas');
+        const skeletonCtx = skeletonCanvas.getContext('2d');
+
+        // ========================================================
         // ★ UI操作系
         // ========================================================
         window.startApp = function() {
             document.getElementById('start-overlay').style.display = 'none';
             document.getElementById('portal-screen').style.display = 'flex';
+            // ★ ボタンを押した瞬間に確実にBGMをスタートさせる
+            startBGM(); 
         };
 
         function startBGM() {
             if (currentMode === 'OFF' && !isPortalBgmPlaying) {
                 isPortalBgmPlaying = true;
-                activeBgm.volume = 0;
+                activeBgm.volume = TARGET_BGM_VOL; // ★ フェードインを待たず即座に音を出す
                 activeBgm.play().catch(e => console.log("BGM待機中"));
                 const msg = document.getElementById('bgm-msg');
                 if(msg) msg.style.display = 'none';
             }
         }
-        document.addEventListener('click', startBGM, { once: true });
-        document.addEventListener('touchstart', startBGM, { once: true });
 
         function pauseBGM() {
             isPortalBgmPlaying = false;
@@ -434,6 +491,106 @@
             audioReady1.pause(); 
             audioReady2.pause(); 
             audioReady3.pause(); 
+        }
+
+        window.setInputMode = function(mode) {
+            currentInputMode = mode;
+            document.getElementById('btn-input-touch').classList.toggle('active', mode === 'TOUCH');
+            document.getElementById('btn-input-camera').classList.toggle('active', mode === 'CAMERA');
+
+            const videoEl = document.getElementById('camera-preview');
+            const statusEl = document.getElementById('camera-status');
+
+            if (mode === 'CAMERA') {
+                videoEl.style.display = 'block';
+                skeletonCanvas.style.display = 'block'; 
+                if (!isPoseLoaded) initMediaPipe();
+                else if (cameraManager) cameraManager.start();
+            } else {
+                videoEl.style.display = 'none';
+                skeletonCanvas.style.display = 'none'; 
+                statusEl.style.display = 'none';
+                if (cameraManager) cameraManager.stop();
+            }
+        };
+
+        function initMediaPipe() {
+            const videoEl = document.getElementById('camera-preview');
+            const statusEl = document.getElementById('camera-status');
+            statusEl.innerText = 'カメラ準備中...';
+            statusEl.style.display = 'block';
+
+            if (typeof Pose === 'undefined' || typeof drawConnectors === 'undefined') {
+                statusEl.innerText = 'AI読込中...';
+                setTimeout(initMediaPipe, 500);
+                return;
+            }
+
+            poseDetector = new Pose({locateFile: (file) => {
+                return `https://cdn.jsdelivr.net/npm/@mediapipe/pose/${file}`;
+            }});
+
+            poseDetector.setOptions({ modelComplexity: 0, smoothLandmarks: true, minDetectionConfidence: 0.5, minTrackingConfidence: 0.5 });
+            poseDetector.onResults(onPoseResults);
+
+            cameraManager = new Camera(videoEl, {
+                onFrame: async () => { await poseDetector.send({image: videoEl}); },
+                width: 320, height: 240
+            });
+
+            cameraManager.start().then(() => {
+                isPoseLoaded = true;
+                statusEl.style.display = 'none';
+            }).catch((err) => {
+                statusEl.style.background = 'rgba(255,0,0,0.9)';
+                statusEl.innerText = 'カメラが使えません';
+            });
+        }
+
+        function onPoseResults(results) {
+            if (currentInputMode !== 'CAMERA' || currentMode === 'OFF') return;
+
+            skeletonCanvas.width = 320;
+            skeletonCanvas.height = 240;
+            skeletonCtx.save();
+            skeletonCtx.clearRect(0, 0, skeletonCanvas.width, skeletonCanvas.height);
+
+            if (results.poseLandmarks) {
+                if (typeof drawConnectors !== 'undefined' && typeof drawLandmarks !== 'undefined') {
+                    drawConnectors(skeletonCtx, results.poseLandmarks, POSE_CONNECTIONS, {color: '#00ff66', lineWidth: 4});
+                    drawLandmarks(skeletonCtx, results.poseLandmarks, {color: '#ff0000', lineWidth: 2, radius: 3});
+                }
+
+                if (!isBallKicked && soccerBall && soccerBall.visible) {
+                    const lm = results.poseLandmarks;
+                    if (lm[31].visibility > 0.6 || lm[32].visibility > 0.6) {
+                        let rightFootY = lm[31].y;
+                        let leftFootY = lm[32].y;
+                        let now = performance.now();
+                        
+                        if (prevFootData.time > 0) {
+                            let dt = now - prevFootData.time;
+                            let dyR = prevFootData.rightY - rightFootY;
+                            let dyL = prevFootData.leftY - leftFootY;
+                            let speedR = dyR / dt;
+                            let speedL = dyL / dt;
+
+                            if (speedR > KICK_THRESHOLD || speedL > KICK_THRESHOLD) {
+                                let isRightKick = speedR > speedL;
+                                let bodyCenterX = (lm[11].x + lm[12].x) / 2.0;
+                                let footX = isRightKick ? lm[31].x : lm[32].x;
+                                let hitOffsetX = (footX - bodyCenterX) * 2.5; 
+                                let hitOffsetY = -0.15; 
+                                kickBall(hitOffsetX, hitOffsetY);
+                            }
+                        }
+                        prevFootData.rightY = rightFootY; prevFootData.leftY = leftFootY; prevFootData.time = now;
+                    } else {
+                        prevFootData.time = performance.now();
+                    }
+                }
+            }
+            skeletonCtx.restore();
         }
 
         window.showLockedMsg = function(name) {
@@ -465,12 +622,24 @@
             void videoContainer.offsetWidth; 
             videoContainer.style.opacity = '1';
 
+            video.load();
             video.currentTime = 0;
+            
             const playPromise = video.play();
-            if (playPromise !== undefined) playPromise.catch(error => { finishVideo(); });
+            if (playPromise !== undefined) {
+                playPromise.catch(error => { 
+                    console.warn("動画の自動再生がブラウザにブロックされました:", error);
+                    video.muted = true;
+                    video.play().catch(e => {
+                        console.error("ミュートでも再生不可のためスキップします");
+                        finishVideo();
+                    });
+                });
+            }
 
             video.onended = finishVideo;
             videoContainer.onclick = finishVideo;
+            
             setTimeout(() => { if (videoContainer.style.opacity === '1') finishVideo(); }, 10000);
 
             function finishVideo() {
@@ -482,6 +651,8 @@
                     window.setMode('LONGKICK');
                     audioGameBGM.volume = TARGET_GAME_BGM_VOL;
                     audioGameBGM.play().catch(e=>{});
+                    
+                    if(currentInputMode === 'CAMERA' && cameraManager) cameraManager.start();
                 }, 400); 
             }
         };
@@ -564,6 +735,9 @@
             
             stopReadyVoices(); 
             audioGameBGM.pause();
+
+            if(cameraManager) cameraManager.stop();
+
             setTimeout(() => { startBGM(); }, 800);
             
             resetBall(); switchAnim('HAPPY'); 
@@ -682,30 +856,25 @@
             }, 800); 
         }
 
-        // ★ 歓声を完全に3つのパターンからランダムで選ぶ
         function triggerClapSound() {
             if (audioTimerClap1) clearTimeout(audioTimerClap1);
             if (audioTimerClap2) clearTimeout(audioTimerClap2);
             
-            const pattern = Math.floor(Math.random() * 3); // 0, 1, 2 のいずれか
+            const pattern = Math.floor(Math.random() * 3); 
             let firstCheer = null;
             let secondCheer = null;
 
             if (pattern === 0) {
-                // パターン0: 1 と 2 の組み合わせ
                 firstCheer = audioCheer1;
                 secondCheer = audioCheer2;
             } else if (pattern === 1) {
-                // パターン1: 3 と 4 の組み合わせ
                 firstCheer = audioCheer3;
                 secondCheer = audioCheer4;
             } else {
-                // パターン2: 5 単独
                 firstCheer = audioCheer5;
                 secondCheer = null; 
             }
             
-            // 1つ目の歓声を再生
             audioTimerClap1 = setTimeout(() => { 
                 if (currentPlayAnim === 'CLAP') { 
                     firstCheer.currentTime = 0; 
@@ -713,14 +882,13 @@
                 } 
             }, 400); 
             
-            // 2つ目がある場合は、少し遅れて再生して重ねる
             if (secondCheer) {
                 audioTimerClap2 = setTimeout(() => { 
                     if (currentPlayAnim === 'CLAP') { 
                         secondCheer.currentTime = 0; 
                         secondCheer.play().catch(e=>{}); 
                     } 
-                }, 1200); // 1.2秒後に再生
+                }, 1200); 
             }
             
             setTimeout(() => { if (currentPlayAnim === 'CLAP') switchAnim('HAPPY'); }, 6000);
@@ -787,7 +955,13 @@
             const canvas = document.getElementById('game-canvas');
             renderer = new THREE.WebGLRenderer({ canvas: canvas, antialias: true, alpha: true });
             renderer.setSize(window.innerWidth, window.innerHeight);
-            renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+            
+            if (window.innerWidth <= 768) {
+                renderer.setPixelRatio(1);
+            } else {
+                renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.5));
+            }
+            
             renderer.setClearColor(0x000000, 1); 
             renderer.outputEncoding = THREE.sRGBEncoding; 
             renderer.toneMapping = THREE.ACESFilmicToneMapping;
@@ -903,8 +1077,10 @@
                 
                 if (window.innerWidth <= 768) {
                     DEFAULT_CAMERA_POS.set(0, 8, 35);
+                    renderer.setPixelRatio(1);
                 } else {
                     DEFAULT_CAMERA_POS.set(0, 6, 22);
+                    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.5));
                 }
             });
             window.addEventListener('pointerdown', onPointerDown);
@@ -992,7 +1168,7 @@
 
         function onPointerDown(event) {
             if (event.target.tagName === 'BUTTON' || event.target.tagName === 'SPAN') return;
-            if (currentMode === 'OFF' || !soccerBall || !soccerBall.visible || isBallKicked) return;
+            if (currentMode === 'OFF' || currentInputMode === 'CAMERA' || !soccerBall || !soccerBall.visible || isBallKicked) return;
             mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
             mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
             raycaster.setFromCamera(mouse, camera);
