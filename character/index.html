@@ -138,7 +138,7 @@
         .skip-text { position: absolute; bottom: 30px; right: 30px; color: rgba(255,255,255,0.7); font-size: 16px; font-weight: bold; background: rgba(0,0,0,0.5); padding: 10px 20px; border-radius: 20px; pointer-events: none;}
 
         /* ==========================================
-           4. ゲーム中UI
+           4. ゲーム中UI (PCベース設定)
         ========================================== */
         #game-ui-container {
             z-index: 3000; pointer-events: none; 
@@ -195,7 +195,7 @@
             white-space: nowrap; 
         }
 
-        /* ★ タイミングゲージ */
+        /* タイミングゲージ */
         #timing-gauge-container {
             position: absolute; bottom: 30%; left: 50%; transform: translateX(-50%);
             width: 250px; height: 20px; background: rgba(0, 0, 0, 0.6); border: 2px solid #888; border-radius: 10px; display: none; z-index: 2000;
@@ -225,6 +225,9 @@
             opacity: 0; transition: opacity 0.4s; display: none;
         }
 
+        /* ==========================================
+           📱 スマホ用 UI最適化（ここを大改修！）
+        ========================================== */
         @media (max-width: 768px) {
             .portal-header h1 { font-size: 3rem; }
             .concept-text { font-size: 1rem; padding: 0 10px; }
@@ -233,18 +236,33 @@
             .portal-panel.main-game .icon { font-size: 5rem; }
             .portal-panel.main-game .title { font-size: 2rem; }
             
-            #input-toggle-container { top: 110px; left: 15px; flex-direction: row; gap: 5px; }
-            .input-toggle-btn { padding: 8px 12px; font-size: 12px; }
-            #game-ui-tabs { width: 90%; justify-content: center; top: 20px;}
-            .game-tab { padding: 10px 15px; font-size: 14px; }
-            #game-score { top: 75px; font-size: 14px; padding: 8px 15px; }
-            #game-leaderboard { top: auto; bottom: 80px; right: 15px; transform: none; min-width: 150px; padding: 15px;}
-            #game-left-controls { top: auto; bottom: 20px; left: 50%; transform: translateX(-50%); flex-direction: row; width: 95%; justify-content: center; gap: 8px;}
-            #btn-exit-game, #btn-retry-game { padding: 12px 15px; font-size: 12px; white-space: nowrap;}
+            /* 1. 画面上部のUI（中央揃えで縦に綺麗に並べる） */
+            #game-ui-tabs { width: 100%; justify-content: center; top: 15px; gap: 5px; }
+            .game-tab { padding: 8px 12px; font-size: 13px; }
             
-            #timing-gauge-container { bottom: 25%; width: 200px; }
-            #camera-preview, #skeleton-canvas { width: 160px; height: 120px; bottom: 80px; right: auto; left: 15px; border-width: 2px;}
-            #camera-status { bottom: 210px; right: auto; left: 15px; font-size: 10px;}
+            #input-toggle-container { top: 60px; left: 50%; transform: translateX(-50%); flex-direction: row; width: 100%; justify-content: center; gap: 5px; }
+            .input-toggle-btn { padding: 8px 12px; font-size: 12px; }
+            
+            #game-score { top: 105px; font-size: 13px; padding: 6px 15px; width: auto; }
+
+            /* 2. 画面中央のUI */
+            #timing-gauge-container { bottom: 40%; width: 220px; height: 16px; }
+            .timing-cursor { height: 26px; top: -5px; }
+
+            /* 3. 画面下部のUI（左にランキング、右にカメラ） */
+            #game-leaderboard { top: auto; bottom: 65px; left: 10px; right: auto; transform: none; min-width: 130px; padding: 10px; }
+            #game-leaderboard h3 { font-size: 13px; margin-bottom: 5px; }
+            .record-item { font-size: 12px; }
+
+            #camera-preview, #skeleton-canvas { width: 120px; height: 90px; bottom: 65px; right: 10px; left: auto; border-width: 2px; }
+            #camera-status { bottom: 160px; right: 10px; left: auto; font-size: 10px; }
+
+            /* 4. 最下部のUI（戻るボタンなど） */
+            #game-left-controls { top: auto; bottom: 15px; left: 50%; transform: translateX(-50%); flex-direction: row; width: 100%; justify-content: center; gap: 8px;}
+            #btn-exit-game, #btn-retry-game { padding: 10px 15px; font-size: 12px; white-space: nowrap;}
+            
+            /* 結果トースト */
+            #game-toast { font-size: 16px; padding: 15px 25px; width: 80%; }
         }
     </style>
 </head>
@@ -374,18 +392,18 @@
         audioGameBGM.volume = TARGET_GAME_BGM_VOL;
 
         // --- 効果音 ---
-        const audioSoccer1 = new Audio('./audio/soccer1.mp3'); // キック音
-        const audioSoccer2 = new Audio('./audio/soccer2.mp3'); // ドゴォン（着地/ヒット）
-        const audioSoccer3 = new Audio('./audio/soccer3.mp3'); // ブブー（ミス）
-        const audioSoccer4 = new Audio('./audio/soccer4.mp3'); // ガガーン（連続ミス）
-        const audioSoccer5 = new Audio('./audio/soccer5.mp3'); // ファンファーレ（新記録等）
-        const audioSoccer6 = new Audio('./audio/soccer6.mp3'); // クリア
-        const audioSoccer7 = new Audio('./audio/soccer7.mp3'); // クリア後
-        const audioCheer1 = new Audio('./audio/cheer1.mp3');   // 大歓声
-        const audioCheer2 = new Audio('./audio/cheer2.mp3');   // 大拍手
-        const audioCheer3 = new Audio('./audio/cheer3.mp3');   // 中歓声
-        const audioCheer4 = new Audio('./audio/cheer4.mp3');   // 中拍手
-        const audioCheer5 = new Audio('./audio/cheer5.mp3');   // 小歓声（おしい時の音として代用）
+        const audioSoccer1 = new Audio('./audio/soccer1.mp3');
+        const audioSoccer2 = new Audio('./audio/soccer2.mp3');
+        const audioSoccer3 = new Audio('./audio/soccer3.mp3'); 
+        const audioSoccer4 = new Audio('./audio/soccer4.mp3'); 
+        const audioSoccer5 = new Audio('./audio/soccer5.mp3'); 
+        const audioSoccer6 = new Audio('./audio/soccer6.mp3'); 
+        const audioSoccer7 = new Audio('./audio/soccer7.mp3'); 
+        const audioCheer1 = new Audio('./audio/cheer1.mp3'); 
+        const audioCheer2 = new Audio('./audio/cheer2.mp3'); 
+        const audioCheer3 = new Audio('./audio/cheer3.mp3'); 
+        const audioCheer4 = new Audio('./audio/cheer4.mp3'); 
+        const audioCheer5 = new Audio('./audio/cheer5.mp3'); 
         const audioButton = new Audio('./audio/button.mp3');
         const audioBackButton = new Audio('./audio/backbutton.mp3');
 
@@ -422,10 +440,10 @@
         let longGridMatRef = null, particlesMatRef = null, lastPassedDist = 0;
         const currentColorTarget = new THREE.Color(0x00ff66);
 
-        // ★ タイミングゲージと評価結果保存用変数
+        // タイミングゲージと評価結果保存用変数
         let timingPhase = 0, timingDir = 1, currentAccuracy = 0;
         const TIMING_SPEED = 1.4; 
-        let lastKickResult = 'GOOD'; // PERFECT, GOOD, BAD
+        let lastKickResult = 'GOOD'; 
 
         const dynamicColors = [
             { dist: 0, color: new THREE.Color(0x00ff66) },    
@@ -523,6 +541,7 @@
             });
         }
 
+        // カメラ検知時のエイムアシスト（クランプ）追加
         function onPoseResults(results) {
             if (currentInputMode !== 'CAMERA' || currentMode === 'OFF') return;
 
@@ -543,11 +562,16 @@
                             let dt = now - prevFootData.time;
                             let speedR = (prevFootData.rightY - rightFootY) / dt;
                             let speedL = (prevFootData.leftY - leftFootY) / dt;
+                            
                             if (speedR > KICK_THRESHOLD || speedL > KICK_THRESHOLD) {
                                 let isRightKick = speedR > speedL;
                                 let bodyCenterX = (lm[11].x + lm[12].x) / 2.0;
                                 let footX = isRightKick ? lm[31].x : lm[32].x;
-                                kickBall((footX - bodyCenterX) * 2.5, -0.15);
+                                
+                                let hitOffsetX = (footX - bodyCenterX) * 0.8;
+                                let hitOffsetY = - (isRightKick ? speedR : speedL) * 10;
+                                
+                                kickBall(hitOffsetX, hitOffsetY);
                             }
                         }
                         prevFootData.rightY = rightFootY; prevFootData.leftY = leftFootY; prevFootData.time = now;
@@ -673,9 +697,6 @@
             setTimeout(() => { toast.style.opacity = '0'; setTimeout(() => toast.style.display = 'none', 400); }, 3000);
         }
 
-        // ========================================================
-        // ★ ゲーム内UI・スコア・ランキング更新
-        // ========================================================
         function updateScoreUI() {
             const scoreEl = document.getElementById('game-score');
             if (currentMode === 'STRIKEOUT') scoreEl.innerHTML = `🎯 のこり: ${panelsRemaining}まい &nbsp;|&nbsp; ⚽ けったかず: ${kickCount}かい`;
@@ -716,7 +737,6 @@
             }
             updateLeaderboard();
             if (isNewRecord) {
-                // 新記録が出たらファンファーレを鳴らす
                 audioSoccer5.currentTime = 0; audioSoccer5.play().catch(e=>{});
                 const lb = document.getElementById('game-leaderboard');
                 lb.style.transform = window.innerWidth <= 768 ? 'scale(1.1)' : 'translateY(-50%) scale(1.1)';
@@ -762,7 +782,6 @@
             }, 800); 
         }
 
-        // ★ 評価レベルに応じた「歓声」を鳴らす関数に進化！
         function triggerClapSound(resultLevel) {
             if (audioTimerClap1) clearTimeout(audioTimerClap1);
             if (audioTimerClap2) clearTimeout(audioTimerClap2);
@@ -770,13 +789,13 @@
             let firstCheer = null, secondCheer = null;
 
             if (resultLevel === 'PERFECT') {
-                firstCheer = audioCheer1; secondCheer = audioCheer2; // 大歓声＋大拍手
+                firstCheer = audioCheer1; secondCheer = audioCheer2; 
             } else if (resultLevel === 'GOOD') {
-                firstCheer = audioCheer3; secondCheer = audioCheer4; // 中歓声＋中拍手
+                firstCheer = audioCheer3; secondCheer = audioCheer4; 
             } else if (resultLevel === 'BAD') {
-                firstCheer = audioCheer5; secondCheer = null;        // 小歓声（少し残念な感じ）
+                firstCheer = audioCheer5; secondCheer = null;        
             } else {
-                firstCheer = audioCheer1; secondCheer = null;        // STRIKEOUT用のデフォルト
+                firstCheer = audioCheer1; secondCheer = null;        
             }
             
             if (firstCheer) {
@@ -798,7 +817,7 @@
             
             if (!muteAudio) { 
                 if (name === 'SOCCER') triggerSoccerSound(); 
-                else if (name === 'CLAP') triggerClapSound(resultLevel); // ★ 評価結果を渡す
+                else if (name === 'CLAP') triggerClapSound(resultLevel); 
             }
             
             const nextAction = actions[name];
@@ -964,11 +983,6 @@
             soccerBall.position.set(0, 0.8, 5); soccerBall.rotation.set(0, 0, 0); ballVelocity.set(0, 0, 0);
             
             clearEffects(); 
-
-            // ★ 次のボールがセットされたら、タイミングゲージを再び動かし始める！
-            if (currentMode === 'LONGKICK') {
-                timingPhase = 0; timingDir = 1;
-            }
         }
 
         function createShatterParticles(pos, colorHex) {
@@ -1001,22 +1015,23 @@
             isBallKicked = true; canBreakPanels = true; hasHitTargetThisKick = false; missJudged = false;
             cameraShakeTime = 0.15; kickCount++; ballVelocity._clapped = false; 
 
-            // 基本のキック音（これは必ず鳴らす）
             audioSoccer1.currentTime = 0; audioSoccer1.play().catch(e=>{});
 
             if (currentMode === 'STRIKEOUT') {
-                let vy = Math.max(-0.2, Math.min(1.2 - hitOffsetY * 3.0, 3.0)); 
-                ballVelocity.set(-hitOffsetX * 1.5, vy, -1.8 - Math.random() * 0.4);
+                let clampedX = Math.max(-0.6, Math.min(0.6, hitOffsetX));
+                let clampedY = Math.max(-0.5, Math.min(0.5, hitOffsetY));
+
+                let vx = -clampedX * 0.8 + (Math.random() - 0.5) * 0.15;
+                let vy = 0.6 - clampedY * 1.0 + (Math.random() * 0.2); 
+                
+                ballVelocity.set(vx, vy, -1.8 - Math.random() * 0.2);
                 resetDelay = 2.5; 
-                lastKickResult = 'GOOD'; // ストラックアウトは固定
+                lastKickResult = 'GOOD'; 
 
             } else if (currentMode === 'LONGKICK') {
-                // ★ ゲージは隠さず、その場で止めたまま見せる！（isBallKicked = true でアニメーションが止まる）
-
                 let timingMultiplier = 1.0;
                 let feedbackText = "";
 
-                // ★ 結果の保存
                 if (currentAccuracy >= 0.85) {
                     timingMultiplier = 2.5; 
                     feedbackText = "🌟 ピッタリ！だいせいこう！ 🌟";
@@ -1040,7 +1055,7 @@
 
                 ballVelocity.set(-hitOffsetX * 1.0, vy * (1.0 + (timingMultiplier - 1.0)*0.5), baseZ * timingMultiplier);
                 
-                resetDelay = 15.0; // 15秒の安全装置
+                resetDelay = 15.0; 
             }
             
             updateScoreUI();
@@ -1063,7 +1078,6 @@
                 }
             }
 
-            // ★ タイミングゲージのアニメーション（蹴る前だけ動く）
             if (currentMode === 'LONGKICK' && !isBallKicked) {
                 timingPhase += timingDir * TIMING_SPEED * delta;
                 if (timingPhase > 1) { timingPhase = 1; timingDir = -1; }
@@ -1180,7 +1194,6 @@
                             createSpeedEffect(soccerBall.position, currentColorTarget);
                         }
 
-                        // ★ 着地判定
                         if (soccerBall.position.y <= 0.8) {
                             soccerBall.position.y = 0.8; 
                             hasBounced = true; 
@@ -1194,10 +1207,8 @@
                             createShatterParticles(soccerBall.position, 0xffd700); 
                             createShatterParticles(soccerBall.position, currentColorTarget.getHex()); 
 
-                            // ★ 着地音を鳴らす
                             audioSoccer2.currentTime = 0; audioSoccer2.play().catch(e=>{});
                             
-                            // ★ 評価結果に応じた適切な歓声を鳴らす！！
                             switchAnim('CLAP', false, lastKickResult); 
                             
                             showToast(`✨ ${currentDistance.toFixed(1)}m とんだ！`);
