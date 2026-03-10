@@ -169,6 +169,19 @@
             background: rgba(0, 255, 102, 0.9); color: #000; border-color: #00ff66; box-shadow: 0 0 15px rgba(0, 255, 102, 0.4);
         }
 
+        /* ★ 新規追加: ジャンプ切替ボタン */
+        #jump-toggle-container {
+            position: absolute; top: 150px; right: 30px; z-index: 2000;
+            display: flex; flex-direction: column; gap: 10px;
+        }
+        #btn-jump-toggle {
+            background: rgba(40, 40, 40, 0.8); color: #888; border: 2px solid #555;
+            padding: 10px 20px; font-size: 14px; font-weight: bold; border-radius: 20px; cursor: pointer; transition: 0.3s; backdrop-filter: blur(5px);
+        }
+        #btn-jump-toggle.active {
+            background: rgba(255, 136, 0, 0.9); color: #000; border-color: #ffaa00; box-shadow: 0 0 15px rgba(255, 136, 0, 0.4);
+        }
+
         #camera-preview {
             position: absolute; bottom: 20px; right: 20px; width: 320px; height: 240px;
             background: #000; border: 3px solid #00ff66; border-radius: 16px; object-fit: cover;
@@ -235,6 +248,10 @@
             
             #input-toggle-container { top: 110px; left: 15px; flex-direction: row; gap: 5px; }
             .input-toggle-btn { padding: 8px 12px; font-size: 12px; }
+            
+            #jump-toggle-container { top: 110px; right: 15px; flex-direction: row; gap: 5px; }
+            #btn-jump-toggle { padding: 8px 12px; font-size: 12px; }
+
             #game-ui-tabs { width: 90%; justify-content: center; top: 20px;}
             .game-tab { padding: 10px 15px; font-size: 14px; }
             #game-score { top: 75px; font-size: 14px; padding: 8px 15px; }
@@ -278,7 +295,6 @@
                 <div class="desc" style="font-size:0.85rem; margin-top:5px; color:#ff6b6b; font-weight:bold;">踊るキーパーをよけろ！</div>
             </div>
 
-            <!-- ★ 新規追加: ドラムのパネル -->
             <div class="portal-panel" onclick="playButtonSound(); startTaiko()" style="border: 2px solid #00ffaa; background: #fff; box-shadow: 0 0 20px rgba(0,255,170,0.5);">
                 <div class="icon">🥁</div>
                 <div class="title" style="color: #008855;">ドラム</div>
@@ -325,6 +341,11 @@
             <button id="btn-input-camera" class="input-toggle-btn" onclick="playButtonSound(); setInputMode('CAMERA')">📷 カメラ</button>
         </div>
 
+        <!-- ★ ジャンプ切替ボタン -->
+        <div id="jump-toggle-container" style="display: none;">
+            <button id="btn-jump-toggle" class="input-toggle-btn active" onclick="playButtonSound(); toggleJumpMode()">🏃‍♂️ ジャンプ: ON</button>
+        </div>
+
         <div id="game-ui-tabs">
             <button id="tab-strikeout" class="game-tab" onclick="playButtonSound(); setMode('STRIKEOUT')">🎯 まとあて</button>
             <button id="tab-longkick" class="game-tab active" onclick="playButtonSound(); setMode('LONGKICK')">💨 とおくへとばす</button>
@@ -350,7 +371,6 @@
         <div id="camera-status">カメラ準備中...</div>
     </div>
 
-    <!-- ★ CDNを安定したunpkgに戻しました -->
     <script type="importmap">
     {
         "imports": {
@@ -397,7 +417,6 @@
         const audioButton = new Audio('./audio/button.mp3');
         const audioBackButton = new Audio('./audio/backbutton.mp3');
 
-        // チュートリアル用
         const audioReady1 = new Audio('./audio/ready1.mp3');     
         const audioReady2 = new Audio('./audio/ready2.mp3');     
         const audioReady3 = new Audio('./audio/ready3.mp3');     
@@ -416,27 +435,30 @@
             if (audioCtx && audioCtx.state === 'suspended') { audioCtx.resume(); }
         }
 
-        function playDrumSound(idx) {
+        function playDrumSound(idx, z = 0) {
             if (!audioCtx) initAudioCtx();
             const osc = audioCtx.createOscillator();
             const gain = audioCtx.createGain();
             osc.connect(gain);
             gain.connect(audioCtx.destination);
             
+            let volScale = Math.max(0.2, Math.min(1.5, -z * 1.5 + 0.5));
+            let pitchShift = Math.max(-50, Math.min(150, -z * 150));
+
             const row = Math.floor(idx / 4);
             const col = idx % 4;
 
             if (row < 2) {
                 osc.type = 'square';
-                osc.frequency.setValueAtTime(300 + col * 100 + row * 50, audioCtx.currentTime);
+                osc.frequency.setValueAtTime(300 + col * 100 + row * 50 + pitchShift, audioCtx.currentTime);
                 osc.frequency.exponentialRampToValueAtTime(50, audioCtx.currentTime + 0.1);
-                gain.gain.setValueAtTime(0.2, audioCtx.currentTime);
+                gain.gain.setValueAtTime(0.2 * volScale, audioCtx.currentTime);
                 gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.1);
             } else {
                 osc.type = 'sine';
-                osc.frequency.setValueAtTime(150 + col * 20, audioCtx.currentTime);
+                osc.frequency.setValueAtTime(150 + col * 20 + pitchShift, audioCtx.currentTime);
                 osc.frequency.exponentialRampToValueAtTime(30, audioCtx.currentTime + 0.2);
-                gain.gain.setValueAtTime(0.5, audioCtx.currentTime);
+                gain.gain.setValueAtTime(0.5 * volScale, audioCtx.currentTime);
                 gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.3);
             }
             osc.start();
@@ -455,16 +477,33 @@
         let soccerAnimCount = 0, currentAudioChain = 0; 
         let currentMode = 'OFF'; 
         
-        // ボール、ゴール、的のグループ変数
+        // ★ オートジャンプ演出用変数
+        let isJumpMode = true;
+        let autoJumpPhase = 0;
+        let autoJumpDelay = 1.0;
+        let autoJumpY = 0, autoJumpX = 0, autoJumpZ = 0;
+        let autoJumpVy = 0, autoJumpVx = 0, autoJumpVz = 0;
+
+        window.toggleJumpMode = function() {
+            isJumpMode = !isJumpMode;
+            const btn = document.getElementById('btn-jump-toggle');
+            btn.classList.toggle('active', isJumpMode);
+            btn.innerText = isJumpMode ? '🏃‍♂️ ジャンプ: ON' : '🧍‍♂️ ジャンプ: OFF';
+            if(!isJumpMode) {
+                autoJumpPhase = 0;
+                autoJumpY = 0; autoJumpX = 0; autoJumpZ = 0;
+            }
+        };
+        
         let soccerBallMesh = null, handballMesh = null, activeBall = null;
         let goalGroup = null;
         let soccerGoalGroup = null, handballGoalGroup = null;
         let soccerPanelsGroup = null, handballPanelsGroup = null; 
         let targetPanelsSoccer = [], targetPanelsHandball = [];   
         let keeperCollider = null; 
-        let drumPanelsGroup = null; // ★ ドラム用
+        let drumPanelsGroup = null; 
         let taikoPanelsGroup = null;
-        let prevHandGridR = -1, prevHandGridL = -1; // ★ ドラム用
+        let prevHandGridR = -1, prevHandGridL = -1; 
         
         let isBallKicked = false, canBreakPanels = true, isCameraTracking = false, hasBounced = false; 
         let consecutiveMissCount = 0, hasHitTargetThisKick = false, missJudged = false;
@@ -473,7 +512,6 @@
         let ballVelocity = new THREE.Vector3();
         let raycaster = new THREE.Raycaster(), mouse = new THREE.Vector2();
         
-        // タイマー系
         let resetDelay = 0, idleTimer = null;
         let audioTimerSoccer = null, audioTimerClap1 = null, audioTimerClap2 = null; 
         let isVideoFinished = false; 
@@ -482,7 +520,6 @@
         let longGridMatRef = null, particlesMatRef = null, lastPassedDist = 0;
         const currentColorTarget = new THREE.Color(0x00ff66);
 
-        // タイミングゲージ
         let timingPhase = 0, timingDir = 1, currentAccuracy = 0;
         const TIMING_SPEED = 1.4; 
         let lastKickResult = 'GOOD'; 
@@ -497,24 +534,21 @@
             { dist: 3000, color: new THREE.Color(0xff2222) }  
         ];
 
-        // ★ カメラとボールの初期位置定義
         let camPosSoccer = new THREE.Vector3(0, 6, 22);
-        let camPosHandball = new THREE.Vector3(0, 6, -10); // 少し前に移動
-        let camPosTaiko = new THREE.Vector3(0, 6, 18);     // ★ ドラム用のアングル（引いた）
+        let camPosHandball = new THREE.Vector3(0, 6, -10); 
+        let camPosTaiko = new THREE.Vector3(0, 6, 18);     
         
         let ballPosSoccer = new THREE.Vector3(0, 0.8, 5);
-        let ballPosHandball = new THREE.Vector3(0, 5.0, -15); // ★ ボールの位置 (Yを3.5から5.0に変更)
+        let ballPosHandball = new THREE.Vector3(0, 5.0, -15); 
 
-        // スマホ用
         if (window.innerWidth <= 768) {
             camPosSoccer.set(0, 8, 35);
             camPosHandball.set(0, 6, -5); 
-            camPosTaiko.set(0, 8, 25); // ★ スマホ用も引く
+            camPosTaiko.set(0, 8, 25); 
         }
 
         const DEFAULT_TARGET_POS = new THREE.Vector3(0, 3, -40); 
 
-        // --- MediaPipe 関連 ---
         let currentInputMode = 'TOUCH', poseDetector = null, cameraManager = null, isPoseLoaded = false;
         let prevFootData = { time: 0, rightY: 0, leftY: 0 };
         let prevHandData = { time: 0, rightY: 0, leftY: 0 }; 
@@ -526,7 +560,7 @@
         // ★ UI・システム操作系
         // ========================================================
         document.getElementById('start-overlay').addEventListener('click', () => {
-            initAudioCtx(); // 追加
+            initAudioCtx();
             playButtonSound(); startApp();
         });
 
@@ -547,7 +581,7 @@
         }
 
         document.body.addEventListener('click', () => {
-            initAudioCtx(); // 追加
+            initAudioCtx(); 
             if (currentMode === 'OFF' && !isPortalBgmPlaying) startBGM();
         }, { once: true });
 
@@ -606,7 +640,6 @@
             skeletonCtx.save(); skeletonCtx.clearRect(0, 0, skeletonCanvas.width, skeletonCanvas.height);
 
             if (results.poseLandmarks) {
-                // ★ ドラムモードの描画と判定
                 if (currentMode === 'TAIKO') {
                     if (typeof drawConnectors !== 'undefined' && typeof drawLandmarks !== 'undefined') {
                         drawConnectors(skeletonCtx, results.poseLandmarks, POSE_CONNECTIONS, {color: '#00ff66', lineWidth: 4});
@@ -617,6 +650,8 @@
                         if (hand.visibility > 0.5) {
                             let x = 1.0 - hand.x; 
                             let y = hand.y;
+                            let z = hand.z; 
+                            
                             if (x >= 0 && x <= 1 && y >= 0 && y <= 1) {
                                 let c = Math.floor(x * 4);
                                 let r = Math.floor(y * 4);
@@ -624,9 +659,9 @@
                                 let idx = r * 4 + c;
                                 
                                 if (isRight) {
-                                    if (idx !== prevHandGridR) { hitDrumPanel(idx); prevHandGridR = idx; }
+                                    if (idx !== prevHandGridR) { hitDrumPanel(idx, z); prevHandGridR = idx; }
                                 } else {
-                                    if (idx !== prevHandGridL) { hitDrumPanel(idx); prevHandGridL = idx; }
+                                    if (idx !== prevHandGridL) { hitDrumPanel(idx, z); prevHandGridL = idx; }
                                 }
                             }
                         }
@@ -634,7 +669,6 @@
                     checkHit(lm[16], true); checkHit(lm[15], false); 
                     checkHit(lm[20], true); checkHit(lm[19], false); 
                 }
-                // サッカー・ハンドボールモードの描画と判定
                 else if (!isBallKicked && activeBall && activeBall.visible) {
                     if (typeof drawConnectors !== 'undefined' && typeof drawLandmarks !== 'undefined') {
                         drawConnectors(skeletonCtx, results.poseLandmarks, POSE_CONNECTIONS, {color: '#00ff66', lineWidth: 4});
@@ -644,7 +678,6 @@
                     const lm = results.poseLandmarks;
                     let now = performance.now();
 
-                    // ハンドボール：手の動きを検知
                     if (currentMode === 'HANDBALL') {
                         if (lm[15].visibility > 0.6 || lm[16].visibility > 0.6) {
                             let rightHandY = lm[16].y, leftHandY = lm[15].y;
@@ -668,7 +701,6 @@
                             prevHandData.rightY = rightHandY; prevHandData.leftY = leftHandY; prevHandData.time = now;
                         } else { prevHandData.time = now; }
 
-                    // サッカー：足の動きを検知
                     } else {
                         if (lm[31].visibility > 0.6 || lm[32].visibility > 0.6) {
                             let rightFootY = lm[31].y, leftFootY = lm[32].y;
@@ -765,7 +797,10 @@
                 document.getElementById('portal-screen').style.display = 'none'; 
                 document.getElementById('game-ui-container').classList.remove('ui-hidden');
                 window.setMode('TAIKO');
-                audioGameBGM.volume = TARGET_GAME_BGM_VOL; audioGameBGM.play().catch(e=>{});
+                
+                audioGameBGM.pause();
+                audioGameBGM.currentTime = 0;
+                
                 if(currentInputMode === 'CAMERA' && cameraManager) cameraManager.start();
             }, 400);
         };
@@ -774,12 +809,10 @@
             currentMode = mode;
             resetDelay = 0;
             
-            // ★ ゲーム中は OrbitControls を無効化してカメラの暴走を防ぐ
             if (controls) controls.enabled = false;
             
             const tabs = document.getElementById('game-ui-tabs');
 
-            // --- 全て非表示に初期化 ---
             if (soccerGoalGroup) soccerGoalGroup.visible = false;
             if (handballGoalGroup) handballGoalGroup.visible = false;
             if (longKickEnvGroup) longKickEnvGroup.visible = false;
@@ -794,10 +827,10 @@
                 tabs.style.display = 'none'; 
                 document.getElementById('timing-gauge-container').style.display = 'none'; 
                 document.getElementById('btn-retry-game').style.display = 'none'; 
+                if (document.getElementById('jump-toggle-container')) document.getElementById('jump-toggle-container').style.display = 'none';
                 
                 if (drumPanelsGroup) drumPanelsGroup.visible = true; 
                 
-                // キャラクターを左奥へ退避
                 targetCharacterX = window.innerWidth <= 768 ? -5.5 : -8.0; 
                 targetCharacterRotationY = 0.5; 
                 
@@ -810,6 +843,7 @@
                 document.getElementById('btn-retry-game').style.display = 'inline-block';
                 tabs.style.display = 'none'; 
                 document.getElementById('timing-gauge-container').style.display = 'none'; 
+                if (document.getElementById('jump-toggle-container')) document.getElementById('jump-toggle-container').style.display = 'flex';
                 
                 if (handballGoalGroup) handballGoalGroup.visible = true; 
                 if (handballMesh) handballMesh.visible = true;
@@ -834,6 +868,7 @@
                 tabs.style.display = 'flex';
                 document.getElementById('tab-strikeout').classList.toggle('active', mode === 'STRIKEOUT');
                 document.getElementById('tab-longkick').classList.toggle('active', mode === 'LONGKICK');
+                if (document.getElementById('jump-toggle-container')) document.getElementById('jump-toggle-container').style.display = 'none';
                 
                 if (soccerBallMesh) soccerBallMesh.visible = true;
                 activeBall = soccerBallMesh;
@@ -910,6 +945,7 @@
             document.getElementById('game-ui-container').classList.add('ui-hidden');
             document.getElementById('game-toast').style.display = 'none';
             document.getElementById('timing-gauge-container').style.display = 'none';
+            if (document.getElementById('jump-toggle-container')) document.getElementById('jump-toggle-container').style.display = 'none';
             
             document.getElementById('portal-screen').style.display = 'flex';
             setTimeout(() => { document.getElementById('portal-screen').style.opacity = '1'; }, 50);
@@ -918,7 +954,6 @@
             if(cameraManager) cameraManager.stop();
             setTimeout(() => { startBGM(); }, 800);
             
-            // ★ メニューに戻ったらOrbitControlsを有効にする
             if (controls) {
                 controls.enabled = true;
                 controls.update();
@@ -1189,17 +1224,12 @@
             animate();
         }
 
-        // 線のMeshを生成するヘルパー
         function createFieldLine(w, h, x, z) {
             const mesh = new THREE.Mesh(new THREE.PlaneGeometry(w, h), new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.3 }));
             mesh.rotation.x = -Math.PI / 2; mesh.position.set(x, 0.015, z); return mesh;
         }
 
-        // ==========================================
-        // ★ オブジェクトの安全な分離生成
-        // ==========================================
         function setupGameObjects() {
-            // ボール
             const coreGeo = new THREE.IcosahedronGeometry(0.7, 2); const coreMat = new THREE.MeshPhongMaterial({ color: 0x00ff66, emissive: 0x004422, transparent: true, opacity: 0.8 });
             soccerBallMesh = new THREE.Mesh(coreGeo, coreMat); const wireMesh = new THREE.Mesh(new THREE.IcosahedronGeometry(0.8, 1), new THREE.MeshBasicMaterial({ color: 0x00ff66, wireframe: true }));
             soccerBallMesh.add(wireMesh); soccerBallMesh.visible = false; soccerBallMesh.castShadow = true; scene.add(soccerBallMesh);
@@ -1210,7 +1240,6 @@
 
             activeBall = soccerBallMesh; 
 
-            // ハンドボールフィールドの線
             floorLines = new THREE.Group(); scene.add(floorLines);
             floorLines.visible = false;
 
@@ -1228,7 +1257,6 @@
                 floorLines.add(createFieldLine(0.5, 0.5, x, z)); 
             }
 
-            // ★ 1. サッカー用ゴール (幅24) と 9枚の的
             soccerGoalGroup = new THREE.Group(); scene.add(soccerGoalGroup);
             soccerGoalGroup.visible = false;
             
@@ -1261,7 +1289,6 @@
                 }
             }
 
-            // ★ 2. ハンドボール用ゴール (幅16) と 4枚の的
             handballGoalGroup = new THREE.Group(); scene.add(handballGoalGroup);
             handballGoalGroup.visible = false;
             
@@ -1322,14 +1349,12 @@
                 targetPanelsHandball.push({ mesh: pMesh, active: true, num: p.n, bounds: { minX: p.x - pWH/2, maxX: p.x + pWH/2, minY: p.y - pHH/2, maxY: p.y + pHH/2 } });
             });
 
-            // 踊るキーパーの当たり判定
             const keeperGeo = new THREE.BoxGeometry(5.0, 9.5, 2);
             const keeperMat = new THREE.MeshBasicMaterial({ visible: false }); 
             keeperCollider = new THREE.Mesh(keeperGeo, keeperMat);
-            keeperCollider.position.set(0, 0, hbZ + 4); // Z = -46 に配置
+            keeperCollider.position.set(0, 0, hbZ + 4); 
             scene.add(keeperCollider);
 
-            // ★ 3. ドラムモード用 (4x4) 的の追加
             drumPanelsGroup = new THREE.Group(); scene.add(drumPanelsGroup);
             drumPanelsGroup.visible = false;
             for(let r=0; r<4; r++) {
@@ -1349,14 +1374,16 @@
             }
         }
 
-        function hitDrumPanel(idx) {
+        function hitDrumPanel(idx, z = 0) {
             if(currentMode !== 'TAIKO') return;
             const panel = drumPanelsGroup.children.find(p => p.userData.index === idx);
             if (!panel || panel.userData.hitTimer > 0) return; 
             
             panel.userData.hitTimer = 0.3; 
-            playDrumSound(idx);
-            createShatterParticles(panel.position, panel.userData.baseColor.getHex());
+            playDrumSound(idx, z);
+            
+            let particleScale = Math.max(0.5, Math.min(2.0, -z * 2.0 + 0.8));
+            createShatterParticles(panel.position, panel.userData.baseColor.getHex(), particleScale);
         }
 
         function clearEffects() {
@@ -1365,15 +1392,11 @@
             speedRings.forEach(r => { scene.remove(r); r.material.dispose(); r.geometry.dispose(); }); speedRings = [];
         }
 
-        function createSpeedEffect(pos, color) {
-            const geo = new THREE.RingGeometry(2, 3, 32); const mat = new THREE.MeshBasicMaterial({ color: color, transparent: true, opacity: 0.7, side: THREE.DoubleSide });
-            const ring = new THREE.Mesh(geo, mat); ring.position.copy(pos); ring.rotation.x = Math.PI / 2; 
-            scene.add(ring); speedRings.push(ring);
-        }
-
         function resetBall() {
             if (!activeBall && currentMode !== 'TAIKO') return;
             isBallKicked = false; isCameraTracking = false; hasBounced = false; lastPassedDist = 0;
+            cameraJumpY = 0;
+            cameraJumpVy = 0;
             
             if (currentMode === 'TAIKO') {
                 camera.position.copy(camPosTaiko);
@@ -1385,7 +1408,6 @@
                 activeBall.position.copy(ballPosHandball); 
                 activeBall.material.opacity = 0.9;
                 
-                // ★ カメラとターゲットを瞬時にセット（競合防止）
                 camera.position.copy(camPosHandball);
                 if (controls) {
                     controls.target.set(0, 3, -50);
@@ -1414,12 +1436,13 @@
             }
         }
 
-        function createShatterParticles(pos, colorHex) {
-            const geo = new THREE.ConeGeometry(0.2, 0.4, 3); const mat = new THREE.MeshBasicMaterial({ color: colorHex, transparent: true, side: THREE.DoubleSide });
+        function createShatterParticles(pos, colorHex, scale = 1.0) {
+            const geo = new THREE.ConeGeometry(0.2 * scale, 0.4 * scale, 3); 
+            const mat = new THREE.MeshBasicMaterial({ color: colorHex, transparent: true, side: THREE.DoubleSide });
             for (let i = 0; i < 15; i++) {
                 const mesh = new THREE.Mesh(geo, mat);
-                mesh.position.copy(pos); mesh.position.x += (Math.random() - 0.5)*4; mesh.position.y += (Math.random() - 0.5)*2;
-                mesh.velocity = new THREE.Vector3((Math.random() - 0.5)*0.8, (Math.random() - 0.2)*1.5, (Math.random() - 0.5)*1.0);
+                mesh.position.copy(pos); mesh.position.x += (Math.random() - 0.5)*4*scale; mesh.position.y += (Math.random() - 0.5)*2*scale;
+                mesh.velocity = new THREE.Vector3((Math.random() - 0.5)*0.8*scale, (Math.random() - 0.2)*1.5*scale, (Math.random() - 0.5)*1.0*scale);
                 mesh.life = 1.0; scene.add(mesh); particles.push(mesh);
             }
         }
@@ -1432,14 +1455,13 @@
             mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
             raycaster.setFromCamera(mouse, camera);
 
-            // ★ ドラム用のタッチ処理
             if (currentMode === 'TAIKO') {
                 initAudioCtx(); 
                 const intersects = raycaster.intersectObjects(drumPanelsGroup.children, true);
                 if (intersects.length > 0) {
                     let obj = intersects[0].object;
                     if (obj.userData.index === undefined && obj.parent && obj.parent.userData.index !== undefined) obj = obj.parent;
-                    if (obj.userData.index !== undefined) hitDrumPanel(obj.userData.index);
+                    if (obj.userData.index !== undefined) hitDrumPanel(obj.userData.index, -0.5); 
                 }
                 return;
             }
@@ -1479,6 +1501,14 @@
                 let vx = -clampedX * 2.0; 
                 let vy = -clampedY * 2.0; 
                 ballVelocity.set(vx, vy, -4.0); 
+
+                // ★ ジャンプ中に投げた場合、その勢いを少しボールに乗せる
+                if (isJumpMode && autoJumpPhase === 1) {
+                    ballVelocity.x += autoJumpVx * 0.05;
+                    ballVelocity.y += autoJumpVy * 0.05;
+                    ballVelocity.z += autoJumpVz * 0.05;
+                }
+
                 resetDelay = 2.5; lastKickResult = 'GOOD'; 
 
             } else if (currentMode === 'LONGKICK') {
@@ -1519,7 +1549,44 @@
                 if (resetDelay <= 0) { resetDelay = 0; resetBall(); }
             }
 
-            // ★ ドラムパネルのアニメーション
+            // ★ ジャンプの物理計算 (躍動的調整版)
+            if (currentMode === 'HANDBALL' && isJumpMode) {
+                if (autoJumpPhase === 0) {
+                    if (!isBallKicked) { 
+                        autoJumpDelay -= delta;
+                        if (autoJumpDelay <= 0) {
+                            autoJumpPhase = 1;
+                            // 高くフワッと飛ぶように初速を上げ、重力とのバランスを調整
+                            autoJumpVy = 22.0; 
+                            autoJumpY = 0; autoJumpX = 0; autoJumpZ = 0;
+                            
+                            let dir = Math.floor(Math.random() * 3); 
+                            if (dir === 0) { autoJumpVx = -5.0; autoJumpVz = -6.0; } 
+                            else if (dir === 1) { autoJumpVx = 0; autoJumpVz = -8.0; } 
+                            else { autoJumpVx = 5.0; autoJumpVz = -6.0; } 
+                        }
+                    }
+                } else if (autoJumpPhase === 1) {
+                    autoJumpY += autoJumpVy * delta;
+                    autoJumpX += autoJumpVx * delta;
+                    autoJumpZ += autoJumpVz * delta;
+                    // 重力を軽くして滞空時間を伸ばす
+                    autoJumpVy -= 35.0 * delta; 
+                    
+                    if (autoJumpY < 0) {
+                        autoJumpY = 0;
+                        autoJumpPhase = 0;
+                        autoJumpDelay = 0.5 + Math.random() * 1.0; 
+                        cameraShakeTime = 0.3; // 着地の衝撃を少し強めに
+                        audioSoccer1.currentTime = 0;
+                        audioSoccer1.play().catch(e=>{});
+                    }
+                }
+            } else {
+                autoJumpPhase = 0;
+                autoJumpY = 0; autoJumpX = 0; autoJumpZ = 0;
+            }
+
             if (currentMode === 'TAIKO' && typeof drumPanelsGroup !== 'undefined' && drumPanelsGroup) {
                 drumPanelsGroup.children.forEach(p => {
                     if (p.userData.hitTimer > 0) {
@@ -1568,36 +1635,68 @@
             if (longGridMatRef) longGridMatRef.color.lerp(currentColorTarget, 0.05);
             if (particlesMatRef) particlesMatRef.color.lerp(currentColorTarget, 0.05);
 
-            // ★ カメラ制御（OrbitControlsと競合しないように設定）
             if (currentMode === 'TAIKO') {
                 camera.position.lerp(camPosTaiko, 0.1);
                 if (controls) {
                     controls.target.lerp(new THREE.Vector3(0, 4, 0), 0.1);
                     controls.update();
                 }
+            } else if (currentMode === 'HANDBALL') {
+                let targetCamPos = new THREE.Vector3().copy(camPosHandball);
+                let targetLookAt = new THREE.Vector3(0, 3, -50);
+
+                if (!isBallKicked) {
+                    targetCamPos.x += autoJumpX;
+                    targetCamPos.y += autoJumpY;
+                    targetCamPos.z += autoJumpZ;
+                    
+                    // 高さに応じてより深くゴールを見下ろす
+                    targetLookAt.y -= autoJumpY * 0.3;
+                    targetLookAt.x = autoJumpX * 0.5;
+                } else {
+                    targetCamPos.x += autoJumpX;
+                    targetCamPos.y += autoJumpY;
+                    targetCamPos.z += autoJumpZ;
+
+                    targetCamPos.x += activeBall.position.x * 0.15;
+                    targetCamPos.y += (activeBall.position.y - 3) * 0.05;
+                    
+                    targetLookAt.y -= autoJumpY * 0.3;
+                    targetLookAt.x = autoJumpX * 0.5;
+                }
+                
+                // カメラの追従を少し早めて動きをシャープに
+                camera.position.lerp(targetCamPos, 0.2); 
+                if(controls) {
+                    controls.target.lerp(targetLookAt, 0.2);
+                    controls.update(); 
+                }
+
+                if (!isBallKicked && activeBall) {
+                    activeBall.position.x = camera.position.x;
+                    activeBall.position.y = camera.position.y - 1.0;
+                    activeBall.position.z = camera.position.z - 5.0;
+                }
+
             } else if (isCameraTracking && activeBall) {
                 let targetCamPos = new THREE.Vector3();
                 let targetLookAt = new THREE.Vector3();
                 
-                if (currentMode === 'HANDBALL') {
-                    targetCamPos.copy(camPosHandball);
-                    targetLookAt.set(0, 3, -50); // 常にゴール方向を向く
-                    
-                    if (!hasBounced) {
-                        targetCamPos.x += activeBall.position.x * 0.15;
-                        targetCamPos.y += (activeBall.position.y - 3) * 0.1;
-                    }
-                } else {
-                    targetCamPos.x = activeBall.position.x * 0.3;
-                    targetCamPos.y = Math.max(8, activeBall.position.y + 5);
-                    targetCamPos.z = Math.min(22, activeBall.position.z + 30);
-                    targetLookAt.copy(activeBall.position);
-                }
+                targetCamPos.x = activeBall.position.x * 0.3;
+                targetCamPos.y = Math.max(8, activeBall.position.y + 5);
+                targetCamPos.z = Math.min(22, activeBall.position.z + 30);
+                targetLookAt.copy(activeBall.position);
                 
                 camera.position.lerp(targetCamPos, 0.08);
                 if(controls) {
                     controls.target.lerp(targetLookAt, 0.1);
                     controls.update(); 
+                }
+            } else if (currentMode === 'STRIKEOUT') {
+                camera.position.lerp(camPosSoccer, 0.1);
+                if(controls) {
+                    controls.target.lerp(DEFAULT_TARGET_POS, 0.1);
+                    controls.update();
                 }
             } else if (currentMode === 'OFF') {
                 if(controls) controls.update();
@@ -1647,7 +1746,6 @@
                         }
                     }
 
-                    // 的との当たり判定
                     let hitCountThisFrame = 0;
                     let checkZFront = currentMode === 'HANDBALL' ? -48 : -38;
                     let checkZBack = currentMode === 'HANDBALL' ? -52 : -42;
@@ -1698,22 +1796,19 @@
                         }
                     }
 
-                    // ゴール枠内・ネットの判定 (突き抜け防止)
                     let goalZFront = currentMode === 'HANDBALL' ? -50 : -40;
                     let goalZBack = currentMode === 'HANDBALL' ? -58 : -48;
-                    let gwLimit = currentMode === 'HANDBALL' ? 8 : 12; // 半幅
-                    let ghLimit = currentMode === 'HANDBALL' ? 10 : 12; // 高さ
+                    let gwLimit = currentMode === 'HANDBALL' ? 8 : 12; 
+                    let ghLimit = currentMode === 'HANDBALL' ? 10 : 12; 
                     
                     if (activeBall.position.z < goalZFront && activeBall.position.z > goalZBack - 5) {
                         if (activeBall.position.x > -gwLimit && activeBall.position.x < gwLimit && activeBall.position.y < ghLimit) {
                             ballVelocity.multiplyScalar(0.92); 
                             
-                            // 奥のネット
                             if (activeBall.position.z <= goalZBack + bRadius) { 
                                 activeBall.position.z = goalZBack + bRadius; 
                                 ballVelocity.z *= -0.3; 
                             }
-                            // 左右のネット
                             if (activeBall.position.x < -gwLimit + bRadius) { 
                                 activeBall.position.x = -gwLimit + bRadius; 
                                 ballVelocity.x *= -0.3; 
@@ -1721,7 +1816,6 @@
                                 activeBall.position.x = gwLimit - bRadius; 
                                 ballVelocity.x *= -0.3; 
                             }
-                            // 上のネット
                             if (activeBall.position.y > ghLimit - bRadius) { 
                                 activeBall.position.y = ghLimit - bRadius; 
                                 ballVelocity.y *= -0.3; 
