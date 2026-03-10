@@ -16,7 +16,7 @@
         body { 
             margin: 0; overflow: hidden; background: #000; 
             font-family: 'Hiragino Maru Gothic ProN', 'Rounded Mplus 1c', 'Helvetica Neue', Arial, sans-serif; 
-            color: #333; user-select: none;
+            color: #333; user-select: none; touch-action: none; /* ★ 勝手なズームやスワイプを完全に防止 */
         }
 
         #game-canvas {
@@ -278,6 +278,13 @@
                 <div class="desc" style="font-size:0.85rem; margin-top:5px; color:#ff6b6b; font-weight:bold;">踊るキーパーをよけろ！</div>
             </div>
 
+            <!-- ★ 新規追加: ドラムのパネル -->
+            <div class="portal-panel" onclick="playButtonSound(); startTaiko()" style="border: 2px solid #00ffaa; background: #fff; box-shadow: 0 0 20px rgba(0,255,170,0.5);">
+                <div class="icon">🥁</div>
+                <div class="title" style="color: #008855;">ドラム</div>
+                <div class="desc" style="font-size:0.85rem; margin-top:5px; color:#00aa77; font-weight:bold;">くうかんをたたけ！</div>
+            </div>
+
             <div class="portal-panel locked" onclick="playButtonSound(); showLockedMsg('ピアノ')">
                 <div class="status">DEV</div><div class="icon">🎹</div><div class="title">ピアノ</div>
             </div>
@@ -286,9 +293,6 @@
             </div>
             <div class="portal-panel locked" onclick="playButtonSound(); showLockedMsg('ダンス')">
                 <div class="status">DEV</div><div class="icon">💃</div><div class="title">ダンス</div>
-            </div>
-            <div class="portal-panel locked" onclick="playButtonSound(); showLockedMsg('たいこ')">
-                <div class="status">DEV</div><div class="icon">🥁</div><div class="title">たいこ</div>
             </div>
             <div class="portal-panel locked" onclick="playButtonSound(); showLockedMsg('ゴルフ')">
                 <div class="status">DEV</div><div class="icon">⛳</div><div class="title">ゴルフ</div>
@@ -346,11 +350,12 @@
         <div id="camera-status">カメラ準備中...</div>
     </div>
 
+    <!-- ★ CDNを安定したunpkgに戻しました -->
     <script type="importmap">
     {
         "imports": {
-            "three": "https://unpkg.com/three@0.150.1/build/three.module.js",
-            "three/addons/": "https://unpkg.com/three@0.150.1/examples/jsm/"
+            "three": "https://cdn.jsdelivr.net/npm/three@0.150.1/build/three.module.js",
+            "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.150.1/examples/jsm/"
         }
     }
     </script>
@@ -401,6 +406,43 @@
         window.playButtonSound = function() { audioButton.currentTime = 0; audioButton.play().catch(e => {}); };
         window.playBackButtonSound = function() { audioBackButton.currentTime = 0; audioBackButton.play().catch(e => {}); };
 
+        // ========================================================
+        // ★ ドラムモード用のWeb Audio API
+        // ========================================================
+        const AudioContext = window.AudioContext || window.webkitAudioContext;
+        let audioCtx = null;
+        function initAudioCtx() {
+            if (!audioCtx && AudioContext) { audioCtx = new AudioContext(); }
+            if (audioCtx && audioCtx.state === 'suspended') { audioCtx.resume(); }
+        }
+
+        function playDrumSound(idx) {
+            if (!audioCtx) initAudioCtx();
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+            
+            const row = Math.floor(idx / 4);
+            const col = idx % 4;
+
+            if (row < 2) {
+                osc.type = 'square';
+                osc.frequency.setValueAtTime(300 + col * 100 + row * 50, audioCtx.currentTime);
+                osc.frequency.exponentialRampToValueAtTime(50, audioCtx.currentTime + 0.1);
+                gain.gain.setValueAtTime(0.2, audioCtx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.1);
+            } else {
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(150 + col * 20, audioCtx.currentTime);
+                osc.frequency.exponentialRampToValueAtTime(30, audioCtx.currentTime + 0.2);
+                gain.gain.setValueAtTime(0.5, audioCtx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.3);
+            }
+            osc.start();
+            osc.stop(audioCtx.currentTime + 0.3);
+        }
+
         // --- グローバル変数 ---
         let scene, camera, renderer, mixer, controls, actions = {};
         const clock = new THREE.Clock();
@@ -416,9 +458,13 @@
         // ボール、ゴール、的のグループ変数
         let soccerBallMesh = null, handballMesh = null, activeBall = null;
         let goalGroup = null;
+        let soccerGoalGroup = null, handballGoalGroup = null;
         let soccerPanelsGroup = null, handballPanelsGroup = null; 
         let targetPanelsSoccer = [], targetPanelsHandball = [];   
         let keeperCollider = null; 
+        let drumPanelsGroup = null; // ★ ドラム用
+        let taikoPanelsGroup = null;
+        let prevHandGridR = -1, prevHandGridL = -1; // ★ ドラム用
         
         let isBallKicked = false, canBreakPanels = true, isCameraTracking = false, hasBounced = false; 
         let consecutiveMissCount = 0, hasHitTargetThisKick = false, missJudged = false;
@@ -451,16 +497,19 @@
             { dist: 3000, color: new THREE.Color(0xff2222) }  
         ];
 
-        // ★ カメラとボールの初期位置定義（ここが重要！）
+        // ★ カメラとボールの初期位置定義
         let camPosSoccer = new THREE.Vector3(0, 6, 22);
-        let camPosHandball = new THREE.Vector3(0, 6, -12); // ボールの後ろからゴールを見渡すアングル
+        let camPosHandball = new THREE.Vector3(0, 6, -10); // 少し前に移動
+        let camPosTaiko = new THREE.Vector3(0, 6, 18);     // ★ ドラム用のアングル（引いた）
+        
         let ballPosSoccer = new THREE.Vector3(0, 0.8, 5);
-        let ballPosHandball = new THREE.Vector3(0, 3.5, -24); // 7mスローライン付近の手元の高さ
+        let ballPosHandball = new THREE.Vector3(0, 5.0, -15); // ★ ボールの位置 (Yを3.5から5.0に変更)
 
         // スマホ用
         if (window.innerWidth <= 768) {
             camPosSoccer.set(0, 8, 35);
-            camPosHandball.set(0, 7, -8);
+            camPosHandball.set(0, 6, -5); 
+            camPosTaiko.set(0, 8, 25); // ★ スマホ用も引く
         }
 
         const DEFAULT_TARGET_POS = new THREE.Vector3(0, 3, -40); 
@@ -477,6 +526,7 @@
         // ★ UI・システム操作系
         // ========================================================
         document.getElementById('start-overlay').addEventListener('click', () => {
+            initAudioCtx(); // 追加
             playButtonSound(); startApp();
         });
 
@@ -497,6 +547,7 @@
         }
 
         document.body.addEventListener('click', () => {
+            initAudioCtx(); // 追加
             if (currentMode === 'OFF' && !isPortalBgmPlaying) startBGM();
         }, { once: true });
 
@@ -554,60 +605,91 @@
             skeletonCanvas.width = 320; skeletonCanvas.height = 240;
             skeletonCtx.save(); skeletonCtx.clearRect(0, 0, skeletonCanvas.width, skeletonCanvas.height);
 
-            if (results.poseLandmarks && !isBallKicked && activeBall && activeBall.visible) {
-                if (typeof drawConnectors !== 'undefined' && typeof drawLandmarks !== 'undefined') {
-                    drawConnectors(skeletonCtx, results.poseLandmarks, POSE_CONNECTIONS, {color: '#00ff66', lineWidth: 4});
-                    drawLandmarks(skeletonCtx, results.poseLandmarks, {color: '#ff0000', lineWidth: 2, radius: 3});
+            if (results.poseLandmarks) {
+                // ★ ドラムモードの描画と判定
+                if (currentMode === 'TAIKO') {
+                    if (typeof drawConnectors !== 'undefined' && typeof drawLandmarks !== 'undefined') {
+                        drawConnectors(skeletonCtx, results.poseLandmarks, POSE_CONNECTIONS, {color: '#00ff66', lineWidth: 4});
+                        drawLandmarks(skeletonCtx, results.poseLandmarks, {color: '#ff0000', lineWidth: 2, radius: 3});
+                    }
+                    const lm = results.poseLandmarks;
+                    let checkHit = (hand, isRight) => {
+                        if (hand.visibility > 0.5) {
+                            let x = 1.0 - hand.x; 
+                            let y = hand.y;
+                            if (x >= 0 && x <= 1 && y >= 0 && y <= 1) {
+                                let c = Math.floor(x * 4);
+                                let r = Math.floor(y * 4);
+                                if (c > 3) c = 3; if (r > 3) r = 3;
+                                let idx = r * 4 + c;
+                                
+                                if (isRight) {
+                                    if (idx !== prevHandGridR) { hitDrumPanel(idx); prevHandGridR = idx; }
+                                } else {
+                                    if (idx !== prevHandGridL) { hitDrumPanel(idx); prevHandGridL = idx; }
+                                }
+                            }
+                        }
+                    };
+                    checkHit(lm[16], true); checkHit(lm[15], false); 
+                    checkHit(lm[20], true); checkHit(lm[19], false); 
                 }
+                // サッカー・ハンドボールモードの描画と判定
+                else if (!isBallKicked && activeBall && activeBall.visible) {
+                    if (typeof drawConnectors !== 'undefined' && typeof drawLandmarks !== 'undefined') {
+                        drawConnectors(skeletonCtx, results.poseLandmarks, POSE_CONNECTIONS, {color: '#00ff66', lineWidth: 4});
+                        drawLandmarks(skeletonCtx, results.poseLandmarks, {color: '#ff0000', lineWidth: 2, radius: 3});
+                    }
 
-                const lm = results.poseLandmarks;
-                let now = performance.now();
+                    const lm = results.poseLandmarks;
+                    let now = performance.now();
 
-                // ハンドボール：手の動きを検知
-                if (currentMode === 'HANDBALL') {
-                    if (lm[15].visibility > 0.6 || lm[16].visibility > 0.6) {
-                        let rightHandY = lm[16].y, leftHandY = lm[15].y;
-                        let rightHandX = lm[16].x, leftHandX = lm[15].x;
-                        
-                        if (prevHandData.time > 0) {
-                            let dt = now - prevHandData.time;
-                            let speedR = (prevHandData.rightY - rightHandY) / dt; 
-                            let speedL = (prevHandData.leftY - leftHandY) / dt;
+                    // ハンドボール：手の動きを検知
+                    if (currentMode === 'HANDBALL') {
+                        if (lm[15].visibility > 0.6 || lm[16].visibility > 0.6) {
+                            let rightHandY = lm[16].y, leftHandY = lm[15].y;
+                            let rightHandX = lm[16].x, leftHandX = lm[15].x;
                             
-                            if (Math.abs(speedR) > KICK_THRESHOLD || Math.abs(speedL) > KICK_THRESHOLD) {
-                                let isRightThrow = Math.abs(speedR) > Math.abs(speedL);
-                                let bodyCenterX = (lm[11].x + lm[12].x) / 2.0;
-                                let handX = isRightThrow ? rightHandX : leftHandX;
+                            if (prevHandData.time > 0) {
+                                let dt = now - prevHandData.time;
+                                let speedR = (prevHandData.rightY - rightHandY) / dt; 
+                                let speedL = (prevHandData.leftY - leftHandY) / dt;
                                 
-                                let hitOffsetX = (handX - bodyCenterX) * 2.0;
-                                let hitOffsetY = - (Math.abs(isRightThrow ? speedR : speedL)) * 5; 
-                                kickBall(hitOffsetX, hitOffsetY);
+                                if (Math.abs(speedR) > KICK_THRESHOLD || Math.abs(speedL) > KICK_THRESHOLD) {
+                                    let isRightThrow = Math.abs(speedR) > Math.abs(speedL);
+                                    let bodyCenterX = (lm[11].x + lm[12].x) / 2.0;
+                                    let handX = isRightThrow ? rightHandX : leftHandX;
+                                    
+                                    let hitOffsetX = (handX - bodyCenterX) * 2.0;
+                                    let hitOffsetY = - (Math.abs(isRightThrow ? speedR : speedL)) * 5; 
+                                    kickBall(hitOffsetX, hitOffsetY);
+                                }
                             }
-                        }
-                        prevHandData.rightY = rightHandY; prevHandData.leftY = leftHandY; prevHandData.time = now;
-                    } else { prevHandData.time = now; }
+                            prevHandData.rightY = rightHandY; prevHandData.leftY = leftHandY; prevHandData.time = now;
+                        } else { prevHandData.time = now; }
 
-                // サッカー：足の動きを検知
-                } else {
-                    if (lm[31].visibility > 0.6 || lm[32].visibility > 0.6) {
-                        let rightFootY = lm[31].y, leftFootY = lm[32].y;
-                        if (prevFootData.time > 0) {
-                            let dt = now - prevFootData.time;
-                            let speedR = (prevFootData.rightY - rightFootY) / dt;
-                            let speedL = (prevFootData.leftY - leftFootY) / dt;
-                            
-                            if (speedR > KICK_THRESHOLD || speedL > KICK_THRESHOLD) {
-                                let isRightKick = speedR > speedL;
-                                let bodyCenterX = (lm[11].x + lm[12].x) / 2.0;
-                                let footX = isRightKick ? lm[31].x : lm[32].x;
+                    // サッカー：足の動きを検知
+                    } else {
+                        if (lm[31].visibility > 0.6 || lm[32].visibility > 0.6) {
+                            let rightFootY = lm[31].y, leftFootY = lm[32].y;
+                            if (prevFootData.time > 0) {
+                                let dt = now - prevFootData.time;
+                                let speedR = (prevFootData.rightY - rightFootY) / dt;
+                                let speedL = (prevFootData.leftY - leftFootY) / dt;
                                 
-                                let hitOffsetX = (footX - bodyCenterX) * 0.8;
-                                let hitOffsetY = - (isRightKick ? speedR : speedL) * 10;
-                                kickBall(hitOffsetX, hitOffsetY);
+                                if (speedR > KICK_THRESHOLD || speedL > KICK_THRESHOLD) {
+                                    let isRightKick = speedR > speedL;
+                                    let bodyCenterX = (lm[11].x + lm[12].x) / 2.0;
+                                    let footX = isRightKick ? lm[31].x : lm[32].x;
+                                    
+                                    let hitOffsetX = (footX - bodyCenterX) * 0.8;
+                                    let hitOffsetY = - (isRightKick ? speedR : speedL) * 10;
+                                    kickBall(hitOffsetX, hitOffsetY);
+                                }
                             }
-                        }
-                        prevFootData.rightY = rightFootY; prevFootData.leftY = leftFootY; prevFootData.time = now;
-                    } else { prevFootData.time = performance.now(); }
+                            prevFootData.rightY = rightFootY; prevFootData.leftY = leftFootY; prevFootData.time = now;
+                        } else { prevFootData.time = performance.now(); }
+                    }
                 }
             }
             skeletonCtx.restore();
@@ -615,7 +697,7 @@
 
         window.showLockedMsg = function(name) {
             const toast = document.getElementById('portal-toast');
-            toast.innerHTML = `【${name}】は じゅんびちゅうだよ！<br>まずは「サッカー」か「ハンドボール」であそんでみてね！`; 
+            toast.innerHTML = `【${name}】は じゅんびちゅうだよ！<br>まずは「サッカー」「ハンドボール」「ドラム」であそんでみてね！`; 
             toast.style.display = 'block'; setTimeout(() => toast.style.opacity = '1', 10);
             if(window.portalToastTimer) clearTimeout(window.portalToastTimer);
             if(window.portalToastHideTimer) clearTimeout(window.portalToastHideTimer);
@@ -661,6 +743,7 @@
         };
 
         window.startHandball = function() {
+            initAudioCtx(); 
             if (currentMode !== 'OFF') return;
             pauseBGM(); 
             document.getElementById('portal-screen').style.opacity = '0';
@@ -673,29 +756,72 @@
             }, 400);
         };
 
+        window.startTaiko = function() {
+            initAudioCtx(); 
+            if (currentMode !== 'OFF') return;
+            pauseBGM(); 
+            document.getElementById('portal-screen').style.opacity = '0';
+            setTimeout(() => { 
+                document.getElementById('portal-screen').style.display = 'none'; 
+                document.getElementById('game-ui-container').classList.remove('ui-hidden');
+                window.setMode('TAIKO');
+                audioGameBGM.volume = TARGET_GAME_BGM_VOL; audioGameBGM.play().catch(e=>{});
+                if(currentInputMode === 'CAMERA' && cameraManager) cameraManager.start();
+            }, 400);
+        };
+
         window.setMode = function(mode) {
             currentMode = mode;
             resetDelay = 0;
             
+            // ★ ゲーム中は OrbitControls を無効化してカメラの暴走を防ぐ
+            if (controls) controls.enabled = false;
+            
             const tabs = document.getElementById('game-ui-tabs');
 
-            if (mode === 'HANDBALL') {
+            // --- 全て非表示に初期化 ---
+            if (soccerGoalGroup) soccerGoalGroup.visible = false;
+            if (handballGoalGroup) handballGoalGroup.visible = false;
+            if (longKickEnvGroup) longKickEnvGroup.visible = false;
+            if (drumPanelsGroup) drumPanelsGroup.visible = false;
+            if (soccerBallMesh) soccerBallMesh.visible = false;
+            if (handballMesh) handballMesh.visible = false;
+            if (floorLines) floorLines.visible = false;
+            if (keeperCollider) keeperCollider.visible = false;
+            activeBall = null;
+
+            if (mode === 'TAIKO') {
                 tabs.style.display = 'none'; 
                 document.getElementById('timing-gauge-container').style.display = 'none'; 
-                goalGroup.visible = true; 
-                longKickEnvGroup.visible = false; 
+                document.getElementById('btn-retry-game').style.display = 'none'; 
                 
-                soccerBallMesh.visible = false;
-                handballMesh.visible = true;
+                if (drumPanelsGroup) drumPanelsGroup.visible = true; 
+                
+                // キャラクターを左奥へ退避
+                targetCharacterX = window.innerWidth <= 768 ? -5.5 : -8.0; 
+                targetCharacterRotationY = 0.5; 
+                
+                document.getElementById('game-score').innerHTML = `🥁 ドラムモード: うでをふって じゆうにたたこう！`;
+                
+                switchAnim('DANCE', true); 
+                resetBall();
+                
+            } else if (mode === 'HANDBALL') {
+                document.getElementById('btn-retry-game').style.display = 'inline-block';
+                tabs.style.display = 'none'; 
+                document.getElementById('timing-gauge-container').style.display = 'none'; 
+                
+                if (handballGoalGroup) handballGoalGroup.visible = true; 
+                if (handballMesh) handballMesh.visible = true;
                 activeBall = handballMesh;
-                keeperCollider.visible = false; 
-                if (floorLines) floorLines.visible = true; 
                 
-                if (soccerPanelsGroup) soccerPanelsGroup.visible = false;
-                if (handballPanelsGroup) {
-                    handballPanelsGroup.visible = true;
-                    targetPanelsHandball.forEach(p => { p.active = true; p.mesh.visible = true; });
-                }
+                if (floorLines) floorLines.visible = true; 
+                if (keeperCollider) keeperCollider.visible = true; 
+                
+                targetPanelsHandball.forEach(p => { p.active = true; p.mesh.visible = true; });
+                
+                targetCharacterX = -5.0; 
+                targetCharacterRotationY = 0.4; 
                 
                 consecutiveMissCount = 0; panelsRemaining = 4; kickCount = 0;
                 showToast("🤾 踊るキーパーをよけて 1〜4の的をねらえ！<br>（カメラ：うでをふる）");
@@ -704,30 +830,25 @@
                 resetBall();
 
             } else {
+                document.getElementById('btn-retry-game').style.display = 'inline-block';
                 tabs.style.display = 'flex';
                 document.getElementById('tab-strikeout').classList.toggle('active', mode === 'STRIKEOUT');
                 document.getElementById('tab-longkick').classList.toggle('active', mode === 'LONGKICK');
                 
-                soccerBallMesh.visible = true;
-                handballMesh.visible = false;
+                if (soccerBallMesh) soccerBallMesh.visible = true;
                 activeBall = soccerBallMesh;
-                keeperCollider.position.x = 999; 
-                if (floorLines) floorLines.visible = false;
-                
-                if (soccerPanelsGroup) {
-                    soccerPanelsGroup.visible = true;
-                    targetPanelsSoccer.forEach(p => { p.active = true; p.mesh.visible = true; });
-                }
-                if (handballPanelsGroup) handballPanelsGroup.visible = false;
                 
                 targetCharacterX = window.innerWidth <= 768 ? -3.5 : -6.0; targetCharacterRotationY = 0.4; 
                 
                 if (mode === 'STRIKEOUT') {
-                    goalGroup.visible = true; longKickEnvGroup.visible = false; consecutiveMissCount = 0; panelsRemaining = 9; kickCount = 0;
+                    if (soccerGoalGroup) soccerGoalGroup.visible = true; 
+                    targetPanelsSoccer.forEach(p => { p.active = true; p.mesh.visible = true; });
+                    consecutiveMissCount = 0; panelsRemaining = 9; kickCount = 0;
                     showToast("👆 パネルをねらって シュート！");
                     document.getElementById('timing-gauge-container').style.display = 'none'; 
                 } else if (mode === 'LONGKICK') {
-                    goalGroup.visible = false; longKickEnvGroup.visible = true; currentDistance = 0; kickCount = 0;
+                    if (longKickEnvGroup) longKickEnvGroup.visible = true; 
+                    currentDistance = 0; kickCount = 0;
                     showToast("💨 ボールのしたをたたいて とおくへとばそう！");
                     document.getElementById('timing-gauge-container').style.display = 'block'; 
                 }
@@ -736,26 +857,30 @@
                 resetBall();
             }
 
-            updateLeaderboard(); updateScoreUI(); 
+            updateLeaderboard(); 
+            if(mode !== 'TAIKO') updateScoreUI(); 
             
-            stopReadyVoices(); let myChain = currentAudioChain;
-            audioReady1.currentTime = 0; audioReady1.play().catch(e=>{});
-            audioReady1.onended = () => {
-                if(currentMode === 'OFF' || myChain !== currentAudioChain) return;
-                audioReady2.currentTime = 0; audioReady2.play().catch(e=>{});
-                audioReady2.onended = () => {
+            if(mode !== 'TAIKO') {
+                stopReadyVoices(); let myChain = currentAudioChain;
+                audioReady1.currentTime = 0; audioReady1.play().catch(e=>{});
+                audioReady1.onended = () => {
                     if(currentMode === 'OFF' || myChain !== currentAudioChain) return;
-                    audioReady3.currentTime = 0; audioReady3.play().catch(e=>{});
-                    audioReady3.onended = () => {
+                    audioReady2.currentTime = 0; audioReady2.play().catch(e=>{});
+                    audioReady2.onended = () => {
                         if(currentMode === 'OFF' || myChain !== currentAudioChain) return;
-                        soccerAnimCount = 0; 
-                        if(currentMode !== 'HANDBALL') switchAnim('SOCCER'); 
+                        audioReady3.currentTime = 0; audioReady3.play().catch(e=>{});
+                        audioReady3.onended = () => {
+                            if(currentMode === 'OFF' || myChain !== currentAudioChain) return;
+                            soccerAnimCount = 0; 
+                            if(currentMode !== 'HANDBALL') switchAnim('SOCCER'); 
+                        };
                     };
                 };
-            };
+            }
         };
 
         window.retryGame = function() {
+            if(currentMode === 'TAIKO') return;
             if (currentMode === 'STRIKEOUT') {
                 targetPanelsSoccer.forEach(panel => { panel.active = true; panel.mesh.visible = true; });
                 panelsRemaining = 9; 
@@ -775,8 +900,12 @@
         window.exitGame = function() {
             currentMode = 'OFF'; targetCharacterX = 0; targetCharacterRotationY = 0;
             if (activeBall) activeBall.visible = false;
-            if (goalGroup) goalGroup.visible = false;
+            if (soccerGoalGroup) soccerGoalGroup.visible = false;
+            if (handballGoalGroup) handballGoalGroup.visible = false;
             if (longKickEnvGroup) longKickEnvGroup.visible = false; 
+            if (drumPanelsGroup) drumPanelsGroup.visible = false;
+            if (floorLines) floorLines.visible = false;
+            if (keeperCollider) keeperCollider.visible = false;
 
             document.getElementById('game-ui-container').classList.add('ui-hidden');
             document.getElementById('game-toast').style.display = 'none';
@@ -788,6 +917,13 @@
             stopReadyVoices(); audioGameBGM.pause(); resetDelay = 0;
             if(cameraManager) cameraManager.stop();
             setTimeout(() => { startBGM(); }, 800);
+            
+            // ★ メニューに戻ったらOrbitControlsを有効にする
+            if (controls) {
+                controls.enabled = true;
+                controls.update();
+            }
+            
             resetBall(); switchAnim('HAPPY'); 
         };
 
@@ -799,6 +935,7 @@
         }
 
         function updateScoreUI() {
+            if(currentMode === 'TAIKO') return;
             const scoreEl = document.getElementById('game-score');
             if (currentMode === 'STRIKEOUT') scoreEl.innerHTML = `🎯 のこり: ${panelsRemaining}まい &nbsp;|&nbsp; ⚽ シュート: ${kickCount}かい`;
             else if (currentMode === 'HANDBALL') scoreEl.innerHTML = `🎯 のこり: ${panelsRemaining}まい &nbsp;|&nbsp; 🤾 なげたかず: ${kickCount}かい`;
@@ -808,6 +945,11 @@
         function updateLeaderboard() {
             const list = document.getElementById('record-list');
             const title = document.getElementById('leaderboard-title');
+            if(currentMode === 'TAIKO') {
+                title.innerText = '🏆 ドラム モード';
+                list.innerHTML = '<div class="record-item">じゆうに あそんでね！</div>';
+                return;
+            }
             list.innerHTML = '';
             if (currentMode === 'LONGKICK') {
                 title.innerText = '🏆 とんだきょり ランキング';
@@ -909,7 +1051,7 @@
             }
             
             setTimeout(() => { 
-                if (currentMode === 'HANDBALL') switchAnim('DANCE');
+                if (currentMode === 'HANDBALL' || currentMode === 'TAIKO') switchAnim('DANCE', true);
                 else switchAnim('HAPPY'); 
             }, 5000);
         }
@@ -919,7 +1061,7 @@
             currentPlayAnim = name;
             if (idleTimer) clearTimeout(idleTimer); 
             
-            if (currentMode !== 'HANDBALL') {
+            if (currentMode !== 'HANDBALL' && currentMode !== 'TAIKO') {
                 if (name === 'HAPPY') idleTimer = setTimeout(() => switchAnim('DANCE'), 15000); 
                 else if (name === 'DANCE') idleTimer = setTimeout(() => switchAnim('HAPPY'), 8000);
             }
@@ -959,7 +1101,6 @@
             scene = new THREE.Scene();
             camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 8000); 
             
-            // ★ カメラ初期位置を確実にコピー（これで真っ暗バグを完全回避！）
             camera.position.copy(camPosSoccer);
             
             const canvas = document.getElementById('game-canvas');
@@ -967,11 +1108,11 @@
             renderer.setSize(window.innerWidth, window.innerHeight);
             if (window.innerWidth <= 768) renderer.setPixelRatio(1); else renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.5));
             renderer.setClearColor(0x000000, 1); renderer.outputEncoding = THREE.sRGBEncoding; renderer.toneMapping = THREE.ACESFilmicToneMapping;
+            
             scene.add(new THREE.AmbientLight(0xffffff, 0.5));
             const sunLight = new THREE.DirectionalLight(0xffffff, 1.2);
             sunLight.position.set(5, 10, 7.5); sunLight.castShadow = true; scene.add(sunLight);
             
-            // 床（元のサイバー空間）
             const floor = new THREE.Mesh(new THREE.PlaneGeometry(2000, 2000), new THREE.ShadowMaterial({ opacity: 0.4 }));
             floor.rotation.x = -Math.PI / 2; floor.receiveShadow = true; scene.add(floor);
 
@@ -984,7 +1125,7 @@
             const particlesMat = new THREE.PointsMaterial({ size: 0.2, color: 0x00ff66, transparent: true, opacity: 0.8, blending: THREE.AdditiveBlending });
             scene.add(new THREE.Points(particlesGeo, particlesMat)); particlesMatRef = particlesMat;
 
-            longKickEnvGroup = new THREE.Group(); longKickEnvGroup.visible = false; scene.add(longKickEnvGroup);
+            longKickEnvGroup = new THREE.Group(); scene.add(longKickEnvGroup);
             const longGrid = new THREE.GridHelper(8000, 800, 0x00ff66, 0x002211); longGrid.position.set(0, 0.015, -4000); longKickEnvGroup.add(longGrid);
             longGridMatRef = longGrid.material;
 
@@ -1010,7 +1151,6 @@
                 const signR = new THREE.Mesh(signGeo, mat); signR.position.set(25, 4, zPos); signR.rotation.y = -Math.PI / 6; longKickEnvGroup.add(signR);
             }
 
-            // OrbitControlsの初期化
             controls = new OrbitControls(camera, renderer.domElement); 
             controls.enableDamping = true; 
             controls.target.copy(DEFAULT_TARGET_POS);
@@ -1038,10 +1178,10 @@
             window.addEventListener('resize', () => {
                 camera.aspect = window.innerWidth / window.innerHeight; camera.updateProjectionMatrix(); renderer.setSize(window.innerWidth, window.innerHeight);
                 if (window.innerWidth <= 768) { 
-                    camPosSoccer.set(0, 8, 35); camPosHandball.set(0, 7, -8);
+                    camPosSoccer.set(0, 8, 35); camPosHandball.set(0, 6, -5); camPosTaiko.set(0, 8, 25);
                     renderer.setPixelRatio(1); 
                 } else { 
-                    camPosSoccer.set(0, 6, 22); camPosHandball.set(0, 6, -12);
+                    camPosSoccer.set(0, 6, 22); camPosHandball.set(0, 6, -10); camPosTaiko.set(0, 6, 18);
                     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.5)); 
                 }
             });
@@ -1055,109 +1195,168 @@
             mesh.rotation.x = -Math.PI / 2; mesh.position.set(x, 0.015, z); return mesh;
         }
 
+        // ==========================================
+        // ★ オブジェクトの安全な分離生成
+        // ==========================================
         function setupGameObjects() {
-            // サッカーボール
+            // ボール
             const coreGeo = new THREE.IcosahedronGeometry(0.7, 2); const coreMat = new THREE.MeshPhongMaterial({ color: 0x00ff66, emissive: 0x004422, transparent: true, opacity: 0.8 });
             soccerBallMesh = new THREE.Mesh(coreGeo, coreMat); const wireMesh = new THREE.Mesh(new THREE.IcosahedronGeometry(0.8, 1), new THREE.MeshBasicMaterial({ color: 0x00ff66, wireframe: true }));
             soccerBallMesh.add(wireMesh); soccerBallMesh.visible = false; soccerBallMesh.castShadow = true; scene.add(soccerBallMesh);
             
-            // ハンドボール
             const hbGeo = new THREE.IcosahedronGeometry(0.5, 2); const hbMat = new THREE.MeshPhongMaterial({ color: 0xff8800, emissive: 0x883300, transparent: true, opacity: 0.9 });
             handballMesh = new THREE.Mesh(hbGeo, hbMat); const hbWire = new THREE.Mesh(new THREE.IcosahedronGeometry(0.55, 1), new THREE.MeshBasicMaterial({ color: 0xffaa00, wireframe: true }));
             handballMesh.add(hbWire); handballMesh.visible = false; handballMesh.castShadow = true; scene.add(handballMesh);
 
             activeBall = soccerBallMesh; 
 
-            // ==========================================
-            // ★ ゴールと的のグループ構築
-            // ==========================================
-            goalGroup = new THREE.Group(); scene.add(goalGroup);
+            // ハンドボールフィールドの線
+            floorLines = new THREE.Group(); scene.add(floorLines);
+            floorLines.visible = false;
+
+            const circleMat = new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.3, side: THREE.DoubleSide });
+            const circleGeo = new THREE.RingGeometry(18, 18.2, 64, 1, 0, Math.PI); 
+            const circleLine = new THREE.Mesh(circleGeo, circleMat);
+            circleLine.rotation.x = -Math.PI / 2;
+            circleLine.position.set(0, 0.015, -40); 
+            floorLines.add(circleLine);
+
+            floorLines.add(createFieldLine(3, 0.3, 0, -19)); 
+
+            for(let a = 0; a <= Math.PI; a += Math.PI / 16) {
+                const x = Math.cos(a) * 27; const z = -40 + Math.sin(a) * 27;
+                floorLines.add(createFieldLine(0.5, 0.5, x, z)); 
+            }
+
+            // ★ 1. サッカー用ゴール (幅24) と 9枚の的
+            soccerGoalGroup = new THREE.Group(); scene.add(soccerGoalGroup);
+            soccerGoalGroup.visible = false;
             
-            const poleRedMat = new THREE.MeshPhongMaterial({ color: 0xff3333, emissive: 0x440000 }); 
-            const netWhiteMat = new THREE.MeshBasicMaterial({ color: 0xffffff, wireframe: true, transparent: true, opacity: 0.15 }); 
-            const stripeWhiteMat = new THREE.MeshBasicMaterial({ color: 0xffffff, side: THREE.DoubleSide }); 
+            const pMatS = new THREE.MeshBasicMaterial({ color: 0x00ff66 }); 
+            const sW = 24, sH = 12, sD = 8, sR = 0.3;
+            
+            const fpLS = new THREE.Mesh(new THREE.CylinderGeometry(sR, sR, sH), pMatS);
+            fpLS.position.set(-sW/2, sH/2, -40);
+            soccerGoalGroup.add(fpLS);
 
-            const gW = 12; const gH = 8; const gD = 8; const pR = 0.2; 
-            const postGeo = new THREE.CylinderGeometry(pR, pR, gH); 
-            const barGeo = new THREE.CylinderGeometry(pR, pR, gW);  
-            const depthGeo = new THREE.CylinderGeometry(pR*0.8, pR*0.8, gD); 
+            const fpRS = new THREE.Mesh(new THREE.CylinderGeometry(sR, sR, sH), pMatS);
+            fpRS.position.set(sW/2, sH/2, -40);
+            soccerGoalGroup.add(fpRS);
 
-            // フレーム
-            const fpL = new THREE.Mesh(postGeo, poleRedMat); fpL.position.set(-gW/2, gH/2, -40); goalGroup.add(fpL);
-            const fpR = new THREE.Mesh(postGeo, poleRedMat); fpR.position.set(gW/2, gH/2, -40); goalGroup.add(fpR);
-            const cbF = new THREE.Mesh(barGeo, poleRedMat); cbF.rotation.z = Math.PI / 2; cbF.position.set(0, gH, -40); goalGroup.add(cbF);
-
-            // ストライプ装飾
-            const sW = gW / 12; const sH = gH / 8;  
-            const stripeBarGeo = new THREE.PlaneGeometry(sW, pR * 2.1);
-            for(let i=0; i<6; i++) {
-                const s = new THREE.Mesh(stripeBarGeo, stripeWhiteMat); s.position.set(-gW/2 + sW + i*sW*2, gH, -40 + pR + 0.01); goalGroup.add(s);
-            }
-            const stripePostGeo = new THREE.PlaneGeometry(pR * 2.1, sH);
-            for(let i=0; i<4; i++) {
-                const sL = new THREE.Mesh(stripePostGeo, stripeWhiteMat); sL.position.set(-gW/2, sH + i*sH*2, -40 + pR + 0.01); goalGroup.add(sL);
-                const sR = new THREE.Mesh(stripePostGeo, stripeWhiteMat); sR.position.set(gW/2, sH + i*sH*2, -40 + pR + 0.01); goalGroup.add(sR);
-            }
-
-            // 後面・奥行き・ネット
-            const bpL = new THREE.Mesh(postGeo, poleRedMat); bpL.position.set(-gW/2, gH/2, -40 - gD); goalGroup.add(bpL);
-            const bpR = new THREE.Mesh(postGeo, poleRedMat); bpR.position.set(gW/2, gH/2, -40 - gD); goalGroup.add(bpR);
-            const cbB = new THREE.Mesh(barGeo, poleRedMat); cbB.rotation.z = Math.PI / 2; cbB.position.set(0, gH, -40 - gD); goalGroup.add(cbB);
-            const bbB = new THREE.Mesh(barGeo, poleRedMat); bbB.rotation.z = Math.PI / 2; bbB.position.set(0, 0.3, -40 - gD); goalGroup.add(bbB); 
-            const sbTL = new THREE.Mesh(depthGeo, poleRedMat); sbTL.rotation.x = Math.PI / 2; sbTL.position.set(-gW/2, gH, -40 - gD/2); goalGroup.add(sbTL); 
-            const sbTR = new THREE.Mesh(depthGeo, poleRedMat); sbTR.rotation.x = Math.PI / 2; sbTR.position.set(gW/2, gH, -40 - gD/2); goalGroup.add(sbTR);  
-            const sbBL = new THREE.Mesh(depthGeo, poleRedMat); sbBL.rotation.x = Math.PI / 2; sbBL.position.set(-gW/2, 0.3, -40 - gD/2); goalGroup.add(sbBL); 
-            const sbBR = new THREE.Mesh(depthGeo, poleRedMat); sbBR.rotation.x = Math.PI / 2; sbBR.position.set(gW/2, 0.3, -40 - gD/2); goalGroup.add(sbBR);  
-
-            const backNet = new THREE.Mesh(new THREE.PlaneGeometry(gW, gH, gW, gH), netWhiteMat); backNet.position.set(0, gH/2, -40 - gD); goalGroup.add(backNet); 
-            const leftNet = new THREE.Mesh(new THREE.PlaneGeometry(gD, gH, gD, gH), netWhiteMat); leftNet.rotation.y = Math.PI / 2; leftNet.position.set(-gW/2, gH/2, -40 - gD/2); goalGroup.add(leftNet); 
-            const rightNet = new THREE.Mesh(new THREE.PlaneGeometry(gD, gH, gD, gH), netWhiteMat); rightNet.rotation.y = -Math.PI / 2; rightNet.position.set(gW/2, gH/2, -40 - gD/2); goalGroup.add(rightNet); 
-            const topNet = new THREE.Mesh(new THREE.PlaneGeometry(gW, gD, gW, gD), netWhiteMat); topNet.rotation.x = Math.PI / 2; topNet.position.set(0, gH, -40 - gD/2); goalGroup.add(topNet); 
-
-            // ==========================================
-            // ★ １：サッカー用 的配置 (3x3 = 9枚)
-            // ==========================================
-            soccerPanelsGroup = new THREE.Group(); goalGroup.add(soccerPanelsGroup);
-            const panelWS = gW / 3.2; const panelHS = gH / 3.2; 
-            const xsS = [-gW/3.2, 0, gW/3.2]; 
-            const ysS = [panelHS/1.8 + 0.3, gH/2 + 0.15, gH - panelHS/1.8]; 
-
+            const sBar = new THREE.Mesh(new THREE.CylinderGeometry(sR, sR, sW), pMatS); 
+            sBar.rotation.z = Math.PI/2; sBar.position.set(0, sH, -40); 
+            soccerGoalGroup.add(sBar);
+            
+            soccerPanelsGroup = new THREE.Group(); soccerGoalGroup.add(soccerPanelsGroup);
+            const pWS = sW / 3.2; const pHS = sH / 3.2; 
+            const pxS = [-sW/3.2, 0, sW/3.2]; const pyS = [pHS/1.8 + 0.3, sH/2 + 0.15, sH - pHS/1.8]; 
             for(let i=0; i<3; i++){
                 for(let j=0; j<3; j++){
                     const num = (2 - i) * 3 + j + 1; 
-                    const pMat = new THREE.MeshBasicMaterial({ map: createNumberTexture(num, 120, "#00ff66"), transparent: true, opacity: 0.95, side: THREE.DoubleSide });
-                    const pMesh = new THREE.Mesh(new THREE.PlaneGeometry(panelWS, panelHS), pMat);
-                    pMesh.position.set(xsS[j], ysS[i], -39.8); 
-                    soccerPanelsGroup.add(pMesh);
-                    targetPanelsSoccer.push({ mesh: pMesh, active: true, num: num, bounds: { minX: xsS[j] - panelWS/2, maxX: xsS[j] + panelWS/2, minY: ysS[i] - panelHS/2, maxY: ysS[i] + panelHS/2 } });
+                    const m = new THREE.MeshBasicMaterial({ map: createNumberTexture(num, 120, "#00ff66"), transparent: true, opacity: 0.95, side: THREE.DoubleSide });
+                    const p = new THREE.Mesh(new THREE.PlaneGeometry(pWS, pHS), m);
+                    p.position.set(pxS[j], pyS[i], -39.8); 
+                    soccerPanelsGroup.add(p);
+                    targetPanelsSoccer.push({ mesh: p, active: true, bounds: { minX: pxS[j]-pWS/2, maxX: pxS[j]+pWS/2, minY: pyS[i]-pHS/2, maxY: pyS[i]+pHS/2 } });
                 }
             }
 
-            // ==========================================
-            // ★ ２：ハンドボール用 的配置 (2x2 = 4枚)
-            // ==========================================
-            handballPanelsGroup = new THREE.Group(); goalGroup.add(handballPanelsGroup);
-            handballPanelsGroup.visible = false;
-            // 的のサイズを大きく
-            const panelWH = 12 / 2.2; const panelHH = 8 / 2.2; 
-            const xsH = [-12/4, 12/4]; const ysH = [8/4 + 0.2, 8*3/4 - 0.2]; 
-            // 左上1, 右上2, 左下3, 右下4
+            // ★ 2. ハンドボール用ゴール (幅16) と 4枚の的
+            handballGoalGroup = new THREE.Group(); scene.add(handballGoalGroup);
+            handballGoalGroup.visible = false;
+            
+            const pHB = new THREE.MeshPhongMaterial({ color: 0xff3333, emissive: 0x440000 }); 
+            const stHB = new THREE.MeshBasicMaterial({ color: 0xffffff, side: THREE.DoubleSide }); 
+            const netWhiteMat = new THREE.MeshBasicMaterial({ color: 0xffffff, wireframe: true, transparent: true, opacity: 0.15 }); 
+
+            const hW = 16, hH = 10, hD = 8, hR = 0.25; 
+            const hbZ = -50; 
+
+            const fpLH = new THREE.Mesh(new THREE.CylinderGeometry(hR, hR, hH), pHB); 
+            fpLH.position.set(-hW/2, hH/2, hbZ); handballGoalGroup.add(fpLH);
+
+            const fpRH = new THREE.Mesh(new THREE.CylinderGeometry(hR, hR, hH), pHB); 
+            fpRH.position.set(hW/2, hH/2, hbZ); handballGoalGroup.add(fpRH);
+
+            const hBarH = new THREE.Mesh(new THREE.CylinderGeometry(hR, hR, hW), pHB); 
+            hBarH.rotation.z = Math.PI/2; hBarH.position.set(0, hH, hbZ); handballGoalGroup.add(hBarH);
+
+            const swH = hW / 12, shH = hH / 8;  
+            for(let i=0; i<6; i++) {
+                const s = new THREE.Mesh(new THREE.PlaneGeometry(swH, hR*2.1), stHB); 
+                s.position.set(-hW/2 + swH + i*swH*2, hH, hbZ + hR + 0.01); handballGoalGroup.add(s);
+            }
+            for(let i=0; i<4; i++) {
+                const sL = new THREE.Mesh(new THREE.PlaneGeometry(hR*2.1, shH), stHB); 
+                sL.position.set(-hW/2, shH + i*shH*2, hbZ + hR + 0.01); handballGoalGroup.add(sL);
+                const sR = new THREE.Mesh(new THREE.PlaneGeometry(hR*2.1, shH), stHB); 
+                sR.position.set(hW/2, shH + i*shH*2, hbZ + hR + 0.01); handballGoalGroup.add(sR);
+            }
+
+            const bpLH = new THREE.Mesh(new THREE.CylinderGeometry(hR, hR, hH), pHB); bpLH.position.set(-hW/2, hH/2, hbZ - hD); handballGoalGroup.add(bpLH);
+            const bpRH = new THREE.Mesh(new THREE.CylinderGeometry(hR, hR, hH), pHB); bpRH.position.set(hW/2, hH/2, hbZ - hD); handballGoalGroup.add(bpRH);
+            const cbBH = new THREE.Mesh(new THREE.CylinderGeometry(hR, hR, hW), pHB); cbBH.rotation.z = Math.PI / 2; cbBH.position.set(0, hH, hbZ - hD); handballGoalGroup.add(cbBH);
+            const bbBH = new THREE.Mesh(new THREE.CylinderGeometry(hR, hR, hW), pHB); bbBH.rotation.z = Math.PI / 2; bbBH.position.set(0, 0.3, hbZ - hD); handballGoalGroup.add(bbBH); 
+            
+            const depthGeoH = new THREE.CylinderGeometry(hR*0.8, hR*0.8, hD);
+            const sbTLH = new THREE.Mesh(depthGeoH, pHB); sbTLH.rotation.x = Math.PI / 2; sbTLH.position.set(-hW/2, hH, hbZ - hD/2); handballGoalGroup.add(sbTLH); 
+            const sbTRH = new THREE.Mesh(depthGeoH, pHB); sbTRH.rotation.x = Math.PI / 2; sbTRH.position.set(hW/2, hH, hbZ - hD/2); handballGoalGroup.add(sbTRH);  
+            const sbBLH = new THREE.Mesh(depthGeoH, pHB); sbBLH.rotation.x = Math.PI / 2; sbBLH.position.set(-hW/2, 0.3, hbZ - hD/2); handballGoalGroup.add(sbBLH); 
+            const sbBRH = new THREE.Mesh(depthGeoH, pHB); sbBRH.rotation.x = Math.PI / 2; sbBRH.position.set(hW/2, 0.3, hbZ - hD/2); handballGoalGroup.add(sbBRH);  
+
+            const backNetH = new THREE.Mesh(new THREE.PlaneGeometry(hW, hH, hW, hH), netWhiteMat); backNetH.position.set(0, hH/2, hbZ - hD); handballGoalGroup.add(backNetH); 
+            const leftNetH = new THREE.Mesh(new THREE.PlaneGeometry(hD, hH, hD, hH), netWhiteMat); leftNetH.rotation.y = Math.PI / 2; leftNetH.position.set(-hW/2, hH/2, hbZ - hD/2); handballGoalGroup.add(leftNetH); 
+            const rightNetH = new THREE.Mesh(new THREE.PlaneGeometry(hD, hH, hD, hH), netWhiteMat); rightNetH.rotation.y = -Math.PI / 2; rightNetH.position.set(hW/2, hH/2, hbZ - hD/2); handballGoalGroup.add(rightNetH); 
+            const topNetH = new THREE.Mesh(new THREE.PlaneGeometry(hW, hD, hW, hD), netWhiteMat); topNetH.rotation.x = Math.PI / 2; topNetH.position.set(0, hH, hbZ - hD/2); handballGoalGroup.add(topNetH); 
+
+            taikoPanelsGroup = new THREE.Group(); handballGoalGroup.add(taikoPanelsGroup);
+            const pWH = hW / 2.2, pHH = hH / 2.2; 
+            const xsH = [-hW/4, hW/4]; const ysH = [hH/4 + 0.2, hH*3/4 - 0.2]; 
             const posH = [ {n: 1, x: xsH[0], y: ysH[1]}, {n: 2, x: xsH[1], y: ysH[1]}, {n: 3, x: xsH[0], y: ysH[0]}, {n: 4, x: xsH[1], y: ysH[0]} ];
             
             posH.forEach(p => {
                 const pMat = new THREE.MeshBasicMaterial({ map: createNumberTexture(p.n, 160, "#ff3333"), transparent: true, opacity: 0.95, side: THREE.DoubleSide });
-                const pMesh = new THREE.Mesh(new THREE.PlaneGeometry(panelWH, panelHH), pMat);
-                pMesh.position.set(p.x, p.y, -39.8); 
-                handballPanelsGroup.add(pMesh);
-                targetPanelsHandball.push({ mesh: pMesh, active: true, num: p.n, bounds: { minX: p.x - panelWH/2, maxX: p.x + panelWH/2, minY: p.y - panelHH/2, maxY: p.y + panelHH/2 } });
+                const pMesh = new THREE.Mesh(new THREE.PlaneGeometry(pWH, pHH), pMat);
+                pMesh.position.set(p.x, p.y, hbZ + 0.2); 
+                taikoPanelsGroup.add(pMesh);
+                targetPanelsHandball.push({ mesh: pMesh, active: true, num: p.n, bounds: { minX: p.x - pWH/2, maxX: p.x + pWH/2, minY: p.y - pHH/2, maxY: p.y + pHH/2 } });
             });
 
             // 踊るキーパーの当たり判定
-            const keeperGeo = new THREE.BoxGeometry(4.5, 9, 2);
+            const keeperGeo = new THREE.BoxGeometry(5.0, 9.5, 2);
             const keeperMat = new THREE.MeshBasicMaterial({ visible: false }); 
             keeperCollider = new THREE.Mesh(keeperGeo, keeperMat);
-            keeperCollider.position.set(0, 0, -36); 
+            keeperCollider.position.set(0, 0, hbZ + 4); // Z = -46 に配置
             scene.add(keeperCollider);
+
+            // ★ 3. ドラムモード用 (4x4) 的の追加
+            drumPanelsGroup = new THREE.Group(); scene.add(drumPanelsGroup);
+            drumPanelsGroup.visible = false;
+            for(let r=0; r<4; r++) {
+                for(let c=0; c<4; c++) {
+                    const pW = 2.2, pH = 2.2;
+                    const px = (c - 1.5) * 2.5; 
+                    const py = (3.5 - r) * 2.5; 
+                    const color = new THREE.Color().setHSL((r*4+c)/16, 0.8, 0.5);
+                    const mat = new THREE.MeshBasicMaterial({ color: color, transparent: true, opacity: 0.3, side: THREE.DoubleSide });
+                    const borderMat = new THREE.MeshBasicMaterial({ color: color, wireframe: true });
+                    const mesh = new THREE.Mesh(new THREE.PlaneGeometry(pW, pH), mat);
+                    mesh.add(new THREE.Mesh(new THREE.PlaneGeometry(pW, pH), borderMat));
+                    mesh.position.set(px, py, 0); 
+                    mesh.userData = { index: r*4 + c, baseColor: color, hitTimer: 0 };
+                    drumPanelsGroup.add(mesh);
+                }
+            }
+        }
+
+        function hitDrumPanel(idx) {
+            if(currentMode !== 'TAIKO') return;
+            const panel = drumPanelsGroup.children.find(p => p.userData.index === idx);
+            if (!panel || panel.userData.hitTimer > 0) return; 
+            
+            panel.userData.hitTimer = 0.3; 
+            playDrumSound(idx);
+            createShatterParticles(panel.position, panel.userData.baseColor.getHex());
         }
 
         function clearEffects() {
@@ -1173,27 +1372,39 @@
         }
 
         function resetBall() {
-            if (!activeBall) return;
+            if (!activeBall && currentMode !== 'TAIKO') return;
             isBallKicked = false; isCameraTracking = false; hasBounced = false; lastPassedDist = 0;
             
-            if (currentMode === 'HANDBALL') {
+            if (currentMode === 'TAIKO') {
+                camera.position.copy(camPosTaiko);
+                if (controls) {
+                    controls.target.set(0, 4, 0);
+                    controls.update();
+                }
+            } else if (currentMode === 'HANDBALL') {
                 activeBall.position.copy(ballPosHandball); 
                 activeBall.material.opacity = 0.9;
                 
                 // ★ カメラとターゲットを瞬時にセット（競合防止）
                 camera.position.copy(camPosHandball);
-                controls.target.set(0, 3, -40);
-                controls.update();
+                if (controls) {
+                    controls.target.set(0, 3, -50);
+                    controls.update();
+                }
 
             } else {
                 activeBall.position.copy(ballPosSoccer); 
                 
                 camera.position.copy(camPosSoccer);
-                controls.target.copy(DEFAULT_TARGET_POS);
-                controls.update();
+                if (controls) {
+                    controls.target.copy(DEFAULT_TARGET_POS);
+                    controls.update();
+                }
             }
             
-            activeBall.rotation.set(0, 0, 0); ballVelocity.set(0, 0, 0);
+            if (activeBall) {
+                activeBall.rotation.set(0, 0, 0); ballVelocity.set(0, 0, 0);
+            }
             
             clearEffects(); 
 
@@ -1215,10 +1426,25 @@
 
         function onPointerDown(event) {
             if (event.target.tagName === 'BUTTON' || event.target.tagName === 'SPAN') return;
-            if (currentMode === 'OFF' || currentInputMode === 'CAMERA' || !activeBall || !activeBall.visible || isBallKicked) return;
+            if (currentMode === 'OFF' || currentInputMode === 'CAMERA') return;
+
             mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
             mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
             raycaster.setFromCamera(mouse, camera);
+
+            // ★ ドラム用のタッチ処理
+            if (currentMode === 'TAIKO') {
+                initAudioCtx(); 
+                const intersects = raycaster.intersectObjects(drumPanelsGroup.children, true);
+                if (intersects.length > 0) {
+                    let obj = intersects[0].object;
+                    if (obj.userData.index === undefined && obj.parent && obj.parent.userData.index !== undefined) obj = obj.parent;
+                    if (obj.userData.index !== undefined) hitDrumPanel(obj.userData.index);
+                }
+                return;
+            }
+
+            if (!activeBall || !activeBall.visible || isBallKicked) return;
             const intersects = raycaster.intersectObject(activeBall, true);
             if (intersects.length > 0) {
                 const ballCenter = new THREE.Vector3(); activeBall.getWorldPosition(ballCenter);
@@ -1227,6 +1453,9 @@
         }
 
         function kickBall(hitOffsetX, hitOffsetY) {
+            hitOffsetX = hitOffsetX || 0;
+            hitOffsetY = hitOffsetY || 0;
+
             stopReadyVoices();
             if (currentPlayAnim === 'SOCCER') switchAnim('HAPPY');
 
@@ -1244,13 +1473,12 @@
                 resetDelay = 2.5; lastKickResult = 'GOOD'; 
 
             } else if (currentMode === 'HANDBALL') {
-                // ★ ハンドボール：タッチ位置に応じて直線的、または下を狙ってバウンドさせる
                 let clampedX = Math.max(-0.6, Math.min(0.6, hitOffsetX));
                 let clampedY = Math.max(-0.6, Math.min(0.6, hitOffsetY));
                 
                 let vx = -clampedX * 2.0; 
-                let vy = -clampedY * 2.0; // 上を叩くと下向き(マイナス)に飛んでバウンドする
-                ballVelocity.set(vx, vy, -4.0); // Z速度は速め
+                let vy = -clampedY * 2.0; 
+                ballVelocity.set(vx, vy, -4.0); 
                 resetDelay = 2.5; lastKickResult = 'GOOD'; 
 
             } else if (currentMode === 'LONGKICK') {
@@ -1291,9 +1519,18 @@
                 if (resetDelay <= 0) { resetDelay = 0; resetBall(); }
             }
 
+            // ★ ドラムパネルのアニメーション
+            if (currentMode === 'TAIKO' && typeof drumPanelsGroup !== 'undefined' && drumPanelsGroup) {
+                drumPanelsGroup.children.forEach(p => {
+                    if (p.userData.hitTimer > 0) {
+                        p.userData.hitTimer -= delta; p.material.opacity = 0.9; p.scale.set(1.1, 1.1, 1.1);
+                    } else { p.material.opacity = 0.3; p.scale.set(1.0, 1.0, 1.0); }
+                });
+            }
+
             if (currentMode === 'HANDBALL') {
-                keeperCollider.position.x = Math.sin(time * 3) * 3.5; 
-                if (characterModel) {
+                if (keeperCollider) keeperCollider.position.x = Math.sin(time * 3) * 3.5; 
+                if (characterModel && keeperCollider) {
                     characterModel.position.x = keeperCollider.position.x;
                     characterModel.position.z = keeperCollider.position.z;
                     characterModel.position.y = 0;
@@ -1331,14 +1568,20 @@
             if (longGridMatRef) longGridMatRef.color.lerp(currentColorTarget, 0.05);
             if (particlesMatRef) particlesMatRef.color.lerp(currentColorTarget, 0.05);
 
-            // ★ カメラ追従（OrbitControlsと競合しないように設定）
-            if (isCameraTracking && activeBall) {
+            // ★ カメラ制御（OrbitControlsと競合しないように設定）
+            if (currentMode === 'TAIKO') {
+                camera.position.lerp(camPosTaiko, 0.1);
+                if (controls) {
+                    controls.target.lerp(new THREE.Vector3(0, 4, 0), 0.1);
+                    controls.update();
+                }
+            } else if (isCameraTracking && activeBall) {
                 let targetCamPos = new THREE.Vector3();
                 let targetLookAt = new THREE.Vector3();
                 
                 if (currentMode === 'HANDBALL') {
                     targetCamPos.copy(camPosHandball);
-                    targetLookAt.set(0, 3, -40); // 常にゴール方向を向く
+                    targetLookAt.set(0, 3, -50); // 常にゴール方向を向く
                     
                     if (!hasBounced) {
                         targetCamPos.x += activeBall.position.x * 0.15;
@@ -1352,15 +1595,19 @@
                 }
                 
                 camera.position.lerp(targetCamPos, 0.08);
-                controls.target.lerp(targetLookAt, 0.1);
-                controls.update(); // ★追従中のみupdateを呼び出すことで競合を回避
+                if(controls) {
+                    controls.target.lerp(targetLookAt, 0.1);
+                    controls.update(); 
+                }
+            } else if (currentMode === 'OFF') {
+                if(controls) controls.update();
             }
 
             if (cameraShakeTime > 0) {
                 cameraShakeTime -= delta; camera.position.x += (Math.random() - 0.5) * 0.5; camera.position.y += (Math.random() - 0.5) * 0.5;
             }
 
-            if (currentMode !== 'OFF' && activeBall && isBallKicked) {
+            if (currentMode !== 'OFF' && currentMode !== 'TAIKO' && activeBall && isBallKicked) {
                 
                 if (currentMode === 'STRIKEOUT' || currentMode === 'HANDBALL') {
                     activeBall.position.add(ballVelocity); 
@@ -1368,39 +1615,44 @@
                     ballVelocity.y -= 0.025; 
 
                     let bRadius = currentMode === 'HANDBALL' ? 0.5 : 0.7;
-                    // ★ 床でのバウンド処理
                     if (activeBall.position.y <= bRadius) {
                         activeBall.position.y = bRadius; 
                         ballVelocity.y *= -0.75; 
                         ballVelocity.x *= 0.9;
                         ballVelocity.z *= 0.98;
                         if (Math.abs(ballVelocity.y) > 0.1) {
-                            audioSoccer1.currentTime = 0; audioSoccer1.play().catch(e=>{});
+                            if (currentMode === 'HANDBALL') { audioSoccer2.currentTime = 0; audioSoccer2.play().catch(e=>{}); }
+                            else { audioSoccer1.currentTime = 0; audioSoccer1.play().catch(e=>{}); }
                         }
                     } else {
                         ballVelocity.x *= 0.995; ballVelocity.z *= 0.995; 
                     }
                     activeBall.rotation.x -= ballVelocity.z * 0.5; activeBall.rotation.z += ballVelocity.x * 0.5;
 
-                    // ★ 踊るキーパーとの当たり判定
                     if (currentMode === 'HANDBALL' && canBreakPanels && ballVelocity.z < 0) {
-                        if (activeBall.position.z < -35 && activeBall.position.z > -37) {
-                            let kx = keeperCollider.position.x;
-                            if (activeBall.position.x > kx - 2.5 && activeBall.position.x < kx + 2.5 && activeBall.position.y < 10.0) {
-                                canBreakPanels = false;
-                                ballVelocity.z *= -0.6; 
-                                ballVelocity.x = (Math.random() - 0.5) * 4;
-                                ballVelocity.y = Math.random() * 2 + 1;
-                                audioSoccer3.currentTime = 0; audioSoccer3.play().catch(e=>{}); 
-                                createShatterParticles(activeBall.position, 0xff3333); 
-                                if (resetDelay === 0) resetDelay = 2.0;
+                        let keeperZ = -46;
+                        if (activeBall.position.z < keeperZ + 1.5 && activeBall.position.z > keeperZ - 1.5) {
+                            if (keeperCollider) {
+                                let kx = keeperCollider.position.x;
+                                if (activeBall.position.x > kx - 2.5 && activeBall.position.x < kx + 2.5 && activeBall.position.y < 10.0) {
+                                    canBreakPanels = false;
+                                    ballVelocity.z *= -0.6; 
+                                    ballVelocity.x = (Math.random() - 0.5) * 4;
+                                    ballVelocity.y = Math.random() * 2 + 1;
+                                    audioSoccer3.currentTime = 0; audioSoccer3.play().catch(e=>{}); 
+                                    createShatterParticles(activeBall.position, 0xff3333); 
+                                    if (resetDelay === 0) resetDelay = 2.0;
+                                }
                             }
                         }
                     }
 
                     // 的との当たり判定
                     let hitCountThisFrame = 0;
-                    if (canBreakPanels && activeBall.position.z < -38 && activeBall.position.z > -42 && ballVelocity.z < 0) {
+                    let checkZFront = currentMode === 'HANDBALL' ? -48 : -38;
+                    let checkZBack = currentMode === 'HANDBALL' ? -52 : -42;
+
+                    if (canBreakPanels && activeBall.position.z < checkZFront && activeBall.position.z > checkZBack && ballVelocity.z < 0) {
                         let currentPanels = currentMode === 'HANDBALL' ? targetPanelsHandball : targetPanelsSoccer;
                         currentPanels.forEach(p => {
                             if (p.active && activeBall.position.x + bRadius > p.bounds.minX && activeBall.position.x - bRadius < p.bounds.maxX &&
@@ -1436,7 +1688,8 @@
                         }
                     }
 
-                    if (!missJudged && activeBall.position.z < -42) {
+                    let missZ = currentMode === 'HANDBALL' ? -50 : -42;
+                    if (!missJudged && activeBall.position.z < missZ) {
                         missJudged = true;
                         if (!hasHitTargetThisKick) {
                             consecutiveMissCount++;
@@ -1445,15 +1698,38 @@
                         }
                     }
 
-                    // ゴール枠内の判定
-                    if (activeBall.position.z < -40 && activeBall.position.z >= -49) {
-                        if (activeBall.position.x > -6 && activeBall.position.x < 6 && activeBall.position.y < 8) {
+                    // ゴール枠内・ネットの判定 (突き抜け防止)
+                    let goalZFront = currentMode === 'HANDBALL' ? -50 : -40;
+                    let goalZBack = currentMode === 'HANDBALL' ? -58 : -48;
+                    let gwLimit = currentMode === 'HANDBALL' ? 8 : 12; // 半幅
+                    let ghLimit = currentMode === 'HANDBALL' ? 10 : 12; // 高さ
+                    
+                    if (activeBall.position.z < goalZFront && activeBall.position.z > goalZBack - 5) {
+                        if (activeBall.position.x > -gwLimit && activeBall.position.x < gwLimit && activeBall.position.y < ghLimit) {
                             ballVelocity.multiplyScalar(0.92); 
-                            if (activeBall.position.z <= -48 + bRadius) { activeBall.position.z = -48 + bRadius; ballVelocity.z *= -0.3; }
-                            if (activeBall.position.x < -6 + bRadius) { activeBall.position.x = -6 + bRadius; ballVelocity.x *= -0.3; } 
-                            else if (activeBall.position.x > 6 - bRadius) { activeBall.position.x = 6 - bRadius; ballVelocity.x *= -0.3; }
-                            if (activeBall.position.y > 8 - bRadius) { activeBall.position.y = 8 - bRadius; ballVelocity.y *= -0.3; }
-                        } else { ballVelocity.x *= 0.99; ballVelocity.z *= 0.99; }
+                            
+                            // 奥のネット
+                            if (activeBall.position.z <= goalZBack + bRadius) { 
+                                activeBall.position.z = goalZBack + bRadius; 
+                                ballVelocity.z *= -0.3; 
+                            }
+                            // 左右のネット
+                            if (activeBall.position.x < -gwLimit + bRadius) { 
+                                activeBall.position.x = -gwLimit + bRadius; 
+                                ballVelocity.x *= -0.3; 
+                            } else if (activeBall.position.x > gwLimit - bRadius) { 
+                                activeBall.position.x = gwLimit - bRadius; 
+                                ballVelocity.x *= -0.3; 
+                            }
+                            // 上のネット
+                            if (activeBall.position.y > ghLimit - bRadius) { 
+                                activeBall.position.y = ghLimit - bRadius; 
+                                ballVelocity.y *= -0.3; 
+                            }
+                        } else { 
+                            ballVelocity.x *= 0.99; 
+                            ballVelocity.z *= 0.99; 
+                        }
                     }
 
                 } else if (currentMode === 'LONGKICK') {
